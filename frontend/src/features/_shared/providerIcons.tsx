@@ -62,12 +62,12 @@ export function detectProvider(c: { name: string; server: string; cluster?: stri
   if (/\.k8s\.ondigitalocean\.com/i.test(server) || /doks/.test(name)) return 'digitalocean'
   if (/\.linodelke\.net/i.test(server) || /lke/.test(name)) return 'linode'
 
-  if (name === 'orbstack' || /orbstack/i.test(server)) return 'orbstack'
-  if (name === 'docker-desktop' || /docker\.internal/i.test(server)) return 'docker'
-  if (name.startsWith('kind-')) return 'kind'
-  if (name.startsWith('k3d-')) return 'k3d'
-  if (name === 'microk8s') return 'microk8s'
-  if (name === 'minikube') return 'minikube'
+  if (/orbstack/.test(name) || /orbstack/i.test(server)) return 'orbstack'
+  if (/docker-desktop/.test(name) || /docker\.internal/i.test(server)) return 'docker'
+  if (/kind-/.test(name)) return 'kind'
+  if (/k3d-/.test(name)) return 'k3d'
+  if (/microk8s/.test(name)) return 'microk8s'
+  if (/minikube/.test(name)) return 'minikube'
   if (/k3s/.test(name) || /k3s/.test(cluster)) return 'k3s'
 
   const host = hostname(server)
