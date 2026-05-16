@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Network } from 'lucide-react'
 import { toast } from 'sonner'
@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
+import { api, type ContainerPort, type PodDetail } from '@/lib/api'
 import type { SelectedResource } from '@/store/ui'
 
 type Props = {
@@ -20,10 +20,46 @@ type Props = {
   resource: SelectedResource
 }
 
+type PortOption = ContainerPort & { containerName: string }
+
 export function PortForwardButton({ contextName, resource }: Props) {
   const [open, setOpen] = useState(false)
   const [remotePort, setRemotePort] = useState<number>(80)
   const [localPort, setLocalPort] = useState<number>(0)
+  const [detail, setDetail] = useState<PodDetail | null>(null)
+
+  useEffect(() => {
+    if (!open || !contextName) return
+    let cancelled = false
+    api
+      .getPod(contextName, resource.namespace, resource.name)
+      .then((d) => {
+        if (!cancelled) setDetail(d)
+      })
+      .catch(() => {
+        /* fall back to manual entry */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, contextName, resource.namespace, resource.name])
+
+  const suggestions = useMemo<PortOption[]>(() => {
+    if (!detail) return []
+    const all: PortOption[] = []
+    for (const c of detail.containers) {
+      for (const p of c.ports ?? []) {
+        all.push({ ...p, containerName: c.name })
+      }
+    }
+    return all
+  }, [detail])
+
+  useEffect(() => {
+    if (suggestions.length > 0) {
+      setRemotePort(suggestions[0].containerPort)
+    }
+  }, [suggestions])
 
   const start = useMutation({
     mutationFn: async () => {
@@ -42,6 +78,7 @@ export function PortForwardButton({ contextName, resource }: Props) {
       onOpenChange={(o) => {
         setOpen(o)
         if (o) start.reset()
+        else setDetail(null)
       }}
     >
       <DialogTrigger asChild>
@@ -57,10 +94,8 @@ export function PortForwardButton({ contextName, resource }: Props) {
             <div className="space-y-2">
               <p>
                 Forward a container port from{' '}
-                <span className="font-mono text-xs">
-                  pod/{resource.name}
-                </span>{' '}
-                in <span className="font-mono text-xs">{resource.namespace}</span> to your machine.
+                <span className="font-mono text-xs">pod/{resource.name}</span> in{' '}
+                <span className="font-mono text-xs">{resource.namespace}</span> to your machine.
                 Set the local port to <span className="font-mono text-xs">0</span> to let the OS
                 pick a free one.
               </p>
@@ -72,6 +107,35 @@ export function PortForwardButton({ contextName, resource }: Props) {
             </div>
           </DialogDescription>
         </DialogHeader>
+
+        {suggestions.length > 0 && (
+          <div className="space-y-1">
+            <div className="text-xs text-muted-foreground">Container ports</div>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestions.map((p, i) => {
+                const active = remotePort === p.containerPort
+                return (
+                  <button
+                    key={`${p.containerName}-${p.containerPort}-${i}`}
+                    type="button"
+                    onClick={() => setRemotePort(p.containerPort)}
+                    className={[
+                      'rounded border px-2 py-0.5 font-mono text-xs',
+                      active
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-background text-foreground hover:bg-muted',
+                    ].join(' ')}
+                  >
+                    {p.name ? `${p.name} ` : ''}
+                    {p.containerPort}/{p.protocol}
+                    <span className="ml-1 text-[10px] opacity-70">{p.containerName}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-3">
           <label className="w-28 text-sm text-muted-foreground">Local port</label>
           <input

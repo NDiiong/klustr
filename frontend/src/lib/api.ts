@@ -60,6 +60,7 @@ export type IngressInfo = kube.IngressInfo
 export type NodeInfo = kube.NodeInfo
 export type PodDetail = kube.PodDetail
 export type ContainerDetail = kube.ContainerDetail
+export type ContainerPort = kube.ContainerPort
 export type ConditionDetail = kube.ConditionDetail
 export type OwnerRef = kube.OwnerRef
 export type ContainerSummary = kube.ContainerSummary
