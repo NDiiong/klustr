@@ -16,7 +16,7 @@ import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
-import { PodDetailPanel } from '@/features/pods/PodDetailPanel'
+import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { api } from '@/lib/api'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
@@ -191,7 +191,7 @@ function App() {
         </main>
       </div>
 
-      <PodDetailPanel contextName={selectedContext} resource={selectedResource} />
+      <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
     </div>
   )
 }

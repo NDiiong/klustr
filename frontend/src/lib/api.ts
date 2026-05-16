@@ -1,5 +1,16 @@
 import {
+  GetConfigMap,
+  GetCronJob,
+  GetDaemonSet,
+  GetDeployment,
+  GetIngress,
+  GetJob,
+  GetNamespace,
+  GetNode,
   GetPod,
+  GetSecret,
+  GetService,
+  GetStatefulSet,
   ListConfigMaps,
   ListContexts,
   ListCronJobs,
@@ -44,6 +55,24 @@ export type PodDetail = kube.PodDetail
 export type ContainerDetail = kube.ContainerDetail
 export type ConditionDetail = kube.ConditionDetail
 export type OwnerRef = kube.OwnerRef
+export type ContainerSummary = kube.ContainerSummary
+export type DeploymentDetail = kube.DeploymentDetail
+export type StatefulSetDetail = kube.StatefulSetDetail
+export type DaemonSetDetail = kube.DaemonSetDetail
+export type JobDetail = kube.JobDetail
+export type CronJobDetail = kube.CronJobDetail
+export type ServiceDetail = kube.ServiceDetail
+export type ServicePortDetail = kube.ServicePortDetail
+export type ConfigMapDetail = kube.ConfigMapDetail
+export type SecretDetail = kube.SecretDetail
+export type SecretKeyInfo = kube.SecretKeyInfo
+export type IngressDetail = kube.IngressDetail
+export type IngressRuleDetail = kube.IngressRuleDetail
+export type IngressPathDetail = kube.IngressPathDetail
+export type IngressTLSDetail = kube.IngressTLSDetail
+export type NodeDetail = kube.NodeDetail
+export type NodeTaintDetail = kube.NodeTaintDetail
+export type NamespaceDetail = kube.NamespaceDetail
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -93,4 +122,23 @@ export const api = {
   resizeExec: (sessionId: string, cols: number, rows: number): Promise<void> =>
     ResizeExec(sessionId, cols, rows),
   stopExec: (sessionId: string): Promise<void> => StopExec(sessionId),
+  getDeployment: (ctx: string, ns: string, name: string): Promise<DeploymentDetail> =>
+    GetDeployment(ctx, ns, name),
+  getStatefulSet: (ctx: string, ns: string, name: string): Promise<StatefulSetDetail> =>
+    GetStatefulSet(ctx, ns, name),
+  getDaemonSet: (ctx: string, ns: string, name: string): Promise<DaemonSetDetail> =>
+    GetDaemonSet(ctx, ns, name),
+  getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
+  getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
+    GetCronJob(ctx, ns, name),
+  getService: (ctx: string, ns: string, name: string): Promise<ServiceDetail> =>
+    GetService(ctx, ns, name),
+  getConfigMap: (ctx: string, ns: string, name: string): Promise<ConfigMapDetail> =>
+    GetConfigMap(ctx, ns, name),
+  getSecret: (ctx: string, ns: string, name: string): Promise<SecretDetail> =>
+    GetSecret(ctx, ns, name),
+  getIngress: (ctx: string, ns: string, name: string): Promise<IngressDetail> =>
+    GetIngress(ctx, ns, name),
+  getNode: (ctx: string, name: string): Promise<NodeDetail> => GetNode(ctx, name),
+  getNamespace: (ctx: string, name: string): Promise<NamespaceDetail> => GetNamespace(ctx, name),
 }

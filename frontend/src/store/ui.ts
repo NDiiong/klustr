@@ -15,8 +15,22 @@ export type ResourceView =
   | 'nodes'
   | 'namespaces'
 
+export type ResourceKind =
+  | 'Pod'
+  | 'Deployment'
+  | 'StatefulSet'
+  | 'DaemonSet'
+  | 'Job'
+  | 'CronJob'
+  | 'Service'
+  | 'ConfigMap'
+  | 'Secret'
+  | 'Ingress'
+  | 'Node'
+  | 'Namespace'
+
 export type SelectedResource = {
-  kind: 'Pod'
+  kind: ResourceKind
   namespace: string
   name: string
 }
