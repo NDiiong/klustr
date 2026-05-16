@@ -6,6 +6,7 @@ import { onKubeChange } from '@/lib/events'
 import { formatAge } from '@/lib/time'
 import { useUIStore, type SelectedResource } from '@/store/ui'
 import { PodLogsTab } from './PodLogsTab'
+import { PodExecTab } from './PodExecTab'
 
 type Props = {
   contextName: string | null
@@ -16,7 +17,7 @@ export function PodDetailPanel({ contextName, resource }: Props) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const [detail, setDetail] = useState<PodDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'overview' | 'logs'>('overview')
+  const [tab, setTab] = useState<'overview' | 'logs' | 'exec'>('overview')
   const open = resource !== null && resource.kind === 'Pod'
 
   useEffect(() => {
@@ -68,10 +69,11 @@ export function PodDetailPanel({ contextName, resource }: Props) {
           <div className="text-xs text-muted-foreground">{resource?.namespace}</div>
         </SheetHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as 'overview' | 'logs')} className="flex min-h-0 flex-1 flex-col">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as 'overview' | 'logs' | 'exec')} className="flex min-h-0 flex-1 flex-col">
           <TabsList className="mx-6 mt-3 w-fit">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="logs" disabled={!detail}>Logs</TabsTrigger>
+            <TabsTrigger value="exec" disabled={!detail || detail.containers.length === 0}>Exec</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
@@ -85,6 +87,10 @@ export function PodDetailPanel({ contextName, resource }: Props) {
 
           <TabsContent value="logs" className="min-h-0 flex-1 p-0">
             {detail && <PodLogsTab detail={detail} />}
+          </TabsContent>
+
+          <TabsContent value="exec" className="min-h-0 flex-1 p-0">
+            {detail && <PodExecTab detail={detail} />}
           </TabsContent>
         </Tabs>
       </SheetContent>

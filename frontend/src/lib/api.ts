@@ -14,8 +14,12 @@ import {
   ListServices,
   ListStatefulSets,
   PingContext,
+  ResizeExec,
+  SendExecInput,
+  StartExec,
   StartPodLogs,
   StartWatch,
+  StopExec,
   StopPodLogs,
   StopWatch,
 } from '@/lib/wails/wailsjs/go/app/App'
@@ -78,4 +82,15 @@ export const api = {
   ): Promise<string> =>
     StartPodLogs(contextName, namespace, podName, container, follow, tailLines),
   stopPodLogs: (sessionId: string): Promise<void> => StopPodLogs(sessionId),
+  startExec: (
+    contextName: string,
+    namespace: string,
+    podName: string,
+    container: string,
+    command: string[],
+  ): Promise<string> => StartExec(contextName, namespace, podName, container, command),
+  sendExecInput: (sessionId: string, data: string): Promise<void> => SendExecInput(sessionId, data),
+  resizeExec: (sessionId: string, cols: number, rows: number): Promise<void> =>
+    ResizeExec(sessionId, cols, rows),
+  stopExec: (sessionId: string): Promise<void> => StopExec(sessionId),
 }
