@@ -100,6 +100,22 @@ func (a *App) GetNamespace(contextName, name string) (*kube.NamespaceDetail, err
 	return a.clients.Namespace(contextName, name)
 }
 
+func (a *App) GetResourceYAML(contextName, kind, namespace, name string) (string, error) {
+	return a.clients.GetResourceYAML(a.ctx, contextName, kind, namespace, name)
+}
+
+func (a *App) ApplyResourceYAML(contextName, yamlBody string) error {
+	return a.clients.ApplyResourceYAML(a.ctx, contextName, yamlBody)
+}
+
+func (a *App) DeleteResource(contextName, kind, namespace, name string) error {
+	return a.clients.DeleteResource(a.ctx, contextName, kind, namespace, name)
+}
+
+func (a *App) ScaleResource(contextName, kind, namespace, name string, replicas int) error {
+	return a.clients.ScaleResource(a.ctx, contextName, kind, namespace, name, int32(replicas))
+}
+
 func (a *App) StartPodLogs(contextName, namespace, podName, container string, follow bool, tailLines int) (string, error) {
 	var sessionID string
 	id, err := a.clients.StartLogs(
