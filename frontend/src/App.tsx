@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
+import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
 
 const RESOURCE_GROUPS = [
   { label: 'Workloads', items: ['Pods', 'Deployments', 'StatefulSets', 'DaemonSets', 'Jobs', 'CronJobs'] },
@@ -32,9 +34,7 @@ function App() {
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold tracking-tight">Klustr</span>
-          <Button variant="outline" size="sm" disabled>
-            No context
-          </Button>
+          <ContextSwitcher />
           <Button variant="outline" size="sm" disabled>
             All namespaces
           </Button>
@@ -78,9 +78,7 @@ function App() {
         </aside>
 
         <main className="flex flex-1 items-center justify-center overflow-auto p-6">
-          <div className="text-center text-sm text-muted-foreground">
-            Select a kubeconfig context to get started.
-          </div>
+          <ConnectionStatus />
         </main>
       </div>
     </div>
