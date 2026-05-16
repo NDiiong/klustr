@@ -40,6 +40,8 @@ export function GetPod(arg1:string,arg2:string,arg3:string):Promise<kube.PodDeta
 
 export function GetPodDisruptionBudget(arg1:string,arg2:string,arg3:string):Promise<kube.PodDisruptionBudgetDetail>;
 
+export function GetPriorityClass(arg1:string,arg2:string):Promise<kube.PriorityClassDetail>;
+
 export function GetReplicaSet(arg1:string,arg2:string,arg3:string):Promise<kube.ReplicaSetDetail>;
 
 export function GetResourceQuota(arg1:string,arg2:string,arg3:string):Promise<kube.ResourceQuotaDetail>;
@@ -95,6 +97,8 @@ export function ListPodMetrics(arg1:string,arg2:string):Promise<Array<kube.PodMe
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 
 export function ListPortForwards():Promise<Array<kube.PortForwardInfo>>;
+
+export function ListPriorityClasses(arg1:string):Promise<Array<kube.PriorityClassInfo>>;
 
 export function ListReplicaSets(arg1:string,arg2:string):Promise<Array<kube.ReplicaSetInfo>>;
 

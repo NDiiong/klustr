@@ -1642,6 +1642,54 @@ export namespace kube {
 	        this.error = source["error"];
 	    }
 	}
+	export class PriorityClassDetail {
+	    name: string;
+	    uid: string;
+	    value: number;
+	    globalDefault: boolean;
+	    description: string;
+	    preemptionPolicy: string;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PriorityClassDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.value = source["value"];
+	        this.globalDefault = source["globalDefault"];
+	        this.description = source["description"];
+	        this.preemptionPolicy = source["preemptionPolicy"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class PriorityClassInfo {
+	    name: string;
+	    value: number;
+	    globalDefault: boolean;
+	    description: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PriorityClassInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.value = source["value"];
+	        this.globalDefault = source["globalDefault"];
+	        this.description = source["description"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ReplicaSetDetail {
 	    name: string;
 	    namespace: string;

@@ -53,6 +53,18 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type PriorityClassDetail struct {
+	Name             string            `json:"name"`
+	UID              string            `json:"uid"`
+	Value            int32             `json:"value"`
+	GlobalDefault    bool              `json:"globalDefault"`
+	Description      string            `json:"description"`
+	PreemptionPolicy string            `json:"preemptionPolicy"`
+	Labels           map[string]string `json:"labels"`
+	Annotations      map[string]string `json:"annotations"`
+	CreatedAt        string            `json:"createdAt"`
+}
+
 type IngressClassDetail struct {
 	Name        string            `json:"name"`
 	UID         string            `json:"uid"`
@@ -471,6 +483,28 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) PriorityClass(name string) (*PriorityClassDetail, error) {
+	p, err := w.factory.Scheduling().V1().PriorityClasses().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	pp := ""
+	if p.PreemptionPolicy != nil {
+		pp = string(*p.PreemptionPolicy)
+	}
+	return &PriorityClassDetail{
+		Name:             p.Name,
+		UID:              string(p.UID),
+		Value:            p.Value,
+		GlobalDefault:    p.GlobalDefault,
+		Description:      p.Description,
+		PreemptionPolicy: pp,
+		Labels:           p.Labels,
+		Annotations:      p.Annotations,
+		CreatedAt:        p.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

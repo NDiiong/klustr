@@ -117,6 +117,10 @@ func (a *App) GetIngressClass(contextName, name string) (*kube.IngressClassDetai
 	return a.clients.IngressClass(contextName, name)
 }
 
+func (a *App) GetPriorityClass(contextName, name string) (*kube.PriorityClassDetail, error) {
+	return a.clients.PriorityClass(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -321,6 +325,10 @@ func (a *App) ListLimitRanges(name, namespace string) []kube.LimitRangeInfo {
 
 func (a *App) ListIngressClasses(name string) []kube.IngressClassInfo {
 	return a.clients.IngressClasses(name)
+}
+
+func (a *App) ListPriorityClasses(name string) []kube.PriorityClassInfo {
+	return a.clients.PriorityClasses(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

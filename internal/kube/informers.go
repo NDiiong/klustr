@@ -102,6 +102,14 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type PriorityClassInfo struct {
+	Name          string `json:"name"`
+	Value         int32  `json:"value"`
+	GlobalDefault bool   `json:"globalDefault"`
+	Description   string `json:"description"`
+	CreatedAt     string `json:"createdAt"`
+}
+
 type IngressClassInfo struct {
 	Name        string `json:"name"`
 	Controller  string `json:"controller"`
@@ -428,6 +436,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	priorityClasses := w.factory.Scheduling().V1().PriorityClasses().Informer()
+	if _, err := priorityClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("PriorityClass") },
+		UpdateFunc: func(any, any) { w.touch("PriorityClass") },
+		DeleteFunc: func(any) { w.touch("PriorityClass") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	ingressClasses := w.factory.Networking().V1().IngressClasses().Informer()
 	if _, err := ingressClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("IngressClass") },
@@ -567,6 +585,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
+			"PriorityClass",
 		} {
 			w.touch(kind)
 		}
@@ -991,6 +1010,25 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) PriorityClasses() []PriorityClassInfo {
+	pcs, err := w.factory.Scheduling().V1().PriorityClasses().Lister().List(labels.Everything())
+	if err != nil {
+		return []PriorityClassInfo{}
+	}
+	out := make([]PriorityClassInfo, 0, len(pcs))
+	for _, p := range pcs {
+		out = append(out, PriorityClassInfo{
+			Name:          p.Name,
+			Value:         p.Value,
+			GlobalDefault: p.GlobalDefault,
+			Description:   p.Description,
+			CreatedAt:     p.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Value > out[j].Value })
 	return out
 }
 

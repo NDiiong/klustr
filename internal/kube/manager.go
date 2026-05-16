@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) PriorityClass(contextName, name string) (*PriorityClassDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.PriorityClass(name)
+}
+
 func (m *ClientManager) IngressClass(contextName, name string) (*IngressClassDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -481,6 +489,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) PriorityClasses(contextName string) []PriorityClassInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []PriorityClassInfo{}
+	}
+	return w.PriorityClasses()
 }
 
 func (m *ClientManager) IngressClasses(contextName string) []IngressClassInfo {

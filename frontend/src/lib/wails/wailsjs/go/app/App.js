@@ -78,6 +78,10 @@ export function GetPodDisruptionBudget(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetPodDisruptionBudget'](arg1, arg2, arg3);
 }
 
+export function GetPriorityClass(arg1, arg2) {
+  return window['go']['app']['App']['GetPriorityClass'](arg1, arg2);
+}
+
 export function GetReplicaSet(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetReplicaSet'](arg1, arg2, arg3);
 }
@@ -188,6 +192,10 @@ export function ListPods(arg1, arg2) {
 
 export function ListPortForwards() {
   return window['go']['app']['App']['ListPortForwards']();
+}
+
+export function ListPriorityClasses(arg1) {
+  return window['go']['app']['App']['ListPriorityClasses'](arg1);
 }
 
 export function ListReplicaSets(arg1, arg2) {
