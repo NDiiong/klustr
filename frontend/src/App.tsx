@@ -17,9 +17,12 @@ import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
+import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { api } from '@/lib/api'
+import { onPFUpdate } from '@/lib/events'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
+import { usePortForwards } from '@/store/portForwards'
 
 type NavItem = { label: string; view?: ResourceView }
 
@@ -111,11 +114,20 @@ function App() {
   const setSelectedView = useUIStore((s) => s.setSelectedView)
   const selectedResource = useUIStore((s) => s.selectedResource)
   const resetResources = useResources((s) => s.reset)
+  const setPortForwards = usePortForwards((s) => s.setList)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    const reload = () => {
+      api.listPortForwards().then((list) => setPortForwards(list ?? []))
+    }
+    reload()
+    return onPFUpdate(reload)
+  }, [setPortForwards])
 
   useEffect(() => {
     if (!selectedContext) return
@@ -135,6 +147,7 @@ function App() {
           <NamespaceSelector />
         </div>
         <div className="flex items-center gap-1">
+          <PortForwardIndicator />
           <Button
             variant="ghost"
             size="icon-sm"

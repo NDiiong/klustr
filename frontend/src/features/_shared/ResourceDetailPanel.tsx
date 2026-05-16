@@ -8,6 +8,7 @@ import { ErrorBox } from './DetailPrimitives'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { DeleteResourceButton } from './DeleteResourceButton'
 import { ScaleResourceButton, isScalable } from './ScaleResourceButton'
+import { PortForwardButton } from '@/features/portforward/PortForwardButton'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { PodExecTab } from '@/features/pods/PodExecTab'
@@ -50,6 +51,9 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
           </div>
           {resource && (
             <div className="flex shrink-0 items-center gap-2 pt-1">
+              {resource.kind === 'Pod' && (
+                <PortForwardButton contextName={contextName} resource={resource} />
+              )}
               {isScalable(resource.kind) && (
                 <ScaleResourceButton contextName={contextName} resource={resource} />
               )}

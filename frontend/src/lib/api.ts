@@ -1,6 +1,9 @@
 import {
   ApplyResourceYAML,
   DeleteResource,
+  ListPortForwards,
+  StartPortForward,
+  StopPortForward,
   GetConfigMap,
   GetCronJob,
   GetDaemonSet,
@@ -77,6 +80,7 @@ export type IngressTLSDetail = kube.IngressTLSDetail
 export type NodeDetail = kube.NodeDetail
 export type NodeTaintDetail = kube.NodeTaintDetail
 export type NamespaceDetail = kube.NamespaceDetail
+export type PortForwardInfo = kube.PortForwardInfo
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -153,4 +157,13 @@ export const api = {
     DeleteResource(ctx, kind, ns, name),
   scaleResource: (ctx: string, kind: string, ns: string, name: string, replicas: number): Promise<void> =>
     ScaleResource(ctx, kind, ns, name, replicas),
+  startPortForward: (
+    ctx: string,
+    namespace: string,
+    podName: string,
+    localPort: number,
+    remotePort: number,
+  ): Promise<PortForwardInfo> => StartPortForward(ctx, namespace, podName, localPort, remotePort),
+  stopPortForward: (id: string): Promise<void> => StopPortForward(id),
+  listPortForwards: (): Promise<PortForwardInfo[]> => ListPortForwards(),
 }

@@ -25,3 +25,22 @@ export function onKubeChange(kind: string, handler: Handler): () => void {
     set.delete(handler)
   }
 }
+
+const pfHandlers = new Set<() => void>()
+let pfInstalled = false
+
+function installPF() {
+  if (pfInstalled) return
+  pfInstalled = true
+  EventsOn('pf:update', () => {
+    pfHandlers.forEach((h) => h())
+  })
+}
+
+export function onPFUpdate(handler: () => void): () => void {
+  installPF()
+  pfHandlers.add(handler)
+  return () => {
+    pfHandlers.delete(handler)
+  }
+}
