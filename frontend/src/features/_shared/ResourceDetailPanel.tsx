@@ -7,6 +7,7 @@ import { useResourceDetail } from './useResourceDetail'
 import { ErrorBox } from './DetailPrimitives'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { MultiPodLogsTab } from './MultiPodLogsTab'
+import { EventsTab } from './EventsTab'
 import { DeleteResourceButton } from './DeleteResourceButton'
 import { ScaleResourceButton, isScalable } from './ScaleResourceButton'
 import { PortForwardButton } from '@/features/portforward/PortForwardButton'
@@ -87,6 +88,7 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         {hasAggregatedLogs && <TabsTrigger value="logs">Logs</TabsTrigger>}
+        <TabsTrigger value="events">Events</TabsTrigger>
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
@@ -97,6 +99,14 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
           <WorkloadLogs contextName={contextName} resource={resource} />
         </TabsContent>
       )}
+      <TabsContent value="events" className="min-h-0 flex-1 p-0">
+        <EventsTab
+          contextName={contextName}
+          namespace={resource.namespace}
+          kind={resource.kind}
+          name={resource.name}
+        />
+      </TabsContent>
       <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
         <ResourceYAMLTab
           contextName={contextName}
@@ -163,7 +173,7 @@ function PodTabs({
 }) {
   const load = useCallback((ctx: string) => api.getPod(ctx, namespace, name), [namespace, name])
   const { detail, error } = useResourceDetail<PodDetail>(contextName, 'Pod', load)
-  const [tab, setTab] = useState<'overview' | 'logs' | 'exec' | 'yaml'>('overview')
+  const [tab, setTab] = useState<'overview' | 'logs' | 'exec' | 'events' | 'yaml'>('overview')
 
   useEffect(() => {
     setTab('overview')
@@ -175,6 +185,7 @@ function PodTabs({
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="logs" disabled={!detail}>Logs</TabsTrigger>
         <TabsTrigger value="exec" disabled={!detail || detail.containers.length === 0}>Exec</TabsTrigger>
+        <TabsTrigger value="events">Events</TabsTrigger>
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
@@ -186,6 +197,9 @@ function PodTabs({
       </TabsContent>
       <TabsContent value="exec" className="min-h-0 flex-1 p-0">
         {detail && <PodExecTab detail={detail} />}
+      </TabsContent>
+      <TabsContent value="events" className="min-h-0 flex-1 p-0">
+        <EventsTab contextName={contextName} namespace={namespace} kind="Pod" name={name} />
       </TabsContent>
       <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
         <ResourceYAMLTab contextName={contextName} kind="Pod" namespace={namespace} name={name} />
