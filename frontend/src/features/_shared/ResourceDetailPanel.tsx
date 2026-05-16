@@ -28,6 +28,7 @@ import { PodDisruptionBudgetDetailBody } from '@/features/pdbs/PodDisruptionBudg
 import { EndpointSliceDetailBody } from '@/features/endpointslices/EndpointSliceDetailBody'
 import { ResourceQuotaDetailBody } from '@/features/resourcequotas/ResourceQuotaDetailBody'
 import { LimitRangeDetailBody } from '@/features/limitranges/LimitRangeDetailBody'
+import { IngressClassDetailBody } from '@/features/ingressclasses/IngressClassDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -246,6 +247,8 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return <ResourceQuotaDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'LimitRange':
       return <LimitRangeDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
+    case 'IngressClass':
+      return <IngressClassDetailBody contextName={contextName} name={resource.name} />
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

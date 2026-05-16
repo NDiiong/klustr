@@ -20,6 +20,8 @@ export function GetHorizontalPodAutoscaler(arg1:string,arg2:string,arg3:string):
 
 export function GetIngress(arg1:string,arg2:string,arg3:string):Promise<kube.IngressDetail>;
 
+export function GetIngressClass(arg1:string,arg2:string):Promise<kube.IngressClassDetail>;
+
 export function GetJob(arg1:string,arg2:string,arg3:string):Promise<kube.JobDetail>;
 
 export function GetLimitRange(arg1:string,arg2:string,arg3:string):Promise<kube.LimitRangeDetail>;
@@ -67,6 +69,8 @@ export function ListEndpointSlices(arg1:string,arg2:string):Promise<Array<kube.E
 export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<kube.EventInfo>>;
 
 export function ListHorizontalPodAutoscalers(arg1:string,arg2:string):Promise<Array<kube.HorizontalPodAutoscalerInfo>>;
+
+export function ListIngressClasses(arg1:string):Promise<Array<kube.IngressClassInfo>>;
 
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
 

@@ -113,6 +113,10 @@ func (a *App) GetLimitRange(contextName, namespace, name string) (*kube.LimitRan
 	return a.clients.LimitRange(contextName, namespace, name)
 }
 
+func (a *App) GetIngressClass(contextName, name string) (*kube.IngressClassDetail, error) {
+	return a.clients.IngressClass(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -313,6 +317,10 @@ func (a *App) ListResourceQuotas(name, namespace string) []kube.ResourceQuotaInf
 
 func (a *App) ListLimitRanges(name, namespace string) []kube.LimitRangeInfo {
 	return a.clients.LimitRanges(name, namespace)
+}
+
+func (a *App) ListIngressClasses(name string) []kube.IngressClassInfo {
+	return a.clients.IngressClasses(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

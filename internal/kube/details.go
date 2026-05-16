@@ -53,6 +53,17 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type IngressClassDetail struct {
+	Name        string            `json:"name"`
+	UID         string            `json:"uid"`
+	Controller  string            `json:"controller"`
+	IsDefault   bool              `json:"isDefault"`
+	Parameters  string            `json:"parameters"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 type LimitRangeItem struct {
 	Type                 string            `json:"type"`
 	Max                  map[string]string `json:"max"`
@@ -460,6 +471,27 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) IngressClass(name string) (*IngressClassDetail, error) {
+	c, err := w.factory.Networking().V1().IngressClasses().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	params := ""
+	if c.Spec.Parameters != nil {
+		params = c.Spec.Parameters.Kind + "/" + c.Spec.Parameters.Name
+	}
+	return &IngressClassDetail{
+		Name:        c.Name,
+		UID:         string(c.UID),
+		Controller:  c.Spec.Controller,
+		IsDefault:   c.Annotations["ingressclass.kubernetes.io/is-default-class"] == "true",
+		Parameters:  params,
+		Labels:      c.Labels,
+		Annotations: c.Annotations,
+		CreatedAt:   c.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

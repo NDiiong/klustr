@@ -663,6 +663,50 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class IngressClassDetail {
+	    name: string;
+	    uid: string;
+	    controller: string;
+	    isDefault: boolean;
+	    parameters: string;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IngressClassDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.controller = source["controller"];
+	        this.isDefault = source["isDefault"];
+	        this.parameters = source["parameters"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class IngressClassInfo {
+	    name: string;
+	    controller: string;
+	    isDefault: boolean;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IngressClassInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.controller = source["controller"];
+	        this.isDefault = source["isDefault"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class IngressTLSDetail {
 	    hosts: string[];
 	    secretName: string;

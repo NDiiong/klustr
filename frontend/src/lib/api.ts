@@ -21,6 +21,7 @@ import {
   GetEndpointSlice,
   GetResourceQuota,
   GetLimitRange,
+  GetIngressClass,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -45,6 +46,7 @@ import {
   ListEndpointSlices,
   ListResourceQuotas,
   ListLimitRanges,
+  ListIngressClasses,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -88,6 +90,7 @@ export type PodDisruptionBudgetInfo = kube.PodDisruptionBudgetInfo
 export type EndpointSliceInfo = kube.EndpointSliceInfo
 export type ResourceQuotaInfo = kube.ResourceQuotaInfo
 export type LimitRangeInfo = kube.LimitRangeInfo
+export type IngressClassInfo = kube.IngressClassInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -115,6 +118,7 @@ export type ResourceQuotaDetail = kube.ResourceQuotaDetail
 export type ResourceQuotaEntry = kube.ResourceQuotaEntry
 export type LimitRangeDetail = kube.LimitRangeDetail
 export type LimitRangeItem = kube.LimitRangeItem
+export type IngressClassDetail = kube.IngressClassDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -172,6 +176,7 @@ export const api = {
     ListResourceQuotas(name, namespace),
   listLimitRanges: (name: string, namespace: string): Promise<LimitRangeInfo[]> =>
     ListLimitRanges(name, namespace),
+  listIngressClasses: (name: string): Promise<IngressClassInfo[]> => ListIngressClasses(name),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -227,6 +232,8 @@ export const api = {
     GetResourceQuota(ctx, ns, name),
   getLimitRange: (ctx: string, ns: string, name: string): Promise<LimitRangeDetail> =>
     GetLimitRange(ctx, ns, name),
+  getIngressClass: (ctx: string, name: string): Promise<IngressClassDetail> =>
+    GetIngressClass(ctx, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

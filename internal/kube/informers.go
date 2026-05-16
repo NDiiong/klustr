@@ -102,6 +102,13 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type IngressClassInfo struct {
+	Name        string `json:"name"`
+	Controller  string `json:"controller"`
+	IsDefault   bool   `json:"isDefault"`
+	CreatedAt   string `json:"createdAt"`
+}
+
 type LimitRangeInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -421,6 +428,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	ingressClasses := w.factory.Networking().V1().IngressClasses().Informer()
+	if _, err := ingressClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("IngressClass") },
+		UpdateFunc: func(any, any) { w.touch("IngressClass") },
+		DeleteFunc: func(any) { w.touch("IngressClass") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	limitRanges := w.factory.Core().V1().LimitRanges().Informer()
 	if _, err := limitRanges.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("LimitRange") },
@@ -549,7 +566,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
-			"EndpointSlice", "ResourceQuota", "LimitRange",
+			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
 		} {
 			w.touch(kind)
 		}
@@ -974,6 +991,24 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) IngressClasses() []IngressClassInfo {
+	classes, err := w.factory.Networking().V1().IngressClasses().Lister().List(labels.Everything())
+	if err != nil {
+		return []IngressClassInfo{}
+	}
+	out := make([]IngressClassInfo, 0, len(classes))
+	for _, c := range classes {
+		out = append(out, IngressClassInfo{
+			Name:       c.Name,
+			Controller: c.Spec.Controller,
+			IsDefault:  c.Annotations["ingressclass.kubernetes.io/is-default-class"] == "true",
+			CreatedAt:  c.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

@@ -38,6 +38,10 @@ export function GetIngress(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetIngress'](arg1, arg2, arg3);
 }
 
+export function GetIngressClass(arg1, arg2) {
+  return window['go']['app']['App']['GetIngressClass'](arg1, arg2);
+}
+
 export function GetJob(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetJob'](arg1, arg2, arg3);
 }
@@ -132,6 +136,10 @@ export function ListEvents(arg1, arg2, arg3, arg4) {
 
 export function ListHorizontalPodAutoscalers(arg1, arg2) {
   return window['go']['app']['App']['ListHorizontalPodAutoscalers'](arg1, arg2);
+}
+
+export function ListIngressClasses(arg1) {
+  return window['go']['app']['App']['ListIngressClasses'](arg1);
 }
 
 export function ListIngresses(arg1, arg2) {

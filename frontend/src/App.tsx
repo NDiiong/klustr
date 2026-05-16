@@ -21,6 +21,7 @@ import { PodDisruptionBudgetsView } from '@/features/pdbs/PodDisruptionBudgetsVi
 import { EndpointSlicesView } from '@/features/endpointslices/EndpointSlicesView'
 import { ResourceQuotasView } from '@/features/resourcequotas/ResourceQuotasView'
 import { LimitRangesView } from '@/features/limitranges/LimitRangesView'
+import { IngressClassesView } from '@/features/ingressclasses/IngressClassesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -72,6 +73,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Ingresses', view: 'ingresses' },
       { label: 'NetworkPolicies', view: 'networkpolicies' },
       { label: 'EndpointSlices', view: 'endpointslices' },
+      { label: 'IngressClasses', view: 'ingressclasses' },
     ],
   },
   {
@@ -138,6 +140,8 @@ function MainView() {
       return <ResourceQuotasView />
     case 'limitranges':
       return <LimitRangesView />
+    case 'ingressclasses':
+      return <IngressClassesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':
