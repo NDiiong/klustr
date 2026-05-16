@@ -38,6 +38,10 @@ export function GetNamespace(arg1, arg2) {
   return window['go']['app']['App']['GetNamespace'](arg1, arg2);
 }
 
+export function GetNetworkPolicy(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetNetworkPolicy'](arg1, arg2, arg3);
+}
+
 export function GetNode(arg1, arg2) {
   return window['go']['app']['App']['GetNode'](arg1, arg2);
 }
@@ -112,6 +116,10 @@ export function ListJobs(arg1, arg2) {
 
 export function ListNamespaces(arg1) {
   return window['go']['app']['App']['ListNamespaces'](arg1);
+}
+
+export function ListNetworkPolicies(arg1, arg2) {
+  return window['go']['app']['App']['ListNetworkPolicies'](arg1, arg2);
 }
 
 export function ListNodes(arg1) {

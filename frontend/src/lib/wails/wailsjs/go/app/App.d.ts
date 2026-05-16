@@ -20,6 +20,8 @@ export function GetJob(arg1:string,arg2:string,arg3:string):Promise<kube.JobDeta
 
 export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDetail>;
 
+export function GetNetworkPolicy(arg1:string,arg2:string,arg3:string):Promise<kube.NetworkPolicyDetail>;
+
 export function GetNode(arg1:string,arg2:string):Promise<kube.NodeDetail>;
 
 export function GetPersistentVolume(arg1:string,arg2:string):Promise<kube.PersistentVolumeDetail>;
@@ -57,6 +59,8 @@ export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.Ingres
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
 
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
+
+export function ListNetworkPolicies(arg1:string,arg2:string):Promise<Array<kube.NetworkPolicyInfo>>;
 
 export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 

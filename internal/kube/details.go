@@ -53,6 +53,19 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type NetworkPolicyDetail struct {
+	Name        string            `json:"name"`
+	Namespace   string            `json:"namespace"`
+	UID         string            `json:"uid"`
+	PodSelector string            `json:"podSelector"`
+	PolicyTypes []string          `json:"policyTypes"`
+	Ingress     int               `json:"ingress"`
+	Egress      int               `json:"egress"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 type StorageClassDetail struct {
 	Name              string            `json:"name"`
 	UID               string            `json:"uid"`
@@ -352,6 +365,29 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) NetworkPolicy(namespace, name string) (*NetworkPolicyDetail, error) {
+	p, err := w.factory.Networking().V1().NetworkPolicies().Lister().NetworkPolicies(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	types := make([]string, 0, len(p.Spec.PolicyTypes))
+	for _, t := range p.Spec.PolicyTypes {
+		types = append(types, string(t))
+	}
+	return &NetworkPolicyDetail{
+		Name:        p.Name,
+		Namespace:   p.Namespace,
+		UID:         string(p.UID),
+		PodSelector: formatLabelSelector(&p.Spec.PodSelector),
+		PolicyTypes: types,
+		Ingress:     len(p.Spec.Ingress),
+		Egress:      len(p.Spec.Egress),
+		Labels:      p.Labels,
+		Annotations: p.Annotations,
+		CreatedAt:   p.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

@@ -89,6 +89,10 @@ func (a *App) GetStorageClass(contextName, name string) (*kube.StorageClassDetai
 	return a.clients.StorageClass(contextName, name)
 }
 
+func (a *App) GetNetworkPolicy(contextName, namespace, name string) (*kube.NetworkPolicyDetail, error) {
+	return a.clients.NetworkPolicy(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -265,6 +269,10 @@ func (a *App) ListPersistentVolumes(name string) []kube.PersistentVolumeInfo {
 
 func (a *App) ListStorageClasses(name string) []kube.StorageClassInfo {
 	return a.clients.StorageClasses(name)
+}
+
+func (a *App) ListNetworkPolicies(name, namespace string) []kube.NetworkPolicyInfo {
+	return a.clients.NetworkPolicies(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

@@ -7,6 +7,7 @@ import type {
   PersistentVolumeClaimInfo,
   PersistentVolumeInfo,
   StorageClassInfo,
+  NetworkPolicyInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -31,6 +32,7 @@ type ResourcesState = {
   persistentVolumeClaims: PersistentVolumeClaimInfo[]
   persistentVolumes: PersistentVolumeInfo[]
   storageClasses: StorageClassInfo[]
+  networkPolicies: NetworkPolicyInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -47,6 +49,7 @@ type ResourcesState = {
   setPersistentVolumeClaims: (list: PersistentVolumeClaimInfo[]) => void
   setPersistentVolumes: (list: PersistentVolumeInfo[]) => void
   setStorageClasses: (list: StorageClassInfo[]) => void
+  setNetworkPolicies: (list: NetworkPolicyInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -68,6 +71,7 @@ function emptyLists() {
     persistentVolumeClaims: [] as PersistentVolumeClaimInfo[],
     persistentVolumes: [] as PersistentVolumeInfo[],
     storageClasses: [] as StorageClassInfo[],
+    networkPolicies: [] as NetworkPolicyInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -89,6 +93,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setPersistentVolumeClaims: (list) => set({ persistentVolumeClaims: list }),
   setPersistentVolumes: (list) => set({ persistentVolumes: list }),
   setStorageClasses: (list) => set({ storageClasses: list }),
+  setNetworkPolicies: (list) => set({ networkPolicies: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

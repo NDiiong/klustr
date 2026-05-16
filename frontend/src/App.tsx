@@ -15,6 +15,7 @@ import { ReplicaSetsView } from '@/features/replicasets/ReplicaSetsView'
 import { PersistentVolumeClaimsView } from '@/features/pvcs/PersistentVolumeClaimsView'
 import { PersistentVolumesView } from '@/features/pvs/PersistentVolumesView'
 import { StorageClassesView } from '@/features/storageclasses/StorageClassesView'
+import { NetworkPoliciesView } from '@/features/networkpolicies/NetworkPoliciesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -60,6 +61,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: 'Services', view: 'services' },
       { label: 'Ingresses', view: 'ingresses' },
+      { label: 'NetworkPolicies', view: 'networkpolicies' },
     ],
   },
   {
@@ -114,6 +116,8 @@ function MainView() {
       return <PersistentVolumesView />
     case 'storageclasses':
       return <StorageClassesView />
+    case 'networkpolicies':
+      return <NetworkPoliciesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

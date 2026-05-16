@@ -768,6 +768,56 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class NetworkPolicyDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    podSelector: string;
+	    policyTypes: string[];
+	    ingress: number;
+	    egress: number;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NetworkPolicyDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.podSelector = source["podSelector"];
+	        this.policyTypes = source["policyTypes"];
+	        this.ingress = source["ingress"];
+	        this.egress = source["egress"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class NetworkPolicyInfo {
+	    name: string;
+	    namespace: string;
+	    podSelector: string;
+	    policyTypes: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NetworkPolicyInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.podSelector = source["podSelector"];
+	        this.policyTypes = source["policyTypes"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class NodeTaintDetail {
 	    key: string;
 	    value: string;

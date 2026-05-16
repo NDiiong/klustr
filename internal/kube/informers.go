@@ -12,6 +12,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -96,6 +97,14 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
+}
+
+type NetworkPolicyInfo struct {
+	Name        string `json:"name"`
+	Namespace   string `json:"namespace"`
+	PodSelector string `json:"podSelector"`
+	PolicyTypes string `json:"policyTypes"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type StorageClassInfo struct {
@@ -361,6 +370,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	netpols := w.factory.Networking().V1().NetworkPolicies().Informer()
+	if _, err := netpols.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("NetworkPolicy") },
+		UpdateFunc: func(any, any) { w.touch("NetworkPolicy") },
+		DeleteFunc: func(any) { w.touch("NetworkPolicy") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	storageClasses := w.factory.Storage().V1().StorageClasses().Informer()
 	if _, err := storageClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("StorageClass") },
@@ -428,6 +447,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
+			"NetworkPolicy",
 		} {
 			w.touch(kind)
 		}
@@ -855,6 +875,38 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 	return out
 }
 
+func (w *contextWatcher) NetworkPolicies(namespace string) []NetworkPolicyInfo {
+	lister := w.factory.Networking().V1().NetworkPolicies().Lister()
+	var (
+		policies []*networkingv1.NetworkPolicy
+		err      error
+	)
+	if namespace == "" {
+		policies, err = lister.List(labels.Everything())
+	} else {
+		policies, err = lister.NetworkPolicies(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []NetworkPolicyInfo{}
+	}
+	out := make([]NetworkPolicyInfo, 0, len(policies))
+	for _, p := range policies {
+		types := make([]string, 0, len(p.Spec.PolicyTypes))
+		for _, t := range p.Spec.PolicyTypes {
+			types = append(types, string(t))
+		}
+		out = append(out, NetworkPolicyInfo{
+			Name:        p.Name,
+			Namespace:   p.Namespace,
+			PodSelector: formatLabelSelector(&p.Spec.PodSelector),
+			PolicyTypes: strings.Join(types, ","),
+			CreatedAt:   p.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
 func (w *contextWatcher) StorageClasses() []StorageClassInfo {
 	scs, err := w.factory.Storage().V1().StorageClasses().Lister().List(labels.Everything())
 	if err != nil {
@@ -1199,6 +1251,21 @@ func sortByNamespaceName[T any](slice []T, key func(int) (string, string)) {
 		}
 		return n < m
 	})
+}
+
+func formatLabelSelector(sel *metav1.LabelSelector) string {
+	if sel == nil || (len(sel.MatchLabels) == 0 && len(sel.MatchExpressions) == 0) {
+		return "<all>"
+	}
+	parts := make([]string, 0, len(sel.MatchLabels)+len(sel.MatchExpressions))
+	for k, v := range sel.MatchLabels {
+		parts = append(parts, k+"="+v)
+	}
+	sort.Strings(parts)
+	for _, m := range sel.MatchExpressions {
+		parts = append(parts, fmt.Sprintf("%s %s %v", m.Key, m.Operator, m.Values))
+	}
+	return strings.Join(parts, ",")
 }
 
 func formatNodeSelector(sel map[string]string) string {
