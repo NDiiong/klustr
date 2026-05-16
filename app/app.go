@@ -51,3 +51,7 @@ func (a *App) ListNamespaces(name string) []kube.NamespaceInfo {
 func (a *App) ListPods(name, namespace string) []kube.PodInfo {
 	return a.clients.Pods(name, namespace)
 }
+
+func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
+	return a.clients.Deployments(name, namespace)
+}

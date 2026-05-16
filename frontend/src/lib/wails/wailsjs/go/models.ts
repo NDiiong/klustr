@@ -20,6 +20,32 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	    }
 	}
+	export class DeploymentInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    upToDate: number;
+	    available: number;
+	    strategy: string;
+	    images: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeploymentInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.upToDate = source["upToDate"];
+	        this.available = source["available"];
+	        this.strategy = source["strategy"];
+	        this.images = source["images"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class Kubeconfig {
 	    contexts: ContextInfo[];
 	    currentContext: string;

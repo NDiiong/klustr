@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
@@ -30,6 +32,17 @@ type PodInfo struct {
 	Restarts  int32  `json:"restarts"`
 	Node      string `json:"node"`
 	PodIP     string `json:"podIP"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type DeploymentInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Ready     string `json:"ready"`
+	UpToDate  int32  `json:"upToDate"`
+	Available int32  `json:"available"`
+	Strategy  string `json:"strategy"`
+	Images    string `json:"images"`
 	CreatedAt string `json:"createdAt"`
 }
 
@@ -77,11 +90,22 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	deployments := w.factory.Apps().V1().Deployments().Informer()
+	if _, err := deployments.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Deployment") },
+		UpdateFunc: func(any, any) { w.touch("Deployment") },
+		DeleteFunc: func(any) { w.touch("Deployment") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	w.factory.Start(ctx.Done())
 	go func() {
 		w.factory.WaitForCacheSync(ctx.Done())
 		w.touch("Namespace")
 		w.touch("Pod")
+		w.touch("Deployment")
 	}()
 	return nil
 }
@@ -177,6 +201,54 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 			Node:      p.Spec.NodeName,
 			PodIP:     p.Status.PodIP,
 			CreatedAt: p.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace != out[j].Namespace {
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func (w *contextWatcher) Deployments(namespace string) []DeploymentInfo {
+	lister := w.factory.Apps().V1().Deployments().Lister()
+	var (
+		deps []*appsv1.Deployment
+		err  error
+	)
+	if namespace == "" {
+		deps, err = lister.List(labels.Everything())
+	} else {
+		deps, err = lister.Deployments(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []DeploymentInfo{}
+	}
+	out := make([]DeploymentInfo, 0, len(deps))
+	for _, d := range deps {
+		var desired int32
+		if d.Spec.Replicas != nil {
+			desired = *d.Spec.Replicas
+		}
+		strategy := string(d.Spec.Strategy.Type)
+		if strategy == "" {
+			strategy = string(appsv1.RollingUpdateDeploymentStrategyType)
+		}
+		images := make([]string, 0, len(d.Spec.Template.Spec.Containers))
+		for _, c := range d.Spec.Template.Spec.Containers {
+			images = append(images, c.Image)
+		}
+		out = append(out, DeploymentInfo{
+			Name:      d.Name,
+			Namespace: d.Namespace,
+			Ready:     fmt.Sprintf("%d/%d", d.Status.ReadyReplicas, desired),
+			UpToDate:  d.Status.UpdatedReplicas,
+			Available: d.Status.AvailableReplicas,
+			Strategy:  strategy,
+			Images:    strings.Join(images, ", "),
+			CreatedAt: d.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {

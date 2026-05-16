@@ -6,6 +6,10 @@ export function ListContexts() {
   return window['go']['app']['App']['ListContexts']();
 }
 
+export function ListDeployments(arg1, arg2) {
+  return window['go']['app']['App']['ListDeployments'](arg1, arg2);
+}
+
 export function ListNamespaces(arg1) {
   return window['go']['app']['App']['ListNamespaces'](arg1);
 }

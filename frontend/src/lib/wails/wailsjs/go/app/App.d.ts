@@ -4,6 +4,8 @@ import {kube} from '../models';
 
 export function ListContexts():Promise<kube.Kubeconfig>;
 
+export function ListDeployments(arg1:string,arg2:string):Promise<Array<kube.DeploymentInfo>>;
+
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
