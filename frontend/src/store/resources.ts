@@ -15,6 +15,7 @@ import type {
   LimitRangeInfo,
   IngressClassInfo,
   PriorityClassInfo,
+  RuntimeClassInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -47,6 +48,7 @@ type ResourcesState = {
   limitRanges: LimitRangeInfo[]
   ingressClasses: IngressClassInfo[]
   priorityClasses: PriorityClassInfo[]
+  runtimeClasses: RuntimeClassInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -71,6 +73,7 @@ type ResourcesState = {
   setLimitRanges: (list: LimitRangeInfo[]) => void
   setIngressClasses: (list: IngressClassInfo[]) => void
   setPriorityClasses: (list: PriorityClassInfo[]) => void
+  setRuntimeClasses: (list: RuntimeClassInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -100,6 +103,7 @@ function emptyLists() {
     limitRanges: [] as LimitRangeInfo[],
     ingressClasses: [] as IngressClassInfo[],
     priorityClasses: [] as PriorityClassInfo[],
+    runtimeClasses: [] as RuntimeClassInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -129,6 +133,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setLimitRanges: (list) => set({ limitRanges: list }),
   setIngressClasses: (list) => set({ ingressClasses: list }),
   setPriorityClasses: (list) => set({ priorityClasses: list }),
+  setRuntimeClasses: (list) => set({ runtimeClasses: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

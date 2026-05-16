@@ -121,6 +121,10 @@ func (a *App) GetPriorityClass(contextName, name string) (*kube.PriorityClassDet
 	return a.clients.PriorityClass(contextName, name)
 }
 
+func (a *App) GetRuntimeClass(contextName, name string) (*kube.RuntimeClassDetail, error) {
+	return a.clients.RuntimeClass(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -329,6 +333,10 @@ func (a *App) ListIngressClasses(name string) []kube.IngressClassInfo {
 
 func (a *App) ListPriorityClasses(name string) []kube.PriorityClassInfo {
 	return a.clients.PriorityClasses(name)
+}
+
+func (a *App) ListRuntimeClasses(name string) []kube.RuntimeClassInfo {
+	return a.clients.RuntimeClasses(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

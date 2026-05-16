@@ -1855,6 +1855,48 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class RuntimeClassDetail {
+	    name: string;
+	    uid: string;
+	    handler: string;
+	    overhead: Record<string, string>;
+	    scheduling: string;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RuntimeClassDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.handler = source["handler"];
+	        this.overhead = source["overhead"];
+	        this.scheduling = source["scheduling"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class RuntimeClassInfo {
+	    name: string;
+	    handler: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RuntimeClassInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.handler = source["handler"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class SecretKeyInfo {
 	    key: string;
 	    size: number;

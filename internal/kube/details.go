@@ -53,6 +53,17 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type RuntimeClassDetail struct {
+	Name        string            `json:"name"`
+	UID         string            `json:"uid"`
+	Handler     string            `json:"handler"`
+	Overhead    map[string]string `json:"overhead"`
+	Scheduling  string            `json:"scheduling"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 type PriorityClassDetail struct {
 	Name             string            `json:"name"`
 	UID              string            `json:"uid"`
@@ -483,6 +494,33 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) RuntimeClass(name string) (*RuntimeClassDetail, error) {
+	r, err := w.factory.Node().V1().RuntimeClasses().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	overhead := map[string]string{}
+	if r.Overhead != nil {
+		for k, v := range r.Overhead.PodFixed {
+			overhead[string(k)] = v.String()
+		}
+	}
+	sched := ""
+	if r.Scheduling != nil && len(r.Scheduling.NodeSelector) > 0 {
+		sched = formatNodeSelector(r.Scheduling.NodeSelector)
+	}
+	return &RuntimeClassDetail{
+		Name:        r.Name,
+		UID:         string(r.UID),
+		Handler:     r.Handler,
+		Overhead:    overhead,
+		Scheduling:  sched,
+		Labels:      r.Labels,
+		Annotations: r.Annotations,
+		CreatedAt:   r.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

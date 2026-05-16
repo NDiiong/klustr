@@ -23,6 +23,7 @@ import { ResourceQuotasView } from '@/features/resourcequotas/ResourceQuotasView
 import { LimitRangesView } from '@/features/limitranges/LimitRangesView'
 import { IngressClassesView } from '@/features/ingressclasses/IngressClassesView'
 import { PriorityClassesView } from '@/features/priorityclasses/PriorityClassesView'
+import { RuntimeClassesView } from '@/features/runtimeclasses/RuntimeClassesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -91,6 +92,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Nodes', view: 'nodes' },
       { label: 'Namespaces', view: 'namespaces' },
       { label: 'PriorityClasses', view: 'priorityclasses' },
+      { label: 'RuntimeClasses', view: 'runtimeclasses' },
     ],
   },
 ]
@@ -146,6 +148,8 @@ function MainView() {
       return <IngressClassesView />
     case 'priorityclasses':
       return <PriorityClassesView />
+    case 'runtimeclasses':
+      return <RuntimeClassesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

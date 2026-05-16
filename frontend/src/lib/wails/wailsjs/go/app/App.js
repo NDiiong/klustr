@@ -94,6 +94,10 @@ export function GetResourceYAML(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['GetResourceYAML'](arg1, arg2, arg3, arg4);
 }
 
+export function GetRuntimeClass(arg1, arg2) {
+  return window['go']['app']['App']['GetRuntimeClass'](arg1, arg2);
+}
+
 export function GetSecret(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetSecret'](arg1, arg2, arg3);
 }
@@ -204,6 +208,10 @@ export function ListReplicaSets(arg1, arg2) {
 
 export function ListResourceQuotas(arg1, arg2) {
   return window['go']['app']['App']['ListResourceQuotas'](arg1, arg2);
+}
+
+export function ListRuntimeClasses(arg1) {
+  return window['go']['app']['App']['ListRuntimeClasses'](arg1);
 }
 
 export function ListSecrets(arg1, arg2) {

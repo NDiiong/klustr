@@ -48,6 +48,8 @@ export function GetResourceQuota(arg1:string,arg2:string,arg3:string):Promise<ku
 
 export function GetResourceYAML(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
+export function GetRuntimeClass(arg1:string,arg2:string):Promise<kube.RuntimeClassDetail>;
+
 export function GetSecret(arg1:string,arg2:string,arg3:string):Promise<kube.SecretDetail>;
 
 export function GetService(arg1:string,arg2:string,arg3:string):Promise<kube.ServiceDetail>;
@@ -103,6 +105,8 @@ export function ListPriorityClasses(arg1:string):Promise<Array<kube.PriorityClas
 export function ListReplicaSets(arg1:string,arg2:string):Promise<Array<kube.ReplicaSetInfo>>;
 
 export function ListResourceQuotas(arg1:string,arg2:string):Promise<Array<kube.ResourceQuotaInfo>>;
+
+export function ListRuntimeClasses(arg1:string):Promise<Array<kube.RuntimeClassInfo>>;
 
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 
