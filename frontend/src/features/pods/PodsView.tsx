@@ -29,6 +29,14 @@ const FAILURE_STATUS = new Set([
   'DeadlineExceeded',
 ])
 
+function RestartBadge({ value }: { value: number }) {
+  let cls = 'text-muted-foreground'
+  if (value >= 6) cls = 'text-destructive font-medium'
+  else if (value >= 3) cls = 'text-amber-600 dark:text-amber-400 font-medium'
+  else if (value >= 1) cls = 'text-foreground'
+  return <span className={cls}>{value}</span>
+}
+
 function statusClass(status: string): string {
   if (HEALTHY_STATUS.has(status)) return 'text-emerald-600 dark:text-emerald-400'
   if (status === 'Succeeded') return 'text-muted-foreground'
@@ -55,7 +63,10 @@ export function PodsView() {
         header: 'Status',
         cell: (info) => <span className={statusClass(info.getValue())}>{info.getValue()}</span>,
       }),
-      columnHelper.accessor('restarts', { header: 'Restarts' }),
+      columnHelper.accessor('restarts', {
+        header: 'Restarts',
+        cell: (info) => <RestartBadge value={info.getValue()} />,
+      }),
       columnHelper.accessor('node', { header: 'Node' }),
       columnHelper.accessor('podIP', { header: 'IP' }),
       columnHelper.accessor('createdAt', {
