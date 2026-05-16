@@ -6,9 +6,11 @@ import { useUIStore, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
 import { ErrorBox } from './DetailPrimitives'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
+import { MultiPodLogsTab } from './MultiPodLogsTab'
 import { DeleteResourceButton } from './DeleteResourceButton'
 import { ScaleResourceButton, isScalable } from './ScaleResourceButton'
 import { PortForwardButton } from '@/features/portforward/PortForwardButton'
+import type { ResourceKind } from '@/store/ui'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { PodExecTab } from '@/features/pods/PodExecTab'
@@ -73,19 +75,28 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
   )
 }
 
+const WORKLOAD_LOG_KINDS: ResourceKind[] = ['Deployment', 'StatefulSet', 'DaemonSet']
+
 function DetailContent({ contextName, resource }: { contextName: string | null; resource: SelectedResource }) {
   if (resource.kind === 'Pod') {
     return <PodTabs contextName={contextName} namespace={resource.namespace} name={resource.name} />
   }
+  const hasAggregatedLogs = (WORKLOAD_LOG_KINDS as readonly string[]).includes(resource.kind)
   return (
     <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
+        {hasAggregatedLogs && <TabsTrigger value="logs">Logs</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         <OverviewByKind contextName={contextName} resource={resource} />
       </TabsContent>
+      {hasAggregatedLogs && (
+        <TabsContent value="logs" className="min-h-0 flex-1 p-0">
+          <WorkloadLogs contextName={contextName} resource={resource} />
+        </TabsContent>
+      )}
       <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
         <ResourceYAMLTab
           contextName={contextName}
@@ -95,6 +106,49 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
         />
       </TabsContent>
     </Tabs>
+  )
+}
+
+function WorkloadLogs({ contextName, resource }: { contextName: string | null; resource: SelectedResource }) {
+  const [selector, setSelector] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (!contextName) return
+    let cancelled = false
+    const fetcher =
+      resource.kind === 'Deployment'
+        ? api.getDeployment
+        : resource.kind === 'StatefulSet'
+          ? api.getStatefulSet
+          : api.getDaemonSet
+    fetcher(contextName, resource.namespace, resource.name)
+      .then((d) => {
+        if (cancelled) return
+        setSelector(d.selector ?? {})
+      })
+      .catch(() => {
+        if (cancelled) return
+        setSelector({})
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [contextName, resource.kind, resource.namespace, resource.name])
+
+  if (Object.keys(selector).length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+        Resolving pod selector…
+      </div>
+    )
+  }
+  return (
+    <MultiPodLogsTab
+      contextName={contextName}
+      namespace={resource.namespace}
+      selector={selector}
+      title={resource.name}
+    />
   )
 }
 
