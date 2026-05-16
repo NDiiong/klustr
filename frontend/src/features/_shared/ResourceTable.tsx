@@ -264,7 +264,7 @@ export function ResourceTable<T>({
                     <th
                       key={h.id}
                       style={{ width: h.getSize() }}
-                      className="group relative px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                      className="group relative select-none px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
                     >
                       <span
                         className="inline-flex cursor-pointer items-center gap-1"
