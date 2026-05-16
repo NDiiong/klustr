@@ -3,6 +3,10 @@ import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
+import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
+import { api } from '@/lib/api'
+import { useUIStore } from '@/store/ui'
+import { useResources } from '@/store/resources'
 
 const RESOURCE_GROUPS = [
   { label: 'Workloads', items: ['Pods', 'Deployments', 'StatefulSets', 'DaemonSets', 'Jobs', 'CronJobs'] },
@@ -23,11 +27,22 @@ function getInitialTheme(): Theme {
 
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const selectedContext = useUIStore((s) => s.selectedContext)
+  const resetResources = useResources((s) => s.reset)
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    if (!selectedContext) return
+    api.startWatch(selectedContext).catch(console.error)
+    return () => {
+      api.stopWatch(selectedContext).catch(console.error)
+      resetResources()
+    }
+  }, [selectedContext, resetResources])
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
@@ -35,9 +50,7 @@ function App() {
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold tracking-tight">Klustr</span>
           <ContextSwitcher />
-          <Button variant="outline" size="sm" disabled>
-            All namespaces
-          </Button>
+          <NamespaceSelector />
         </div>
         <div className="flex items-center gap-1">
           <Button
