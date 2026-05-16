@@ -260,6 +260,7 @@ export function ResourceTable<T>({
               <tr key={hg.id} className="border-b border-border">
                 {hg.headers.map((h) => {
                   const sorted = h.column.getIsSorted()
+                  const canSort = h.column.getCanSort()
                   return (
                     <th
                       key={h.id}
@@ -267,19 +268,23 @@ export function ResourceTable<T>({
                       className="group relative select-none overflow-hidden px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
                     >
                       <span
-                        className="flex min-w-0 cursor-pointer items-center gap-1"
-                        onClick={h.column.getToggleSortingHandler()}
+                        className={[
+                          'flex min-w-0 items-center gap-1',
+                          canSort ? 'cursor-pointer' : '',
+                        ].join(' ')}
+                        onClick={canSort ? h.column.getToggleSortingHandler() : undefined}
                       >
                         <span className="truncate">
                           {flexRender(h.column.columnDef.header, h.getContext())}
                         </span>
-                        {sorted === 'asc' ? (
-                          <ArrowUp className="size-3 shrink-0" />
-                        ) : sorted === 'desc' ? (
-                          <ArrowDown className="size-3 shrink-0" />
-                        ) : (
-                          <ChevronsUpDown className="size-3 shrink-0 opacity-30" />
-                        )}
+                        {canSort &&
+                          (sorted === 'asc' ? (
+                            <ArrowUp className="size-3 shrink-0" />
+                          ) : sorted === 'desc' ? (
+                            <ArrowDown className="size-3 shrink-0" />
+                          ) : (
+                            <ChevronsUpDown className="size-3 shrink-0 opacity-30" />
+                          ))}
                       </span>
                       <span
                         onMouseDown={h.getResizeHandler()}
