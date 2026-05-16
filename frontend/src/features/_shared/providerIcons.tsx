@@ -1,5 +1,6 @@
+import { FaAws, FaDigitalOcean, FaLinode, FaMicrosoft } from 'react-icons/fa'
 import { SiDocker, SiGooglecloud, SiKubernetes } from 'react-icons/si'
-import { Box, Cloud, Container, HardDrive } from 'lucide-react'
+import { Box, Container, HardDrive } from 'lucide-react'
 import type { ContextInfo } from '@/lib/api'
 
 export type Provider =
@@ -25,24 +26,21 @@ type ProviderMeta = {
   Icon: React.ComponentType<{ className?: string }>
 }
 
-// react-icons no longer ships AWS/Azure/Linode etc. icons due to trademark
-// constraints, so for those we fall back to a coloured lucide Cloud icon and
-// rely on the chip-style colour to convey identity.
 const META: Record<Provider, ProviderMeta> = {
-  aws: { id: 'aws', label: 'AWS EKS', className: 'text-orange-500', Icon: Cloud },
-  gcp: { id: 'gcp', label: 'GKE', className: 'text-blue-500', Icon: SiGooglecloud },
-  azure: { id: 'azure', label: 'AKS', className: 'text-sky-500', Icon: Cloud },
-  digitalocean: { id: 'digitalocean', label: 'DOKS', className: 'text-blue-400', Icon: Cloud },
-  linode: { id: 'linode', label: 'LKE', className: 'text-emerald-500', Icon: Cloud },
+  aws: { id: 'aws', label: 'AWS EKS', className: 'text-[#FF9900]', Icon: FaAws },
+  gcp: { id: 'gcp', label: 'GKE', className: 'text-[#4285F4]', Icon: SiGooglecloud },
+  azure: { id: 'azure', label: 'AKS', className: 'text-[#0078D4]', Icon: FaMicrosoft },
+  digitalocean: { id: 'digitalocean', label: 'DOKS', className: 'text-[#0080FF]', Icon: FaDigitalOcean },
+  linode: { id: 'linode', label: 'LKE', className: 'text-[#00A95C]', Icon: FaLinode },
   orbstack: { id: 'orbstack', label: 'OrbStack', className: 'text-pink-500', Icon: Container },
-  docker: { id: 'docker', label: 'Docker Desktop', className: 'text-sky-400', Icon: SiDocker },
+  docker: { id: 'docker', label: 'Docker Desktop', className: 'text-[#2496ED]', Icon: SiDocker },
   kind: { id: 'kind', label: 'kind', className: 'text-indigo-400', Icon: HardDrive },
   k3d: { id: 'k3d', label: 'k3d', className: 'text-amber-400', Icon: HardDrive },
   k3s: { id: 'k3s', label: 'k3s', className: 'text-amber-400', Icon: HardDrive },
   minikube: { id: 'minikube', label: 'minikube', className: 'text-purple-500', Icon: HardDrive },
   microk8s: { id: 'microk8s', label: 'microk8s', className: 'text-orange-400', Icon: SiKubernetes },
   local: { id: 'local', label: 'Local', className: 'text-muted-foreground', Icon: Box },
-  k8s: { id: 'k8s', label: 'Kubernetes', className: 'text-blue-400', Icon: SiKubernetes },
+  k8s: { id: 'k8s', label: 'Kubernetes', className: 'text-[#326CE5]', Icon: SiKubernetes },
 }
 
 function hostname(url: string): string {

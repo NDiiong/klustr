@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -64,13 +64,12 @@ export function ContextSwitcher() {
             const isSelected = selected === c.name
             const isDefault = c.name === defaultContext
             return (
-              <DropdownMenuItem key={c.name} onSelect={() => setSelected(c.name)}>
+              <DropdownMenuItem
+                key={c.name}
+                onSelect={() => setSelected(c.name)}
+                className={isSelected ? 'bg-accent text-accent-foreground data-[highlighted]:bg-accent' : ''}
+              >
                 <div className="flex min-w-0 flex-1 items-start gap-2">
-                  {isSelected ? (
-                    <Check className="mt-0.5 size-3.5 shrink-0" />
-                  ) : (
-                    <span className="mt-0.5 inline-block size-3.5 shrink-0" />
-                  )}
                   <ProviderIcon context={c} className="mt-0.5 size-3.5 shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 truncate text-sm">
