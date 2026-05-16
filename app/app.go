@@ -259,6 +259,10 @@ func (a *App) ListEvents(contextName, namespace, kind, name string) ([]kube.Even
 	return a.clients.ListEvents(a.ctx, contextName, namespace, kind, name)
 }
 
+func (a *App) ListPodMetrics(contextName, namespace string) ([]kube.PodMetrics, error) {
+	return a.clients.ListPodMetrics(a.ctx, contextName, namespace)
+}
+
 func (a *App) SaveTextFile(defaultName, content string) (string, error) {
 	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
 		DefaultFilename: defaultName,

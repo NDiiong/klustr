@@ -27,14 +27,18 @@ type NamespaceInfo struct {
 }
 
 type PodInfo struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Status    string `json:"status"`
-	Ready     string `json:"ready"`
-	Restarts  int32  `json:"restarts"`
-	Node      string `json:"node"`
-	PodIP     string `json:"podIP"`
-	CreatedAt string `json:"createdAt"`
+	Name         string `json:"name"`
+	Namespace    string `json:"namespace"`
+	Status       string `json:"status"`
+	Ready        string `json:"ready"`
+	Restarts     int32  `json:"restarts"`
+	Node         string `json:"node"`
+	PodIP        string `json:"podIP"`
+	CreatedAt    string `json:"createdAt"`
+	CPURequestMC int64  `json:"cpuRequestMC"`
+	CPULimitMC   int64  `json:"cpuLimitMC"`
+	MemRequestB  int64  `json:"memRequestB"`
+	MemLimitB    int64  `json:"memLimitB"`
 }
 
 type PodLogTarget struct {
@@ -557,15 +561,20 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 			}
 			restarts += cs.RestartCount
 		}
+		cpuReq, cpuLim, memReq, memLim := podResourceTotals(p)
 		out = append(out, PodInfo{
-			Name:      p.Name,
-			Namespace: p.Namespace,
-			Status:    derivePodStatus(p),
-			Ready:     fmt.Sprintf("%d/%d", ready, total),
-			Restarts:  restarts,
-			Node:      p.Spec.NodeName,
-			PodIP:     p.Status.PodIP,
-			CreatedAt: p.CreationTimestamp.UTC().Format(time.RFC3339),
+			Name:         p.Name,
+			Namespace:    p.Namespace,
+			Status:       derivePodStatus(p),
+			Ready:        fmt.Sprintf("%d/%d", ready, total),
+			Restarts:     restarts,
+			Node:         p.Spec.NodeName,
+			PodIP:        p.Status.PodIP,
+			CreatedAt:    p.CreationTimestamp.UTC().Format(time.RFC3339),
+			CPURequestMC: cpuReq,
+			CPULimitMC:   cpuLim,
+			MemRequestB:  memReq,
+			MemLimitB:    memLim,
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -1082,6 +1091,30 @@ func servicePorts(s *corev1.Service) string {
 		}
 	}
 	return strings.Join(parts, ",")
+}
+
+// podResourceTotals sums cpu/mem requests and limits across init+regular
+// containers, returning millicores and bytes. A zero result means unset
+// for that dimension.
+func podResourceTotals(p *corev1.Pod) (cpuReq, cpuLim, memReq, memLim int64) {
+	add := func(list []corev1.Container) {
+		for _, c := range list {
+			if q, ok := c.Resources.Requests[corev1.ResourceCPU]; ok {
+				cpuReq += q.MilliValue()
+			}
+			if q, ok := c.Resources.Limits[corev1.ResourceCPU]; ok {
+				cpuLim += q.MilliValue()
+			}
+			if q, ok := c.Resources.Requests[corev1.ResourceMemory]; ok {
+				memReq += q.Value()
+			}
+			if q, ok := c.Resources.Limits[corev1.ResourceMemory]; ok {
+				memLim += q.Value()
+			}
+		}
+	}
+	add(p.Spec.Containers)
+	return
 }
 
 // derivePodStatus mirrors kubectl's STATUS column logic: it walks init

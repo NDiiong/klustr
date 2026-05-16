@@ -102,6 +102,10 @@ export function ListNodes(arg1) {
   return window['go']['app']['App']['ListNodes'](arg1);
 }
 
+export function ListPodMetrics(arg1, arg2) {
+  return window['go']['app']['App']['ListPodMetrics'](arg1, arg2);
+}
+
 export function ListPods(arg1, arg2) {
   return window['go']['app']['App']['ListPods'](arg1, arg2);
 }

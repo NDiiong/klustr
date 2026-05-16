@@ -52,6 +52,8 @@ export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 
 export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 
+export function ListPodMetrics(arg1:string,arg2:string):Promise<Array<kube.PodMetrics>>;
+
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 
 export function ListPortForwards():Promise<Array<kube.PortForwardInfo>>;

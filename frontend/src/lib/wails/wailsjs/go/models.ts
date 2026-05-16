@@ -962,6 +962,10 @@ export namespace kube {
 	    node: string;
 	    podIP: string;
 	    createdAt: string;
+	    cpuRequestMC: number;
+	    cpuLimitMC: number;
+	    memRequestB: number;
+	    memLimitB: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new PodInfo(source);
@@ -977,6 +981,10 @@ export namespace kube {
 	        this.node = source["node"];
 	        this.podIP = source["podIP"];
 	        this.createdAt = source["createdAt"];
+	        this.cpuRequestMC = source["cpuRequestMC"];
+	        this.cpuLimitMC = source["cpuLimitMC"];
+	        this.memRequestB = source["memRequestB"];
+	        this.memLimitB = source["memLimitB"];
 	    }
 	}
 	export class PodLogTarget {
@@ -991,6 +999,24 @@ export namespace kube {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.pod = source["pod"];
 	        this.containers = source["containers"];
+	    }
+	}
+	export class PodMetrics {
+	    namespace: string;
+	    name: string;
+	    cpuMC: number;
+	    memB: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new PodMetrics(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.namespace = source["namespace"];
+	        this.name = source["name"];
+	        this.cpuMC = source["cpuMC"];
+	        this.memB = source["memB"];
 	    }
 	}
 	export class PortForwardInfo {

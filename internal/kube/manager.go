@@ -31,6 +31,7 @@ type ClientManager struct {
 	logs     *logSessionManager
 	execs    *execSessionManager
 	pf       *pfManager
+	metrics  *metricsCache
 	onChange func(ContextChange)
 }
 
@@ -42,6 +43,7 @@ func NewClientManager() *ClientManager {
 		logs:     newLogSessionManager(),
 		execs:    newExecSessionManager(),
 		pf:       newPFManager(),
+		metrics:  newMetricsCache(),
 	}
 }
 
