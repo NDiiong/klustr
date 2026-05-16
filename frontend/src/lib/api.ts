@@ -2,6 +2,7 @@ import {
   ApplyResourceYAML,
   DeleteResource,
   ListPortForwards,
+  SaveTextFile,
   StartPortForward,
   StopPortForward,
   GetConfigMap,
@@ -167,4 +168,6 @@ export const api = {
   ): Promise<PortForwardInfo> => StartPortForward(ctx, namespace, podName, localPort, remotePort),
   stopPortForward: (id: string): Promise<void> => StopPortForward(id),
   listPortForwards: (): Promise<PortForwardInfo[]> => ListPortForwards(),
+  saveTextFile: (defaultName: string, content: string): Promise<string> =>
+    SaveTextFile(defaultName, content),
 }

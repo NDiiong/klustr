@@ -126,6 +126,10 @@ export function ResizeExec(arg1, arg2, arg3) {
   return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
 }
 
+export function SaveTextFile(arg1, arg2) {
+  return window['go']['app']['App']['SaveTextFile'](arg1, arg2);
+}
+
 export function ScaleResource(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['ScaleResource'](arg1, arg2, arg3, arg4, arg5);
 }

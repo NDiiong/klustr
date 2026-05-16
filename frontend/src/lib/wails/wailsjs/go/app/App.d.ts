@@ -64,6 +64,8 @@ export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
 
+export function SaveTextFile(arg1:string,arg2:string):Promise<string>;
+
 export function ScaleResource(arg1:string,arg2:string,arg3:string,arg4:string,arg5:number):Promise<void>;
 
 export function SendExecInput(arg1:string,arg2:string):Promise<void>;

@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"errors"
+	"os"
 
 	"klustr/internal/kube"
 
@@ -247,4 +249,21 @@ func (a *App) ListIngresses(name, namespace string) []kube.IngressInfo {
 
 func (a *App) ListNodes(name string) []kube.NodeInfo {
 	return a.clients.Nodes(name)
+}
+
+func (a *App) SaveTextFile(defaultName, content string) (string, error) {
+	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		DefaultFilename: defaultName,
+		Title:           "Save file",
+	})
+	if err != nil {
+		return "", err
+	}
+	if path == "" {
+		return "", nil
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return "", errors.New("write failed: " + err.Error())
+	}
+	return path, nil
 }

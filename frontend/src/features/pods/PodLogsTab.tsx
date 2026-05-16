@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import { ArrowDownToLine, Eraser, Filter, Pause, Play, Regex } from 'lucide-react'
+import { ArrowDownToLine, Download, Eraser, Filter, Pause, Play, Regex } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
@@ -38,6 +39,7 @@ export function PodLogsTab({ detail }: Props) {
   const pausedRef = useRef(false)
   const bufferRef = useRef<string[]>([])
   const predicateRef = useRef<(line: string) => boolean>(() => true)
+  const visibleLinesRef = useRef<string[]>([])
 
   useEffect(() => {
     if (!filterValue) {
@@ -149,6 +151,8 @@ export function PodLogsTab({ detail }: Props) {
             return
           }
           term.writeln(line)
+          visibleLinesRef.current.push(line)
+          if (visibleLinesRef.current.length > 50_000) visibleLinesRef.current.shift()
         })
         unsubClose = EventsOn(`pod:logs:close:${id}`, (msg: string) => {
           setStreaming(false)
@@ -170,12 +174,30 @@ export function PodLogsTab({ detail }: Props) {
       unsubLine?.()
       unsubClose?.()
       bufferRef.current = []
+      visibleLinesRef.current = []
       if (sessionId) {
         api.stopPodLogs(sessionId).catch(() => {})
         EventsOff(`pod:logs:line:${sessionId}`, `pod:logs:close:${sessionId}`)
       }
     }
   }, [selectedContext, detail.namespace, detail.name, container])
+
+  const saveLogs = () => {
+    const lines = visibleLinesRef.current
+    if (lines.length === 0) {
+      toast.info('No logs to save yet')
+      return
+    }
+    const safeName = `${detail.namespace}-${detail.name}-${container}.log`.replace(/[^A-Za-z0-9._-]+/g, '-')
+    api
+      .saveTextFile(safeName, lines.join('\n') + '\n')
+      .then((path) => {
+        if (path) toast.success(`Saved ${lines.length} lines to ${path}`)
+      })
+      .catch((e) => {
+        toast.error(`Save failed: ${String(e)}`)
+      })
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -208,10 +230,15 @@ export function PodLogsTab({ detail }: Props) {
           onClick={() => {
             termRef.current?.clear()
             bufferRef.current = []
+            visibleLinesRef.current = []
           }}
         >
           <Eraser />
           Clear
+        </Button>
+        <Button type="button" size="xs" variant="outline" onClick={saveLogs}>
+          <Download />
+          Save
         </Button>
         <div className="ml-auto flex items-center gap-1">
           <div className="relative w-44">
