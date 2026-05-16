@@ -37,6 +37,11 @@ type PodInfo struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type PodLogTarget struct {
+	Pod        string   `json:"pod"`
+	Containers []string `json:"containers"`
+}
+
 type OwnerRef struct {
 	Kind string `json:"kind"`
 	Name string `json:"name"`
@@ -495,6 +500,36 @@ func podConditions(conds []corev1.PodCondition) []ConditionDetail {
 			Message: c.Message,
 		})
 	}
+	return out
+}
+
+func (w *contextWatcher) PodLogTargets(namespace string, selector map[string]string) []PodLogTarget {
+	if len(selector) == 0 {
+		return []PodLogTarget{}
+	}
+	sel := labels.SelectorFromSet(labels.Set(selector))
+	lister := w.factory.Core().V1().Pods().Lister()
+	var (
+		pods []*corev1.Pod
+		err  error
+	)
+	if namespace == "" {
+		pods, err = lister.List(sel)
+	} else {
+		pods, err = lister.Pods(namespace).List(sel)
+	}
+	if err != nil {
+		return []PodLogTarget{}
+	}
+	out := make([]PodLogTarget, 0, len(pods))
+	for _, p := range pods {
+		containers := make([]string, 0, len(p.Spec.Containers))
+		for _, c := range p.Spec.Containers {
+			containers = append(containers, c.Name)
+		}
+		out = append(out, PodLogTarget{Pod: p.Name, Containers: containers})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Pod < out[j].Pod })
 	return out
 }
 

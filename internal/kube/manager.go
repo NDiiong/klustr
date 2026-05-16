@@ -179,6 +179,16 @@ func (m *ClientManager) Pods(contextName, namespace string) []PodInfo {
 	return w.Pods(namespace)
 }
 
+func (m *ClientManager) PodLogTargets(contextName, namespace string, selector map[string]string) []PodLogTarget {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []PodLogTarget{}
+	}
+	return w.PodLogTargets(namespace, selector)
+}
+
 func (m *ClientManager) Pod(contextName, namespace, name string) (*PodDetail, error) {
 	m.mu.Lock()
 	w, ok := m.watchers[contextName]

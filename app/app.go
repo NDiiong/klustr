@@ -57,6 +57,10 @@ func (a *App) ListPods(name, namespace string) []kube.PodInfo {
 	return a.clients.Pods(name, namespace)
 }
 
+func (a *App) PodLogTargets(name, namespace string, selector map[string]string) []kube.PodLogTarget {
+	return a.clients.PodLogTargets(name, namespace, selector)
+}
+
 func (a *App) GetPod(contextName, namespace, name string) (*kube.PodDetail, error) {
 	return a.clients.Pod(contextName, namespace, name)
 }

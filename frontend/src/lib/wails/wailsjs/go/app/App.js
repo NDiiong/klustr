@@ -122,6 +122,10 @@ export function PingContext(arg1) {
   return window['go']['app']['App']['PingContext'](arg1);
 }
 
+export function PodLogTargets(arg1, arg2, arg3) {
+  return window['go']['app']['App']['PodLogTargets'](arg1, arg2, arg3);
+}
+
 export function ResizeExec(arg1, arg2, arg3) {
   return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
 }

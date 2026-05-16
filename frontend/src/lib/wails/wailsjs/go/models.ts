@@ -927,6 +927,20 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class PodLogTarget {
+	    pod: string;
+	    containers: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PodLogTarget(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.pod = source["pod"];
+	        this.containers = source["containers"];
+	    }
+	}
 	export class PortForwardInfo {
 	    id: string;
 	    context: string;

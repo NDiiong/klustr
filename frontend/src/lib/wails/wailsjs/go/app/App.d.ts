@@ -62,6 +62,8 @@ export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.Sta
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
+export function PodLogTargets(arg1:string,arg2:string,arg3:Record<string, string>):Promise<Array<kube.PodLogTarget>>;
+
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
 
 export function SaveTextFile(arg1:string,arg2:string):Promise<string>;
