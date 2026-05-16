@@ -2,9 +2,20 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { api } from '@/lib/api'
 
 const Editor = lazy(() => import('@monaco-editor/react').then((m) => ({ default: m.Editor })))
+const DiffEditor = lazy(() =>
+  import('@monaco-editor/react').then((m) => ({ default: m.DiffEditor })),
+)
 
 import { useThemeMode } from './useThemeMode'
 
@@ -22,6 +33,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [diffOpen, setDiffOpen] = useState(false)
 
   useEffect(() => {
     if (!contextName) return
@@ -55,6 +67,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
       toast.success(`Applied ${kind.toLowerCase()}/${name}`)
       setSource(draft)
       setEditing(false)
+      setDiffOpen(false)
     },
   })
 
@@ -82,10 +95,10 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
             <Button
               type="button"
               size="xs"
-              onClick={() => apply.mutate()}
+              onClick={() => setDiffOpen(true)}
               disabled={!dirty || apply.isPending}
             >
-              {apply.isPending ? 'Applying…' : 'Apply'}
+              Review & apply
             </Button>
           </>
         ) : (
@@ -137,6 +150,54 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
           )}
         </Suspense>
       </div>
+      <Dialog open={diffOpen} onOpenChange={(o) => !apply.isPending && setDiffOpen(o)}>
+        <DialogContent className="flex h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b border-border px-6 py-4">
+            <DialogTitle>Apply changes to {kind.toLowerCase()}/{name}</DialogTitle>
+            <DialogDescription>
+              Review the diff between the current resource (left) and your draft (right). Apply will
+              perform a server-side apply.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1">
+            <Suspense fallback={<div className="flex h-full items-center justify-center text-xs text-muted-foreground">Loading diff…</div>}>
+              {diffOpen && (
+                <DiffEditor
+                  height="100%"
+                  language="yaml"
+                  original={source}
+                  modified={draft}
+                  theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+                  options={{
+                    readOnly: true,
+                    renderSideBySide: true,
+                    minimap: { enabled: false },
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    fontSize: 12,
+                    fontFamily:
+                      '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    automaticLayout: true,
+                  }}
+                />
+              )}
+            </Suspense>
+          </div>
+          {apply.error && (
+            <div className="border-t border-destructive/40 bg-destructive/10 px-6 py-2 text-xs font-mono text-destructive break-words">
+              {String(apply.error)}
+            </div>
+          )}
+          <DialogFooter className="border-t border-border px-6 py-3">
+            <Button type="button" variant="outline" onClick={() => setDiffOpen(false)} disabled={apply.isPending}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={() => apply.mutate()} disabled={apply.isPending}>
+              {apply.isPending ? 'Applying…' : 'Apply'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
