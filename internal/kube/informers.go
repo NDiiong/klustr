@@ -103,6 +103,16 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type ReplicationControllerInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Desired   int32  `json:"desired"`
+	Current   int32  `json:"current"`
+	Ready     int32  `json:"ready"`
+	Images    string `json:"images"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type EndpointsInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -463,6 +473,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	rcs := w.factory.Core().V1().ReplicationControllers().Informer()
+	if _, err := rcs.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("ReplicationController") },
+		UpdateFunc: func(any, any) { w.touch("ReplicationController") },
+		DeleteFunc: func(any) { w.touch("ReplicationController") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	endpoints := w.factory.Core().V1().Endpoints().Informer()
 	if _, err := endpoints.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("Endpoints") },
@@ -664,7 +684,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
 			"PriorityClass", "RuntimeClass", "Lease",
 			"MutatingWebhookConfiguration", "ValidatingWebhookConfiguration",
-			"Endpoints",
+			"Endpoints", "ReplicationController",
 		} {
 			w.touch(kind)
 		}
@@ -1086,6 +1106,44 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) ReplicationControllers(namespace string) []ReplicationControllerInfo {
+	lister := w.factory.Core().V1().ReplicationControllers().Lister()
+	var (
+		rcs []*corev1.ReplicationController
+		err error
+	)
+	if namespace == "" {
+		rcs, err = lister.List(labels.Everything())
+	} else {
+		rcs, err = lister.ReplicationControllers(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []ReplicationControllerInfo{}
+	}
+	out := make([]ReplicationControllerInfo, 0, len(rcs))
+	for _, r := range rcs {
+		var desired int32
+		if r.Spec.Replicas != nil {
+			desired = *r.Spec.Replicas
+		}
+		images := make([]string, 0, len(r.Spec.Template.Spec.Containers))
+		for _, c := range r.Spec.Template.Spec.Containers {
+			images = append(images, c.Image)
+		}
+		out = append(out, ReplicationControllerInfo{
+			Name:      r.Name,
+			Namespace: r.Namespace,
+			Desired:   desired,
+			Current:   r.Status.Replicas,
+			Ready:     r.Status.ReadyReplicas,
+			Images:    strings.Join(images, ", "),
+			CreatedAt: r.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

@@ -28,6 +28,7 @@ import { LeasesView } from '@/features/leases/LeasesView'
 import { MutatingWebhookConfigurationsView } from '@/features/webhooks/MutatingWebhookConfigurationsView'
 import { ValidatingWebhookConfigurationsView } from '@/features/webhooks/ValidatingWebhookConfigurationsView'
 import { EndpointsView } from '@/features/endpoints/EndpointsView'
+import { ReplicationControllersView } from '@/features/replicationcontrollers/ReplicationControllersView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -57,6 +58,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'StatefulSets', view: 'statefulsets' },
       { label: 'DaemonSets', view: 'daemonsets' },
       { label: 'ReplicaSets', view: 'replicasets' },
+      { label: 'ReplicationControllers', view: 'replicationcontrollers' },
       { label: 'Jobs', view: 'jobs' },
       { label: 'CronJobs', view: 'cronjobs' },
     ],
@@ -166,6 +168,8 @@ function MainView() {
       return <ValidatingWebhookConfigurationsView />
     case 'endpoints':
       return <EndpointsView />
+    case 'replicationcontrollers':
+      return <ReplicationControllersView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

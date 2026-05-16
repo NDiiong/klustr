@@ -34,6 +34,7 @@ import { RuntimeClassDetailBody } from '@/features/runtimeclasses/RuntimeClassDe
 import { LeaseDetailBody } from '@/features/leases/LeaseDetailBody'
 import { WebhookConfigurationDetailBody } from '@/features/webhooks/WebhookConfigurationDetailBody'
 import { EndpointsDetailBody } from '@/features/endpoints/EndpointsDetailBody'
+import { ReplicationControllerDetailBody } from '@/features/replicationcontrollers/ReplicationControllerDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -280,6 +281,8 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       )
     case 'Endpoints':
       return <EndpointsDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
+    case 'ReplicationController':
+      return <ReplicationControllerDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

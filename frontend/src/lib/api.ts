@@ -28,6 +28,7 @@ import {
   GetMutatingWebhookConfiguration,
   GetValidatingWebhookConfiguration,
   GetEndpoints,
+  GetReplicationController,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -59,6 +60,7 @@ import {
   ListMutatingWebhookConfigurations,
   ListValidatingWebhookConfigurations,
   ListEndpoints,
+  ListReplicationControllers,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -108,6 +110,7 @@ export type RuntimeClassInfo = kube.RuntimeClassInfo
 export type LeaseInfo = kube.LeaseInfo
 export type WebhookConfigurationInfo = kube.WebhookConfigurationInfo
 export type EndpointsInfo = kube.EndpointsInfo
+export type ReplicationControllerInfo = kube.ReplicationControllerInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -145,6 +148,7 @@ export type EndpointsDetail = kube.EndpointsDetail
 export type EndpointsSubset = kube.EndpointsSubset
 export type EndpointsSubsetAddress = kube.EndpointsSubsetAddress
 export type EndpointsSubsetPort = kube.EndpointsSubsetPort
+export type ReplicationControllerDetail = kube.ReplicationControllerDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -213,6 +217,8 @@ export const api = {
     ListValidatingWebhookConfigurations(name),
   listEndpoints: (name: string, namespace: string): Promise<EndpointsInfo[]> =>
     ListEndpoints(name, namespace),
+  listReplicationControllers: (name: string, namespace: string): Promise<ReplicationControllerInfo[]> =>
+    ListReplicationControllers(name, namespace),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -282,6 +288,8 @@ export const api = {
     GetValidatingWebhookConfiguration(ctx, name),
   getEndpoints: (ctx: string, ns: string, name: string): Promise<EndpointsDetail> =>
     GetEndpoints(ctx, ns, name),
+  getReplicationController: (ctx: string, ns: string, name: string): Promise<ReplicationControllerDetail> =>
+    GetReplicationController(ctx, ns, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

@@ -141,6 +141,10 @@ func (a *App) GetEndpoints(contextName, namespace, name string) (*kube.Endpoints
 	return a.clients.Endpoints(contextName, namespace, name)
 }
 
+func (a *App) GetReplicationController(contextName, namespace, name string) (*kube.ReplicationControllerDetail, error) {
+	return a.clients.ReplicationController(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -369,6 +373,10 @@ func (a *App) ListValidatingWebhookConfigurations(name string) []kube.WebhookCon
 
 func (a *App) ListEndpoints(name, namespace string) []kube.EndpointsInfo {
 	return a.clients.EndpointsList(name, namespace)
+}
+
+func (a *App) ListReplicationControllers(name, namespace string) []kube.ReplicationControllerInfo {
+	return a.clients.ReplicationControllers(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

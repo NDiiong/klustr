@@ -98,6 +98,10 @@ export function GetReplicaSet(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetReplicaSet'](arg1, arg2, arg3);
 }
 
+export function GetReplicationController(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetReplicationController'](arg1, arg2, arg3);
+}
+
 export function GetResourceQuota(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetResourceQuota'](arg1, arg2, arg3);
 }
@@ -232,6 +236,10 @@ export function ListPriorityClasses(arg1) {
 
 export function ListReplicaSets(arg1, arg2) {
   return window['go']['app']['App']['ListReplicaSets'](arg1, arg2);
+}
+
+export function ListReplicationControllers(arg1, arg2) {
+  return window['go']['app']['App']['ListReplicationControllers'](arg1, arg2);
 }
 
 export function ListResourceQuotas(arg1, arg2) {

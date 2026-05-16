@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) ReplicationController(contextName, namespace, name string) (*ReplicationControllerDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.ReplicationController(namespace, name)
+}
+
 func (m *ClientManager) Endpoints(contextName, namespace, name string) (*EndpointsDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -529,6 +537,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) ReplicationControllers(contextName, namespace string) []ReplicationControllerInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []ReplicationControllerInfo{}
+	}
+	return w.ReplicationControllers(namespace)
 }
 
 func (m *ClientManager) EndpointsList(contextName, namespace string) []EndpointsInfo {

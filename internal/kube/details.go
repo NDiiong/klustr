@@ -53,6 +53,21 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type ReplicationControllerDetail struct {
+	Name        string             `json:"name"`
+	Namespace   string             `json:"namespace"`
+	UID         string             `json:"uid"`
+	Desired     int32              `json:"desired"`
+	Current     int32              `json:"current"`
+	Ready       int32              `json:"ready"`
+	Available   int32              `json:"available"`
+	Selector    map[string]string  `json:"selector"`
+	Containers  []ContainerSummary `json:"containers"`
+	Labels      map[string]string  `json:"labels"`
+	Annotations map[string]string  `json:"annotations"`
+	CreatedAt   string             `json:"createdAt"`
+}
+
 type EndpointsSubsetAddress struct {
 	IP       string `json:"ip"`
 	Hostname string `json:"hostname"`
@@ -554,6 +569,31 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) ReplicationController(namespace, name string) (*ReplicationControllerDetail, error) {
+	r, err := w.factory.Core().V1().ReplicationControllers().Lister().ReplicationControllers(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	var desired int32
+	if r.Spec.Replicas != nil {
+		desired = *r.Spec.Replicas
+	}
+	return &ReplicationControllerDetail{
+		Name:        r.Name,
+		Namespace:   r.Namespace,
+		UID:         string(r.UID),
+		Desired:     desired,
+		Current:     r.Status.Replicas,
+		Ready:       r.Status.ReadyReplicas,
+		Available:   r.Status.AvailableReplicas,
+		Selector:    r.Spec.Selector,
+		Containers:  containerSummaries(r.Spec.Template.Spec.Containers),
+		Labels:      r.Labels,
+		Annotations: r.Annotations,
+		CreatedAt:   r.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 
