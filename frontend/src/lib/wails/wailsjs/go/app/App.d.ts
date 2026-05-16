@@ -42,6 +42,8 @@ export function ListDaemonSets(arg1:string,arg2:string):Promise<Array<kube.Daemo
 
 export function ListDeployments(arg1:string,arg2:string):Promise<Array<kube.DeploymentInfo>>;
 
+export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<kube.EventInfo>>;
+
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
 
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;

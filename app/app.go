@@ -255,6 +255,10 @@ func (a *App) ListNodes(name string) []kube.NodeInfo {
 	return a.clients.Nodes(name)
 }
 
+func (a *App) ListEvents(contextName, namespace, kind, name string) ([]kube.EventInfo, error) {
+	return a.clients.ListEvents(a.ctx, contextName, namespace, kind, name)
+}
+
 func (a *App) SaveTextFile(defaultName, content string) (string, error) {
 	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
 		DefaultFilename: defaultName,

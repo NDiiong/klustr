@@ -82,6 +82,10 @@ export function ListDeployments(arg1, arg2) {
   return window['go']['app']['App']['ListDeployments'](arg1, arg2);
 }
 
+export function ListEvents(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['ListEvents'](arg1, arg2, arg3, arg4);
+}
+
 export function ListIngresses(arg1, arg2) {
   return window['go']['app']['App']['ListIngresses'](arg1, arg2);
 }
