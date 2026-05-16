@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -6,11 +6,15 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type ColumnSizingState,
   type SortingState,
+  type VisibilityState,
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown, Search, X } from 'lucide-react'
 import { onKubeChange } from '@/lib/events'
 import { useUIStore } from '@/store/ui'
+import { useTablePrefs } from '@/store/tablePrefs'
+import { ColumnControls } from './ColumnControls'
 
 type RowIdentity = { namespace?: string; name?: string }
 
@@ -32,6 +36,28 @@ export type ResourceTableProps<T> = {
 
 function identityKey(r: RowIdentity): string {
   return `${r.namespace ?? ''}/${r.name ?? ''}`
+}
+
+function columnId<T>(c: ColumnDef<T, any>): string {
+  if (c.id) return c.id
+  const ak = (c as { accessorKey?: string }).accessorKey
+  if (ak) return ak
+  return ''
+}
+
+function mergeOrder(all: string[], saved: string[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const id of saved) {
+    if (all.includes(id) && !seen.has(id)) {
+      result.push(id)
+      seen.add(id)
+    }
+  }
+  for (const id of all) {
+    if (!seen.has(id)) result.push(id)
+  }
+  return result
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -59,6 +85,11 @@ export function ResourceTable<T>({
   const namespaceArg = scope === 'namespaced' ? selectedNamespace : null
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
+  const prefs = useTablePrefs((s) => s.byKind[kind])
+  const setOrder = useTablePrefs((s) => s.setOrder)
+  const setHidden = useTablePrefs((s) => s.setHidden)
+  const setSizing = useTablePrefs((s) => s.setSizing)
+  const resetPrefs = useTablePrefs((s) => s.reset)
   const [, setTick] = useState(0)
   const filterRef = useRef<HTMLInputElement>(null)
   const [flashKey, setFlashKey] = useState<string | null>(null)
@@ -116,12 +147,48 @@ export function ResourceTable<T>({
     return () => clearInterval(id)
   }, [])
 
+  const allColumnIds = useMemo(() => columns.map(columnId), [columns])
+  const columnOrder = useMemo(() => mergeOrder(allColumnIds, prefs?.order ?? []), [
+    allColumnIds,
+    prefs?.order,
+  ])
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    const v: VisibilityState = {}
+    for (const id of allColumnIds) v[id] = !(prefs?.hidden ?? []).includes(id)
+    return v
+  }, [allColumnIds, prefs?.hidden])
+
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter: filter },
+    state: {
+      sorting,
+      globalFilter: filter,
+      columnOrder,
+      columnVisibility,
+      columnSizing: prefs?.sizing ?? {},
+    },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
+    onColumnOrderChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(columnOrder) : updater
+      setOrder(kind, next)
+    },
+    onColumnVisibilityChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(columnVisibility) : updater
+      const hidden = Object.entries(next)
+        .filter(([, v]) => v === false)
+        .map(([k]) => k)
+      setHidden(kind, hidden)
+    },
+    onColumnSizingChange: (updater) => {
+      const next =
+        typeof updater === 'function' ? updater(prefs?.sizing ?? {}) : (updater as ColumnSizingState)
+      setSizing(kind, next)
+    },
+    enableColumnResizing: true,
+    columnResizeMode: 'onChange',
+    defaultColumn: { minSize: 60, size: 160 },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -181,9 +248,10 @@ export function ResourceTable<T>({
             </button>
           )}
         </div>
+        <ColumnControls table={table} onReset={() => resetPrefs(kind)} />
       </div>
       <div className="flex-1 overflow-auto">
-        <table className="w-full border-collapse text-sm">
+        <table className="border-collapse text-sm" style={{ width: table.getTotalSize() }}>
           <thead className="sticky top-0 bg-background">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-border">
@@ -192,10 +260,13 @@ export function ResourceTable<T>({
                   return (
                     <th
                       key={h.id}
-                      className="cursor-pointer px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
-                      onClick={h.column.getToggleSortingHandler()}
+                      style={{ width: h.getSize() }}
+                      className="group relative px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <span
+                        className="inline-flex cursor-pointer items-center gap-1"
+                        onClick={h.column.getToggleSortingHandler()}
+                      >
                         {flexRender(h.column.columnDef.header, h.getContext())}
                         {sorted === 'asc' ? (
                           <ArrowUp className="size-3" />
@@ -205,6 +276,16 @@ export function ResourceTable<T>({
                           <ChevronsUpDown className="size-3 opacity-30" />
                         )}
                       </span>
+                      <span
+                        onMouseDown={h.getResizeHandler()}
+                        onTouchStart={h.getResizeHandler()}
+                        onClick={(e) => e.stopPropagation()}
+                        className={[
+                          'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
+                          'opacity-0 group-hover:opacity-100',
+                          h.column.getIsResizing() ? 'bg-primary opacity-100' : 'bg-border',
+                        ].join(' ')}
+                      />
                     </th>
                   )
                 })}
@@ -238,7 +319,11 @@ export function ResourceTable<T>({
                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="whitespace-nowrap px-3 py-1.5 align-middle">
+                      <td
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                        className="overflow-hidden truncate whitespace-nowrap px-3 py-1.5 align-middle"
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
