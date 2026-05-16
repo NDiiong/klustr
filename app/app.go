@@ -26,6 +26,9 @@ func (a *App) Startup(ctx context.Context) {
 	a.clients.SetOnChange(func(c kube.ContextChange) {
 		runtime.EventsEmit(ctx, eventKubeChange, c.Context, c.Kind)
 	})
+	a.clients.SetPFChangeCallback(func() {
+		runtime.EventsEmit(ctx, "pf:update")
+	})
 }
 
 func (a *App) ListContexts() (*kube.Kubeconfig, error) {
@@ -114,6 +117,18 @@ func (a *App) DeleteResource(contextName, kind, namespace, name string) error {
 
 func (a *App) ScaleResource(contextName, kind, namespace, name string, replicas int) error {
 	return a.clients.ScaleResource(a.ctx, contextName, kind, namespace, name, int32(replicas))
+}
+
+func (a *App) StartPortForward(contextName, namespace, podName string, localPort, remotePort int) (kube.PortForwardInfo, error) {
+	return a.clients.StartPortForward(contextName, namespace, podName, uint16(localPort), uint16(remotePort))
+}
+
+func (a *App) StopPortForward(id string) {
+	a.clients.StopPortForward(id)
+}
+
+func (a *App) ListPortForwards() []kube.PortForwardInfo {
+	return a.clients.ListPortForwards()
 }
 
 func (a *App) StartPodLogs(contextName, namespace, podName, container string, follow bool, tailLines int) (string, error) {

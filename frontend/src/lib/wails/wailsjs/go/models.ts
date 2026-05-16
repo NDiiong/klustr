@@ -890,6 +890,32 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class PortForwardInfo {
+	    id: string;
+	    context: string;
+	    namespace: string;
+	    podName: string;
+	    localPort: number;
+	    remotePort: number;
+	    status: string;
+	    error: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PortForwardInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.context = source["context"];
+	        this.namespace = source["namespace"];
+	        this.podName = source["podName"];
+	        this.localPort = source["localPort"];
+	        this.remotePort = source["remotePort"];
+	        this.status = source["status"];
+	        this.error = source["error"];
+	    }
+	}
 	export class SecretKeyInfo {
 	    key: string;
 	    size: number;

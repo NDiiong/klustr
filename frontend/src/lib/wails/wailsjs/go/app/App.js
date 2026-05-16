@@ -102,6 +102,10 @@ export function ListPods(arg1, arg2) {
   return window['go']['app']['App']['ListPods'](arg1, arg2);
 }
 
+export function ListPortForwards() {
+  return window['go']['app']['App']['ListPortForwards']();
+}
+
 export function ListSecrets(arg1, arg2) {
   return window['go']['app']['App']['ListSecrets'](arg1, arg2);
 }
@@ -138,6 +142,10 @@ export function StartPodLogs(arg1, arg2, arg3, arg4, arg5, arg6) {
   return window['go']['app']['App']['StartPodLogs'](arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
+export function StartPortForward(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['StartPortForward'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function StartWatch(arg1) {
   return window['go']['app']['App']['StartWatch'](arg1);
 }
@@ -148,6 +156,10 @@ export function StopExec(arg1) {
 
 export function StopPodLogs(arg1) {
   return window['go']['app']['App']['StopPodLogs'](arg1);
+}
+
+export function StopPortForward(arg1) {
+  return window['go']['app']['App']['StopPortForward'](arg1);
 }
 
 export function StopWatch(arg1) {

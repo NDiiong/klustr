@@ -52,6 +52,8 @@ export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 
+export function ListPortForwards():Promise<Array<kube.PortForwardInfo>>;
+
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 
 export function ListServices(arg1:string,arg2:string):Promise<Array<kube.ServiceInfo>>;
@@ -70,10 +72,14 @@ export function StartExec(arg1:string,arg2:string,arg3:string,arg4:string,arg5:A
 
 export function StartPodLogs(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean,arg6:number):Promise<string>;
 
+export function StartPortForward(arg1:string,arg2:string,arg3:string,arg4:number,arg5:number):Promise<kube.PortForwardInfo>;
+
 export function StartWatch(arg1:string):Promise<void>;
 
 export function StopExec(arg1:string):Promise<void>;
 
 export function StopPodLogs(arg1:string):Promise<void>;
+
+export function StopPortForward(arg1:string):Promise<void>;
 
 export function StopWatch(arg1:string):Promise<void>;

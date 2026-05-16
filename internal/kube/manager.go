@@ -30,6 +30,7 @@ type ClientManager struct {
 	watchers map[string]*contextWatcher
 	logs     *logSessionManager
 	execs    *execSessionManager
+	pf       *pfManager
 	onChange func(ContextChange)
 }
 
@@ -40,7 +41,12 @@ func NewClientManager() *ClientManager {
 		watchers: make(map[string]*contextWatcher),
 		logs:     newLogSessionManager(),
 		execs:    newExecSessionManager(),
+		pf:       newPFManager(),
 	}
+}
+
+func (m *ClientManager) SetPFChangeCallback(cb func()) {
+	m.pf.setOnChange(cb)
 }
 
 func (m *ClientManager) SetOnChange(cb func(ContextChange)) {
@@ -425,6 +431,26 @@ func (m *ClientManager) Nodes(contextName string) []NodeInfo {
 		return []NodeInfo{}
 	}
 	return w.Nodes()
+}
+
+func (m *ClientManager) StartPortForward(contextName, namespace, podName string, localPort, remotePort uint16) (PortForwardInfo, error) {
+	cs, err := m.Clientset(contextName)
+	if err != nil {
+		return PortForwardInfo{}, err
+	}
+	cfg, err := m.restConfig(contextName)
+	if err != nil {
+		return PortForwardInfo{}, err
+	}
+	return m.pf.start(contextName, cs, cfg, namespace, podName, localPort, remotePort)
+}
+
+func (m *ClientManager) StopPortForward(id string) {
+	m.pf.stop(id)
+}
+
+func (m *ClientManager) ListPortForwards() []PortForwardInfo {
+	return m.pf.list()
 }
 
 func (m *ClientManager) restConfig(contextName string) (*rest.Config, error) {
