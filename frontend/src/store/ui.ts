@@ -7,6 +7,13 @@ export type ResourceView =
   | 'services'
   | 'configmaps'
   | 'secrets'
+  | 'statefulsets'
+  | 'daemonsets'
+  | 'jobs'
+  | 'cronjobs'
+  | 'ingresses'
+  | 'nodes'
+  | 'namespaces'
 
 type UIState = {
   selectedContext: string | null

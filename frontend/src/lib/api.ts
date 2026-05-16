@@ -1,11 +1,17 @@
 import {
   ListConfigMaps,
   ListContexts,
+  ListCronJobs,
+  ListDaemonSets,
   ListDeployments,
+  ListIngresses,
+  ListJobs,
   ListNamespaces,
+  ListNodes,
   ListPods,
   ListSecrets,
   ListServices,
+  ListStatefulSets,
   PingContext,
   StartWatch,
   StopWatch,
@@ -21,6 +27,12 @@ export type DeploymentInfo = kube.DeploymentInfo
 export type ServiceInfo = kube.ServiceInfo
 export type ConfigMapInfo = kube.ConfigMapInfo
 export type SecretInfo = kube.SecretInfo
+export type StatefulSetInfo = kube.StatefulSetInfo
+export type DaemonSetInfo = kube.DaemonSetInfo
+export type JobInfo = kube.JobInfo
+export type CronJobInfo = kube.CronJobInfo
+export type IngressInfo = kube.IngressInfo
+export type NodeInfo = kube.NodeInfo
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -37,4 +49,14 @@ export const api = {
     ListConfigMaps(name, namespace),
   listSecrets: (name: string, namespace: string): Promise<SecretInfo[]> =>
     ListSecrets(name, namespace),
+  listStatefulSets: (name: string, namespace: string): Promise<StatefulSetInfo[]> =>
+    ListStatefulSets(name, namespace),
+  listDaemonSets: (name: string, namespace: string): Promise<DaemonSetInfo[]> =>
+    ListDaemonSets(name, namespace),
+  listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
+  listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
+    ListCronJobs(name, namespace),
+  listIngresses: (name: string, namespace: string): Promise<IngressInfo[]> =>
+    ListIngresses(name, namespace),
+  listNodes: (name: string): Promise<NodeInfo[]> => ListNodes(name),
 }

@@ -9,6 +9,13 @@ import { DeploymentsView } from '@/features/deployments/DeploymentsView'
 import { ServicesView } from '@/features/services/ServicesView'
 import { ConfigMapsView } from '@/features/configmaps/ConfigMapsView'
 import { SecretsView } from '@/features/secrets/SecretsView'
+import { StatefulSetsView } from '@/features/statefulsets/StatefulSetsView'
+import { DaemonSetsView } from '@/features/daemonsets/DaemonSetsView'
+import { JobsView } from '@/features/jobs/JobsView'
+import { CronJobsView } from '@/features/cronjobs/CronJobsView'
+import { IngressesView } from '@/features/ingresses/IngressesView'
+import { NodesView } from '@/features/nodes/NodesView'
+import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { api } from '@/lib/api'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
@@ -21,10 +28,10 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: 'Pods', view: 'pods' },
       { label: 'Deployments', view: 'deployments' },
-      { label: 'StatefulSets' },
-      { label: 'DaemonSets' },
-      { label: 'Jobs' },
-      { label: 'CronJobs' },
+      { label: 'StatefulSets', view: 'statefulsets' },
+      { label: 'DaemonSets', view: 'daemonsets' },
+      { label: 'Jobs', view: 'jobs' },
+      { label: 'CronJobs', view: 'cronjobs' },
     ],
   },
   {
@@ -36,11 +43,17 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
   },
   {
     label: 'Network',
-    items: [{ label: 'Services', view: 'services' }, { label: 'Ingresses' }],
+    items: [
+      { label: 'Services', view: 'services' },
+      { label: 'Ingresses', view: 'ingresses' },
+    ],
   },
   {
     label: 'Cluster',
-    items: [{ label: 'Nodes' }, { label: 'Namespaces' }],
+    items: [
+      { label: 'Nodes', view: 'nodes' },
+      { label: 'Namespaces', view: 'namespaces' },
+    ],
   },
 ]
 
@@ -56,16 +69,38 @@ function getInitialTheme(): Theme {
 
 function MainView() {
   const view = useUIStore((s) => s.selectedView)
-  if (view === 'pods') return <PodsView />
-  if (view === 'deployments') return <DeploymentsView />
-  if (view === 'services') return <ServicesView />
-  if (view === 'configmaps') return <ConfigMapsView />
-  if (view === 'secrets') return <SecretsView />
-  return (
-    <div className="flex flex-1 items-center justify-center">
-      <ConnectionStatus />
-    </div>
-  )
+  switch (view) {
+    case 'pods':
+      return <PodsView />
+    case 'deployments':
+      return <DeploymentsView />
+    case 'services':
+      return <ServicesView />
+    case 'configmaps':
+      return <ConfigMapsView />
+    case 'secrets':
+      return <SecretsView />
+    case 'statefulsets':
+      return <StatefulSetsView />
+    case 'daemonsets':
+      return <DaemonSetsView />
+    case 'jobs':
+      return <JobsView />
+    case 'cronjobs':
+      return <CronJobsView />
+    case 'ingresses':
+      return <IngressesView />
+    case 'nodes':
+      return <NodesView />
+    case 'namespaces':
+      return <NamespacesView />
+    default:
+      return (
+        <div className="flex flex-1 items-center justify-center">
+          <ConnectionStatus />
+        </div>
+      )
+  }
 }
 
 function App() {
