@@ -6,6 +6,8 @@ import { useUIStore, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
 import { ErrorBox } from './DetailPrimitives'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
+import { DeleteResourceButton } from './DeleteResourceButton'
+import { ScaleResourceButton, isScalable } from './ScaleResourceButton'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { PodExecTab } from '@/features/pods/PodExecTab'
@@ -38,11 +40,21 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
       }}
     >
       <DialogContent className="flex h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
-        <DialogHeader className="border-b border-border px-6 py-4">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">{resource?.kind}</div>
-          <DialogTitle className="truncate text-base">{resource?.name}</DialogTitle>
-          {resource?.namespace && (
-            <div className="text-xs text-muted-foreground">{resource.namespace}</div>
+        <DialogHeader className="flex flex-row items-start justify-between gap-4 border-b border-border px-6 py-4 pr-12">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">{resource?.kind}</div>
+            <DialogTitle className="truncate text-base">{resource?.name}</DialogTitle>
+            {resource?.namespace && (
+              <div className="text-xs text-muted-foreground">{resource.namespace}</div>
+            )}
+          </div>
+          {resource && (
+            <div className="flex shrink-0 items-center gap-2 pt-1">
+              {isScalable(resource.kind) && (
+                <ScaleResourceButton contextName={contextName} resource={resource} />
+              )}
+              <DeleteResourceButton contextName={contextName} resource={resource} />
+            </div>
           )}
         </DialogHeader>
         {resource && (
