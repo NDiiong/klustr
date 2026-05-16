@@ -17,6 +17,7 @@ import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
+import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { Toaster } from '@/components/ui/sonner'
 import { api } from '@/lib/api'
@@ -203,6 +204,7 @@ function App() {
       </div>
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
+      <CommandPalette />
       <Toaster position="bottom-right" />
     </div>
   )
