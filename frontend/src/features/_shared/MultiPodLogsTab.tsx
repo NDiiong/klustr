@@ -9,6 +9,7 @@ import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodLogTarget } from '@/lib/api'
 import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
+import { highlightLogContent } from '@/features/_shared/logHighlight'
 
 const TAIL_LINES = 50
 const COLORS = [
@@ -198,16 +199,18 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
               return
             }
             const prefix = `${color}${target.pod}/${container}${RESET} | `
+            const rawPrefix = `${target.pod}/${container} | `
             const unsubLine = EventsOn(`pod:logs:line:${id}`, (line: string) => {
-              const annotated = prefix + line
-              if (!predicateRef.current(annotated)) return
+              const rawLine = rawPrefix + line
+              if (!predicateRef.current(rawLine)) return
+              const styled = prefix + highlightLogContent(line)
               if (pausedRef.current) {
-                bufferRef.current.push(annotated)
+                bufferRef.current.push(styled)
                 if (bufferRef.current.length > 10_000) bufferRef.current.shift()
                 return
               }
-              term.writeln(annotated)
-              visibleLinesRef.current.push(annotated)
+              term.writeln(styled)
+              visibleLinesRef.current.push(rawLine)
               if (visibleLinesRef.current.length > 100_000) visibleLinesRef.current.shift()
             })
             const unsubClose = EventsOn(`pod:logs:close:${id}`, (msg: string) => {

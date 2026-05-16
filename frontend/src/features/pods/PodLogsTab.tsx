@@ -9,6 +9,7 @@ import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
 import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
+import { highlightLogContent } from '@/features/_shared/logHighlight'
 import { useUIStore } from '@/store/ui'
 
 const TAIL_LINES = 200
@@ -144,13 +145,14 @@ export function PodLogsTab({ detail }: Props) {
         setStreaming(true)
         unsubLine = EventsOn(`pod:logs:line:${id}`, (line: string) => {
           if (!predicateRef.current(line)) return
+          const styled = highlightLogContent(line)
           if (pausedRef.current) {
-            bufferRef.current.push(line)
+            bufferRef.current.push(styled)
             // cap buffer at 5000 lines while paused
             if (bufferRef.current.length > 5_000) bufferRef.current.shift()
             return
           }
-          term.writeln(line)
+          term.writeln(styled)
           visibleLinesRef.current.push(line)
           if (visibleLinesRef.current.length > 50_000) visibleLinesRef.current.shift()
         })
