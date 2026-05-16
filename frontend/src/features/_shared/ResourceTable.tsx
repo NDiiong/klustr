@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsUpDown, Search, X } from 'lucide-react'
 import { onKubeChange } from '@/lib/events'
 import { useUIStore } from '@/store/ui'
 
@@ -42,7 +43,13 @@ export function ResourceTable<T>({
   const selectedNamespace = useUIStore((s) => s.selectedNamespace)
   const namespaceArg = scope === 'namespaced' ? selectedNamespace : null
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
+  const [filter, setFilter] = useState('')
   const [, setTick] = useState(0)
+
+  // Drop filter input when the table contents drop to 0 on context/namespace change
+  useEffect(() => {
+    if (data.length === 0) setFilter('')
+  }, [data.length])
 
   useEffect(() => {
     if (!selectedContext) {
@@ -73,10 +80,12 @@ export function ResourceTable<T>({
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: { sorting, globalFilter: filter },
     onSortingChange: setSorting,
+    onGlobalFilterChange: setFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   if (!selectedContext) {
@@ -87,7 +96,11 @@ export function ResourceTable<T>({
     )
   }
 
-  const count = `${data.length} ${data.length === 1 ? noun.singular : noun.plural}`
+  const filteredCount = table.getRowModel().rows.length
+  const total = data.length
+  const countLabel = filter
+    ? `${filteredCount} of ${total} ${total === 1 ? noun.singular : noun.plural}`
+    : `${total} ${total === 1 ? noun.singular : noun.plural}`
   const scopeLabel =
     scope === 'namespaced'
       ? namespaceArg
@@ -97,11 +110,31 @@ export function ResourceTable<T>({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2 text-xs text-muted-foreground">
-        <span>
-          {count}
+      <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
+        <span className="min-w-0">
+          {countLabel}
           {scopeLabel}
         </span>
+        <div className="relative ml-auto w-64 max-w-full">
+          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/70" />
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder={`Filter ${noun.plural}`}
+            className="h-7 w-full rounded border border-border bg-background pl-7 pr-7 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          {filter && (
+            <button
+              type="button"
+              aria-label="Clear filter"
+              onClick={() => setFilter('')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
@@ -139,8 +172,9 @@ export function ResourceTable<T>({
                   colSpan={columns.length}
                   className="px-3 py-8 text-center text-sm text-muted-foreground"
                 >
-                  No {noun.plural}
-                  {scope === 'namespaced' && namespaceArg ? ` in ${namespaceArg}` : ''}.
+                  {filter
+                    ? `No ${noun.plural} matching "${filter}".`
+                    : `No ${noun.plural}${scope === 'namespaced' && namespaceArg ? ` in ${namespaceArg}` : ''}.`}
                 </td>
               </tr>
             ) : (
