@@ -43,14 +43,21 @@ type OwnerRef struct {
 }
 
 type ContainerDetail struct {
-	Name         string `json:"name"`
-	Image        string `json:"image"`
-	State        string `json:"state"`
-	StateReason  string `json:"stateReason"`
-	Ready        bool   `json:"ready"`
-	RestartCount int32  `json:"restartCount"`
-	StartedAt    string `json:"startedAt"`
-	LastState    string `json:"lastState"`
+	Name         string          `json:"name"`
+	Image        string          `json:"image"`
+	State        string          `json:"state"`
+	StateReason  string          `json:"stateReason"`
+	Ready        bool            `json:"ready"`
+	RestartCount int32           `json:"restartCount"`
+	StartedAt    string          `json:"startedAt"`
+	LastState    string          `json:"lastState"`
+	Ports        []ContainerPort `json:"ports"`
+}
+
+type ContainerPort struct {
+	Name          string `json:"name"`
+	ContainerPort int32  `json:"containerPort"`
+	Protocol      string `json:"protocol"`
 }
 
 type ConditionDetail struct {
@@ -432,7 +439,19 @@ func containerDetails(specs []corev1.Container, statuses []corev1.ContainerStatu
 	}
 	out := make([]ContainerDetail, 0, len(specs))
 	for _, c := range specs {
-		d := ContainerDetail{Name: c.Name, Image: c.Image}
+		ports := make([]ContainerPort, 0, len(c.Ports))
+		for _, p := range c.Ports {
+			proto := string(p.Protocol)
+			if proto == "" {
+				proto = "TCP"
+			}
+			ports = append(ports, ContainerPort{
+				Name:          p.Name,
+				ContainerPort: p.ContainerPort,
+				Protocol:      proto,
+			})
+		}
+		d := ContainerDetail{Name: c.Name, Image: c.Image, Ports: ports}
 		if s, ok := byName[c.Name]; ok {
 			d.Ready = s.Ready
 			d.RestartCount = s.RestartCount
