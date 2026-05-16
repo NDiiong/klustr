@@ -232,6 +232,101 @@ func (m *ClientManager) StopExec(sessionID string) {
 	m.execs.stop(sessionID)
 }
 
+func (m *ClientManager) Deployment(contextName, namespace, name string) (*DeploymentDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Deployment(namespace, name)
+}
+
+func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*StatefulSetDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.StatefulSet(namespace, name)
+}
+
+func (m *ClientManager) DaemonSet(contextName, namespace, name string) (*DaemonSetDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.DaemonSet(namespace, name)
+}
+
+func (m *ClientManager) Job(contextName, namespace, name string) (*JobDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Job(namespace, name)
+}
+
+func (m *ClientManager) CronJob(contextName, namespace, name string) (*CronJobDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.CronJob(namespace, name)
+}
+
+func (m *ClientManager) Service(contextName, namespace, name string) (*ServiceDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Service(namespace, name)
+}
+
+func (m *ClientManager) ConfigMap(contextName, namespace, name string) (*ConfigMapDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.ConfigMap(namespace, name)
+}
+
+func (m *ClientManager) Secret(contextName, namespace, name string) (*SecretDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Secret(namespace, name)
+}
+
+func (m *ClientManager) Ingress(contextName, namespace, name string) (*IngressDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Ingress(namespace, name)
+}
+
+func (m *ClientManager) Node(contextName, name string) (*NodeDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Node(name)
+}
+
+func (m *ClientManager) Namespace(contextName, name string) (*NamespaceDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Namespace(name)
+}
+
+func (m *ClientManager) watcher(contextName string) (*contextWatcher, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	w, ok := m.watchers[contextName]
+	return w, ok
+}
+
 func (m *ClientManager) Deployments(contextName, namespace string) []DeploymentInfo {
 	m.mu.Lock()
 	w, ok := m.watchers[contextName]

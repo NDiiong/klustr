@@ -56,6 +56,50 @@ func (a *App) GetPod(contextName, namespace, name string) (*kube.PodDetail, erro
 	return a.clients.Pod(contextName, namespace, name)
 }
 
+func (a *App) GetDeployment(contextName, namespace, name string) (*kube.DeploymentDetail, error) {
+	return a.clients.Deployment(contextName, namespace, name)
+}
+
+func (a *App) GetStatefulSet(contextName, namespace, name string) (*kube.StatefulSetDetail, error) {
+	return a.clients.StatefulSet(contextName, namespace, name)
+}
+
+func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
+	return a.clients.DaemonSet(contextName, namespace, name)
+}
+
+func (a *App) GetJob(contextName, namespace, name string) (*kube.JobDetail, error) {
+	return a.clients.Job(contextName, namespace, name)
+}
+
+func (a *App) GetCronJob(contextName, namespace, name string) (*kube.CronJobDetail, error) {
+	return a.clients.CronJob(contextName, namespace, name)
+}
+
+func (a *App) GetService(contextName, namespace, name string) (*kube.ServiceDetail, error) {
+	return a.clients.Service(contextName, namespace, name)
+}
+
+func (a *App) GetConfigMap(contextName, namespace, name string) (*kube.ConfigMapDetail, error) {
+	return a.clients.ConfigMap(contextName, namespace, name)
+}
+
+func (a *App) GetSecret(contextName, namespace, name string) (*kube.SecretDetail, error) {
+	return a.clients.Secret(contextName, namespace, name)
+}
+
+func (a *App) GetIngress(contextName, namespace, name string) (*kube.IngressDetail, error) {
+	return a.clients.Ingress(contextName, namespace, name)
+}
+
+func (a *App) GetNode(contextName, name string) (*kube.NodeDetail, error) {
+	return a.clients.Node(contextName, name)
+}
+
+func (a *App) GetNamespace(contextName, name string) (*kube.NamespaceDetail, error) {
+	return a.clients.Namespace(contextName, name)
+}
+
 func (a *App) StartPodLogs(contextName, namespace, podName, container string, follow bool, tailLines int) (string, error) {
 	var sessionID string
 	id, err := a.clients.StartLogs(
