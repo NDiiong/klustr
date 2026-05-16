@@ -4,6 +4,7 @@ import { api, type PodInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<PodInfo>()
 
@@ -43,6 +44,7 @@ function statusClass(status: string): string {
 export function PodsView() {
   const pods = useResources((s) => s.pods)
   const setPods = useResources((s) => s.setPods)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -74,6 +76,9 @@ export function PodsView() {
       setData={setPods}
       fetch={api.listPods}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Pod', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

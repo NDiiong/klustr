@@ -16,6 +16,7 @@ import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
+import { PodDetailPanel } from '@/features/pods/PodDetailPanel'
 import { api } from '@/lib/api'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
@@ -108,6 +109,7 @@ function App() {
   const selectedContext = useUIStore((s) => s.selectedContext)
   const selectedView = useUIStore((s) => s.selectedView)
   const setSelectedView = useUIStore((s) => s.setSelectedView)
+  const selectedResource = useUIStore((s) => s.selectedResource)
   const resetResources = useResources((s) => s.reset)
 
   useEffect(() => {
@@ -188,6 +190,8 @@ function App() {
           <MainView />
         </main>
       </div>
+
+      <PodDetailPanel contextName={selectedContext} resource={selectedResource} />
     </div>
   )
 }

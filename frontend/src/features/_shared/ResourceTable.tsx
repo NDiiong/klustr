@@ -24,6 +24,7 @@ export type ResourceTableProps<T> = {
   fetch: (contextName: string, namespace: string) => Promise<T[]>
   columns: ColumnDef<T, any>[]
   defaultSort?: SortingState
+  onRowClick?: (row: T) => void
 }
 
 export function ResourceTable<T>({
@@ -35,6 +36,7 @@ export function ResourceTable<T>({
   fetch,
   columns,
   defaultSort,
+  onRowClick,
 }: ResourceTableProps<T>) {
   const selectedContext = useUIStore((s) => s.selectedContext)
   const selectedNamespace = useUIStore((s) => s.selectedNamespace)
@@ -143,7 +145,14 @@ export function ResourceTable<T>({
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-b-0 hover:bg-muted/50">
+                <tr
+                  key={row.id}
+                  className={[
+                    'border-b border-border last:border-b-0 hover:bg-muted/50',
+                    onRowClick ? 'cursor-pointer' : '',
+                  ].join(' ')}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="whitespace-nowrap px-3 py-1.5 align-middle">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

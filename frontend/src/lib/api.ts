@@ -1,4 +1,5 @@
 import {
+  GetPod,
   ListConfigMaps,
   ListContexts,
   ListCronJobs,
@@ -33,6 +34,10 @@ export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
 export type NodeInfo = kube.NodeInfo
+export type PodDetail = kube.PodDetail
+export type ContainerDetail = kube.ContainerDetail
+export type ConditionDetail = kube.ConditionDetail
+export type OwnerRef = kube.OwnerRef
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -59,4 +64,6 @@ export const api = {
   listIngresses: (name: string, namespace: string): Promise<IngressInfo[]> =>
     ListIngresses(name, namespace),
   listNodes: (name: string): Promise<NodeInfo[]> => ListNodes(name),
+  getPod: (contextName: string, namespace: string, name: string): Promise<PodDetail> =>
+    GetPod(contextName, namespace, name),
 }
