@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { api, type ServiceDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
+import { Copyable } from '@/features/_shared/Copyable'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function ServiceDetailBody({
@@ -22,8 +23,12 @@ export function ServiceDetailBody({
       <div className="grid gap-6 sm:grid-cols-2">
         <Section title="Service">
           <Field label="Type">{detail.type}</Field>
-          <Field label="Cluster IPs" mono>{detail.clusterIPs.join(', ') || '—'}</Field>
-          <Field label="External IPs" mono>{detail.externalIPs.length > 0 ? detail.externalIPs.join(', ') : '—'}</Field>
+          <Field label="Cluster IPs" mono>
+            {detail.clusterIPs.length === 0 ? '—' : <Copyable value={detail.clusterIPs.join(',')}>{detail.clusterIPs.join(', ')}</Copyable>}
+          </Field>
+          <Field label="External IPs" mono>
+            {detail.externalIPs.length === 0 ? '—' : <Copyable value={detail.externalIPs.join(',')}>{detail.externalIPs.join(', ')}</Copyable>}
+          </Field>
           <Field label="Session Affinity">{detail.sessionAffinity || 'None'}</Field>
           <Field label="Age">{formatAge(detail.createdAt)}</Field>
         </Section>

@@ -1,6 +1,7 @@
 import type { PodDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
+import { Copyable } from '@/features/_shared/Copyable'
 
 export function PodOverviewBody({ detail }: { detail: PodDetail }) {
   return (
@@ -15,9 +16,9 @@ export function PodOverviewBody({ detail }: { detail: PodDetail }) {
         </Section>
 
         <Section title="Networking">
-          <Field label="Pod IP" mono>{detail.podIP || '—'}</Field>
-          <Field label="Host IP" mono>{detail.hostIP || '—'}</Field>
-          <Field label="Node">{detail.node || '—'}</Field>
+          <Field label="Pod IP" mono>{detail.podIP ? <Copyable value={detail.podIP} /> : '—'}</Field>
+          <Field label="Host IP" mono>{detail.hostIP ? <Copyable value={detail.hostIP} /> : '—'}</Field>
+          <Field label="Node">{detail.node ? <Copyable value={detail.node} /> : '—'}</Field>
           <Field label="Service Account">{detail.serviceAccount || 'default'}</Field>
           {detail.priorityClassName && <Field label="Priority Class">{detail.priorityClassName}</Field>}
         </Section>
@@ -91,7 +92,7 @@ function PodContainersTable({
             {containers.map((c) => (
               <tr key={c.name} className="border-t border-border">
                 <Td>{c.name}</Td>
-                <Td className="font-mono break-all">{c.image}</Td>
+                <Td className="font-mono break-all"><Copyable value={c.image} /></Td>
                 <Td>
                   <div>{c.state}</div>
                   {c.stateReason && <div className="text-[10px] text-muted-foreground">{c.stateReason}</div>}

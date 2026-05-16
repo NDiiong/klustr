@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { api, type NodeDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
+import { Copyable } from '@/features/_shared/Copyable'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function NodeDetailBody({
@@ -24,8 +25,8 @@ export function NodeDetailBody({
           <Field label="Age">{formatAge(detail.createdAt)}</Field>
         </Section>
         <Section title="Network">
-          <Field label="Internal IP" mono>{detail.internalIP}</Field>
-          {detail.hostname && <Field label="Hostname">{detail.hostname}</Field>}
+          <Field label="Internal IP" mono><Copyable value={detail.internalIP} /></Field>
+          {detail.hostname && <Field label="Hostname"><Copyable value={detail.hostname} /></Field>}
         </Section>
       </div>
       <Section title="System">
