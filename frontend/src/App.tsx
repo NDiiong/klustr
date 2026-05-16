@@ -18,6 +18,7 @@ import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
+import { StatusBar } from '@/features/_shared/StatusBar'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -231,6 +232,8 @@ function App() {
           <MainView />
         </main>
       </div>
+
+      <StatusBar />
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
       <CommandPalette />
