@@ -123,8 +123,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    user-select: none;
+    -webkit-user-select: none;
   }
   html {
     @apply font-sans;
+  }
+  input, textarea, [contenteditable="true"], .allow-select {
+    user-select: text;
+    -webkit-user-select: text;
   }
 }
