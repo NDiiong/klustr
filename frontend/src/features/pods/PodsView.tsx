@@ -5,6 +5,9 @@ import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
 import { useUIStore } from '@/store/ui'
+import { useMetrics, podKey } from '@/store/metrics'
+import { usePodMetricsPoll } from './usePodMetricsPoll'
+import { PodResourceBars } from './PodResourceBars'
 
 const columnHelper = createColumnHelper<PodInfo>()
 
@@ -28,6 +31,20 @@ const FAILURE_STATUS = new Set([
   'Evicted',
   'DeadlineExceeded',
 ])
+
+function PodUsageCell({ pod }: { pod: PodInfo }) {
+  const m = useMetrics((s) => s.byPod[podKey(pod.namespace, pod.name)])
+  return (
+    <PodResourceBars
+      cpuUsageMC={m?.cpuMC ?? 0}
+      cpuRequestMC={pod.cpuRequestMC}
+      cpuLimitMC={pod.cpuLimitMC}
+      memUsageB={m?.memB ?? 0}
+      memRequestB={pod.memRequestB}
+      memLimitB={pod.memLimitB}
+    />
+  )
+}
 
 function RestartBadge({ value }: { value: number }) {
   let cls = 'text-muted-foreground'
@@ -53,6 +70,10 @@ export function PodsView() {
   const pods = useResources((s) => s.pods)
   const setPods = useResources((s) => s.setPods)
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
+  const selectedContext = useUIStore((s) => s.selectedContext)
+  const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const metricsAvailable = useMetrics((s) => s.available)
+  usePodMetricsPoll(selectedContext, selectedNamespace ?? '')
 
   const columns = useMemo(
     () => [
@@ -74,8 +95,17 @@ export function PodsView() {
         cell: (info) => formatAge(info.getValue()),
         sortingFn: 'datetime',
       }),
+      ...(metricsAvailable
+        ? [
+            columnHelper.display({
+              id: 'usage',
+              header: 'CPU / Mem',
+              cell: (info) => <PodUsageCell pod={info.row.original} />,
+            }),
+          ]
+        : []),
     ],
-    [],
+    [metricsAvailable],
   )
 
   return (

@@ -2,6 +2,7 @@ import {
   ApplyResourceYAML,
   DeleteResource,
   ListEvents,
+  ListPodMetrics,
   ListPortForwards,
   PodLogTargets,
   SaveTextFile,
@@ -87,6 +88,7 @@ export type NamespaceDetail = kube.NamespaceDetail
 export type PortForwardInfo = kube.PortForwardInfo
 export type PodLogTarget = kube.PodLogTarget
 export type EventInfo = kube.EventInfo
+export type PodMetrics = kube.PodMetrics
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -185,4 +187,6 @@ export const api = {
     kind: string,
     name: string,
   ): Promise<EventInfo[]> => ListEvents(contextName, namespace, kind, name),
+  listPodMetrics: (contextName: string, namespace: string): Promise<PodMetrics[]> =>
+    ListPodMetrics(contextName, namespace),
 }
