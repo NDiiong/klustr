@@ -129,6 +129,10 @@ func (a *App) GetLease(contextName, namespace, name string) (*kube.LeaseDetail, 
 	return a.clients.Lease(contextName, namespace, name)
 }
 
+func (a *App) GetMutatingWebhookConfiguration(contextName, name string) (*kube.WebhookConfigurationDetail, error) {
+	return a.clients.MutatingWebhookConfiguration(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -345,6 +349,10 @@ func (a *App) ListRuntimeClasses(name string) []kube.RuntimeClassInfo {
 
 func (a *App) ListLeases(name, namespace string) []kube.LeaseInfo {
 	return a.clients.Leases(name, namespace)
+}
+
+func (a *App) ListMutatingWebhookConfigurations(name string) []kube.WebhookConfigurationInfo {
+	return a.clients.MutatingWebhookConfigurations(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

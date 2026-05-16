@@ -54,6 +54,10 @@ export function GetLimitRange(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetLimitRange'](arg1, arg2, arg3);
 }
 
+export function GetMutatingWebhookConfiguration(arg1, arg2) {
+  return window['go']['app']['App']['GetMutatingWebhookConfiguration'](arg1, arg2);
+}
+
 export function GetNamespace(arg1, arg2) {
   return window['go']['app']['App']['GetNamespace'](arg1, arg2);
 }
@@ -168,6 +172,10 @@ export function ListLeases(arg1, arg2) {
 
 export function ListLimitRanges(arg1, arg2) {
   return window['go']['app']['App']['ListLimitRanges'](arg1, arg2);
+}
+
+export function ListMutatingWebhookConfigurations(arg1) {
+  return window['go']['app']['App']['ListMutatingWebhookConfigurations'](arg1);
 }
 
 export function ListNamespaces(arg1) {

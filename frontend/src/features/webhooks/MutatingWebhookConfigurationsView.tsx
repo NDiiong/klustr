@@ -1,0 +1,43 @@
+import { useMemo } from 'react'
+import { createColumnHelper } from '@tanstack/react-table'
+import { api, type WebhookConfigurationInfo } from '@/lib/api'
+import { formatAge } from '@/lib/time'
+import { ResourceTable } from '@/features/_shared/ResourceTable'
+import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
+
+const columnHelper = createColumnHelper<WebhookConfigurationInfo>()
+
+export function MutatingWebhookConfigurationsView() {
+  const list = useResources((s) => s.mutatingWebhookConfigurations)
+  const setList = useResources((s) => s.setMutatingWebhookConfigurations)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('name', { header: 'Name' }),
+      columnHelper.accessor('webhooks', { header: 'Webhooks' }),
+      columnHelper.accessor('createdAt', {
+        header: 'Age',
+        cell: (info) => formatAge(info.getValue()),
+        sortingFn: 'datetime',
+      }),
+    ],
+    [],
+  )
+
+  return (
+    <ResourceTable
+      kind="MutatingWebhookConfiguration"
+      noun={{ singular: 'mutating webhook config', plural: 'mutating webhook configs' }}
+      scope="cluster"
+      data={list}
+      setData={setList}
+      fetch={(ctx) => api.listMutatingWebhookConfigurations(ctx)}
+      columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'MutatingWebhookConfiguration', namespace: '', name: row.name })
+      }
+    />
+  )
+}

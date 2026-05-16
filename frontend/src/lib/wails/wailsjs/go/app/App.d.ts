@@ -28,6 +28,8 @@ export function GetLease(arg1:string,arg2:string,arg3:string):Promise<kube.Lease
 
 export function GetLimitRange(arg1:string,arg2:string,arg3:string):Promise<kube.LimitRangeDetail>;
 
+export function GetMutatingWebhookConfiguration(arg1:string,arg2:string):Promise<kube.WebhookConfigurationDetail>;
+
 export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDetail>;
 
 export function GetNetworkPolicy(arg1:string,arg2:string,arg3:string):Promise<kube.NetworkPolicyDetail>;
@@ -85,6 +87,8 @@ export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
 export function ListLeases(arg1:string,arg2:string):Promise<Array<kube.LeaseInfo>>;
 
 export function ListLimitRanges(arg1:string,arg2:string):Promise<Array<kube.LimitRangeInfo>>;
+
+export function ListMutatingWebhookConfigurations(arg1:string):Promise<Array<kube.WebhookConfigurationInfo>>;
 
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 

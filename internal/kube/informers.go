@@ -103,6 +103,12 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type WebhookConfigurationInfo struct {
+	Name      string `json:"name"`
+	Webhooks  int    `json:"webhooks"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type LeaseInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -450,6 +456,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	mwh := w.factory.Admissionregistration().V1().MutatingWebhookConfigurations().Informer()
+	if _, err := mwh.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("MutatingWebhookConfiguration") },
+		UpdateFunc: func(any, any) { w.touch("MutatingWebhookConfiguration") },
+		DeleteFunc: func(any) { w.touch("MutatingWebhookConfiguration") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	leases := w.factory.Coordination().V1().Leases().Informer()
 	if _, err := leases.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("Lease") },
@@ -620,6 +636,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
 			"PriorityClass", "RuntimeClass", "Lease",
+			"MutatingWebhookConfiguration",
 		} {
 			w.touch(kind)
 		}
@@ -1044,6 +1061,23 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) MutatingWebhookConfigurations() []WebhookConfigurationInfo {
+	whs, err := w.factory.Admissionregistration().V1().MutatingWebhookConfigurations().Lister().List(labels.Everything())
+	if err != nil {
+		return []WebhookConfigurationInfo{}
+	}
+	out := make([]WebhookConfigurationInfo, 0, len(whs))
+	for _, c := range whs {
+		out = append(out, WebhookConfigurationInfo{
+			Name:      c.Name,
+			Webhooks:  len(c.Webhooks),
+			CreatedAt: c.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

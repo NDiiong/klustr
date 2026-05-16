@@ -32,6 +32,7 @@ import { IngressClassDetailBody } from '@/features/ingressclasses/IngressClassDe
 import { PriorityClassDetailBody } from '@/features/priorityclasses/PriorityClassDetailBody'
 import { RuntimeClassDetailBody } from '@/features/runtimeclasses/RuntimeClassDetailBody'
 import { LeaseDetailBody } from '@/features/leases/LeaseDetailBody'
+import { WebhookConfigurationDetailBody } from '@/features/webhooks/WebhookConfigurationDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -258,6 +259,15 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return <RuntimeClassDetailBody contextName={contextName} name={resource.name} />
     case 'Lease':
       return <LeaseDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
+    case 'MutatingWebhookConfiguration':
+      return (
+        <WebhookConfigurationDetailBody
+          contextName={contextName}
+          name={resource.name}
+          kind="MutatingWebhookConfiguration"
+          loader={(ctx) => api.getMutatingWebhookConfiguration(ctx, resource.name)}
+        />
+      )
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':
