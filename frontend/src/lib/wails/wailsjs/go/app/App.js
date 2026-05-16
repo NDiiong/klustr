@@ -10,12 +10,32 @@ export function ListContexts() {
   return window['go']['app']['App']['ListContexts']();
 }
 
+export function ListCronJobs(arg1, arg2) {
+  return window['go']['app']['App']['ListCronJobs'](arg1, arg2);
+}
+
+export function ListDaemonSets(arg1, arg2) {
+  return window['go']['app']['App']['ListDaemonSets'](arg1, arg2);
+}
+
 export function ListDeployments(arg1, arg2) {
   return window['go']['app']['App']['ListDeployments'](arg1, arg2);
 }
 
+export function ListIngresses(arg1, arg2) {
+  return window['go']['app']['App']['ListIngresses'](arg1, arg2);
+}
+
+export function ListJobs(arg1, arg2) {
+  return window['go']['app']['App']['ListJobs'](arg1, arg2);
+}
+
 export function ListNamespaces(arg1) {
   return window['go']['app']['App']['ListNamespaces'](arg1);
+}
+
+export function ListNodes(arg1) {
+  return window['go']['app']['App']['ListNodes'](arg1);
 }
 
 export function ListPods(arg1, arg2) {
@@ -28,6 +48,10 @@ export function ListSecrets(arg1, arg2) {
 
 export function ListServices(arg1, arg2) {
   return window['go']['app']['App']['ListServices'](arg1, arg2);
+}
+
+export function ListStatefulSets(arg1, arg2) {
+  return window['go']['app']['App']['ListStatefulSets'](arg1, arg2);
 }
 
 export function PingContext(arg1) {

@@ -38,6 +38,58 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	    }
 	}
+	export class CronJobInfo {
+	    name: string;
+	    namespace: string;
+	    schedule: string;
+	    suspend: boolean;
+	    active: number;
+	    lastSchedule: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CronJobInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.schedule = source["schedule"];
+	        this.suspend = source["suspend"];
+	        this.active = source["active"];
+	        this.lastSchedule = source["lastSchedule"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class DaemonSetInfo {
+	    name: string;
+	    namespace: string;
+	    desired: number;
+	    current: number;
+	    ready: number;
+	    upToDate: number;
+	    available: number;
+	    nodeSelector: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DaemonSetInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.desired = source["desired"];
+	        this.current = source["current"];
+	        this.ready = source["ready"];
+	        this.upToDate = source["upToDate"];
+	        this.available = source["available"];
+	        this.nodeSelector = source["nodeSelector"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class DeploymentInfo {
 	    name: string;
 	    namespace: string;
@@ -61,6 +113,52 @@ export namespace kube {
 	        this.available = source["available"];
 	        this.strategy = source["strategy"];
 	        this.images = source["images"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class IngressInfo {
+	    name: string;
+	    namespace: string;
+	    class: string;
+	    hosts: string;
+	    address: string;
+	    ports: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IngressInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.class = source["class"];
+	        this.hosts = source["hosts"];
+	        this.address = source["address"];
+	        this.ports = source["ports"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class JobInfo {
+	    name: string;
+	    namespace: string;
+	    completions: string;
+	    duration: string;
+	    status: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new JobInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.completions = source["completions"];
+	        this.duration = source["duration"];
+	        this.status = source["status"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}
@@ -109,6 +207,30 @@ export namespace kube {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
 	        this.phase = source["phase"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class NodeInfo {
+	    name: string;
+	    status: string;
+	    roles: string;
+	    version: string;
+	    osImage: string;
+	    internalIP: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NodeInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.status = source["status"];
+	        this.roles = source["roles"];
+	        this.version = source["version"];
+	        this.osImage = source["osImage"];
+	        this.internalIP = source["internalIP"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}
@@ -193,6 +315,28 @@ export namespace kube {
 	        this.clusterIP = source["clusterIP"];
 	        this.externalIP = source["externalIP"];
 	        this.ports = source["ports"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class StatefulSetInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    service: string;
+	    images: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StatefulSetInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.service = source["service"];
+	        this.images = source["images"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}

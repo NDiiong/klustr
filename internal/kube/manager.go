@@ -208,6 +208,66 @@ func (m *ClientManager) Secrets(contextName, namespace string) []SecretInfo {
 	return w.Secrets(namespace)
 }
 
+func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSetInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []StatefulSetInfo{}
+	}
+	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) DaemonSets(contextName, namespace string) []DaemonSetInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []DaemonSetInfo{}
+	}
+	return w.DaemonSets(namespace)
+}
+
+func (m *ClientManager) Jobs(contextName, namespace string) []JobInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []JobInfo{}
+	}
+	return w.Jobs(namespace)
+}
+
+func (m *ClientManager) CronJobs(contextName, namespace string) []CronJobInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []CronJobInfo{}
+	}
+	return w.CronJobs(namespace)
+}
+
+func (m *ClientManager) Ingresses(contextName, namespace string) []IngressInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []IngressInfo{}
+	}
+	return w.Ingresses(namespace)
+}
+
+func (m *ClientManager) Nodes(contextName string) []NodeInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []NodeInfo{}
+	}
+	return w.Nodes()
+}
+
 func (m *ClientManager) restConfig(contextName string) (*rest.Config, error) {
 	overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(m.rules, overrides).ClientConfig()

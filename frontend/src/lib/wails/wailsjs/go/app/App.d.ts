@@ -6,15 +6,27 @@ export function ListConfigMaps(arg1:string,arg2:string):Promise<Array<kube.Confi
 
 export function ListContexts():Promise<kube.Kubeconfig>;
 
+export function ListCronJobs(arg1:string,arg2:string):Promise<Array<kube.CronJobInfo>>;
+
+export function ListDaemonSets(arg1:string,arg2:string):Promise<Array<kube.DaemonSetInfo>>;
+
 export function ListDeployments(arg1:string,arg2:string):Promise<Array<kube.DeploymentInfo>>;
 
+export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
+
+export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
+
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
+
+export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 
 export function ListServices(arg1:string,arg2:string):Promise<Array<kube.ServiceInfo>>;
+
+export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.StatefulSetInfo>>;
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
