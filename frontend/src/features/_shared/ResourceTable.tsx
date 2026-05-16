@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -28,6 +28,13 @@ export type ResourceTableProps<T> = {
   onRowClick?: (row: T) => void
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+}
+
 export function ResourceTable<T>({
   kind,
   noun,
@@ -45,11 +52,24 @@ export function ResourceTable<T>({
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
   const [, setTick] = useState(0)
+  const filterRef = useRef<HTMLInputElement>(null)
 
   // Drop filter input when the table contents drop to 0 on context/namespace change
   useEffect(() => {
     if (data.length === 0) setFilter('')
   }, [data.length])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return
+      if (isEditableTarget(e.target)) return
+      e.preventDefault()
+      filterRef.current?.focus()
+      filterRef.current?.select()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     if (!selectedContext) {
@@ -118,10 +138,17 @@ export function ResourceTable<T>({
         <div className="relative ml-auto w-64 max-w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/70" />
           <input
+            ref={filterRef}
             type="text"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder={`Filter ${noun.plural}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                if (filter) setFilter('')
+                else filterRef.current?.blur()
+              }
+            }}
+            placeholder={`Filter ${noun.plural}   ⌨ /`}
             className="h-7 w-full rounded border border-border bg-background pl-7 pr-7 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring"
           />
           {filter && (
