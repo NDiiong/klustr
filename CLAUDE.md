@@ -8,7 +8,7 @@ Cross-platform Kubernetes desktop client. Multi-context cluster management with 
 |---|---|
 | Desktop framework | Wails v2 (Go backend + native webview) |
 | Backend | Go 1.26 + `client-go` |
-| Frontend | React 18 + TypeScript + Vite |
+| Frontend | React 19 + TypeScript + Vite |
 | UI | Tailwind CSS + shadcn/ui |
 | Routing | TanStack Router |
 | Real-time state | Zustand |
