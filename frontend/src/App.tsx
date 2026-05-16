@@ -29,6 +29,7 @@ import { MutatingWebhookConfigurationsView } from '@/features/webhooks/MutatingW
 import { ValidatingWebhookConfigurationsView } from '@/features/webhooks/ValidatingWebhookConfigurationsView'
 import { EndpointsView } from '@/features/endpoints/EndpointsView'
 import { ReplicationControllersView } from '@/features/replicationcontrollers/ReplicationControllersView'
+import { EventsView } from '@/features/events/EventsView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -100,6 +101,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Namespaces', view: 'namespaces' },
       { label: 'PriorityClasses', view: 'priorityclasses' },
       { label: 'RuntimeClasses', view: 'runtimeclasses' },
+      { label: 'Events', view: 'events' },
       { label: 'Leases', view: 'leases' },
       { label: 'MutatingWebhooks', view: 'mutatingwebhookconfigurations' },
       { label: 'ValidatingWebhooks', view: 'validatingwebhookconfigurations' },
@@ -170,6 +172,8 @@ function MainView() {
       return <EndpointsView />
     case 'replicationcontrollers':
       return <ReplicationControllersView />
+    case 'events':
+      return <EventsView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

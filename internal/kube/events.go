@@ -30,11 +30,14 @@ func (m *ClientManager) ListEvents(ctx context.Context, contextName, namespace, 
 		return nil, err
 	}
 
-	selector := fields.AndSelectors(
-		fields.OneTermEqualSelector("involvedObject.name", name),
-		fields.OneTermEqualSelector("involvedObject.kind", kind),
-	)
-	opts := metav1.ListOptions{FieldSelector: selector.String(), Limit: 200}
+	opts := metav1.ListOptions{Limit: 200}
+	if kind != "" && name != "" {
+		selector := fields.AndSelectors(
+			fields.OneTermEqualSelector("involvedObject.name", name),
+			fields.OneTermEqualSelector("involvedObject.kind", kind),
+		)
+		opts.FieldSelector = selector.String()
+	}
 
 	ns := namespace
 	if kind == "Node" || kind == "Namespace" {

@@ -27,6 +27,7 @@ export type ResourceView =
   | 'validatingwebhookconfigurations'
   | 'endpoints'
   | 'replicationcontrollers'
+  | 'events'
   | 'jobs'
   | 'cronjobs'
   | 'ingresses'
