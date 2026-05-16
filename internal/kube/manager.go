@@ -178,6 +178,36 @@ func (m *ClientManager) Deployments(contextName, namespace string) []DeploymentI
 	return w.Deployments(namespace)
 }
 
+func (m *ClientManager) Services(contextName, namespace string) []ServiceInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []ServiceInfo{}
+	}
+	return w.Services(namespace)
+}
+
+func (m *ClientManager) ConfigMaps(contextName, namespace string) []ConfigMapInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []ConfigMapInfo{}
+	}
+	return w.ConfigMaps(namespace)
+}
+
+func (m *ClientManager) Secrets(contextName, namespace string) []SecretInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []SecretInfo{}
+	}
+	return w.Secrets(namespace)
+}
+
 func (m *ClientManager) restConfig(contextName string) (*rest.Config, error) {
 	overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(m.rules, overrides).ClientConfig()

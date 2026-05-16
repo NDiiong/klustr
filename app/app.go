@@ -55,3 +55,15 @@ func (a *App) ListPods(name, namespace string) []kube.PodInfo {
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
 	return a.clients.Deployments(name, namespace)
 }
+
+func (a *App) ListServices(name, namespace string) []kube.ServiceInfo {
+	return a.clients.Services(name, namespace)
+}
+
+func (a *App) ListConfigMaps(name, namespace string) []kube.ConfigMapInfo {
+	return a.clients.ConfigMaps(name, namespace)
+}
+
+func (a *App) ListSecrets(name, namespace string) []kube.SecretInfo {
+	return a.clients.Secrets(name, namespace)
+}

@@ -46,6 +46,31 @@ type DeploymentInfo struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type ServiceInfo struct {
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace"`
+	Type       string `json:"type"`
+	ClusterIP  string `json:"clusterIP"`
+	ExternalIP string `json:"externalIP"`
+	Ports      string `json:"ports"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+type ConfigMapInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Keys      int    `json:"keys"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type SecretInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Type      string `json:"type"`
+	Keys      int    `json:"keys"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type ChangeFunc func(kind string)
 
 type contextWatcher struct {
@@ -100,12 +125,45 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	services := w.factory.Core().V1().Services().Informer()
+	if _, err := services.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Service") },
+		UpdateFunc: func(any, any) { w.touch("Service") },
+		DeleteFunc: func(any) { w.touch("Service") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
+	configMaps := w.factory.Core().V1().ConfigMaps().Informer()
+	if _, err := configMaps.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("ConfigMap") },
+		UpdateFunc: func(any, any) { w.touch("ConfigMap") },
+		DeleteFunc: func(any) { w.touch("ConfigMap") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
+	secrets := w.factory.Core().V1().Secrets().Informer()
+	if _, err := secrets.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Secret") },
+		UpdateFunc: func(any, any) { w.touch("Secret") },
+		DeleteFunc: func(any) { w.touch("Secret") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	w.factory.Start(ctx.Done())
 	go func() {
 		w.factory.WaitForCacheSync(ctx.Done())
 		w.touch("Namespace")
 		w.touch("Pod")
 		w.touch("Deployment")
+		w.touch("Service")
+		w.touch("ConfigMap")
+		w.touch("Secret")
 	}()
 	return nil
 }
@@ -258,6 +316,152 @@ func (w *contextWatcher) Deployments(namespace string) []DeploymentInfo {
 		return out[i].Name < out[j].Name
 	})
 	return out
+}
+
+func (w *contextWatcher) Services(namespace string) []ServiceInfo {
+	lister := w.factory.Core().V1().Services().Lister()
+	var (
+		svcs []*corev1.Service
+		err  error
+	)
+	if namespace == "" {
+		svcs, err = lister.List(labels.Everything())
+	} else {
+		svcs, err = lister.Services(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []ServiceInfo{}
+	}
+	out := make([]ServiceInfo, 0, len(svcs))
+	for _, s := range svcs {
+		out = append(out, ServiceInfo{
+			Name:       s.Name,
+			Namespace:  s.Namespace,
+			Type:       string(s.Spec.Type),
+			ClusterIP:  serviceClusterIP(s),
+			ExternalIP: serviceExternalIP(s),
+			Ports:      servicePorts(s),
+			CreatedAt:  s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace != out[j].Namespace {
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func (w *contextWatcher) ConfigMaps(namespace string) []ConfigMapInfo {
+	lister := w.factory.Core().V1().ConfigMaps().Lister()
+	var (
+		cms []*corev1.ConfigMap
+		err error
+	)
+	if namespace == "" {
+		cms, err = lister.List(labels.Everything())
+	} else {
+		cms, err = lister.ConfigMaps(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []ConfigMapInfo{}
+	}
+	out := make([]ConfigMapInfo, 0, len(cms))
+	for _, c := range cms {
+		out = append(out, ConfigMapInfo{
+			Name:      c.Name,
+			Namespace: c.Namespace,
+			Keys:      len(c.Data) + len(c.BinaryData),
+			CreatedAt: c.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace != out[j].Namespace {
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func (w *contextWatcher) Secrets(namespace string) []SecretInfo {
+	lister := w.factory.Core().V1().Secrets().Lister()
+	var (
+		secs []*corev1.Secret
+		err  error
+	)
+	if namespace == "" {
+		secs, err = lister.List(labels.Everything())
+	} else {
+		secs, err = lister.Secrets(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []SecretInfo{}
+	}
+	out := make([]SecretInfo, 0, len(secs))
+	for _, s := range secs {
+		out = append(out, SecretInfo{
+			Name:      s.Name,
+			Namespace: s.Namespace,
+			Type:      string(s.Type),
+			Keys:      len(s.Data),
+			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace != out[j].Namespace {
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func serviceClusterIP(s *corev1.Service) string {
+	if s.Spec.ClusterIP == "" {
+		return "<none>"
+	}
+	return s.Spec.ClusterIP
+}
+
+func serviceExternalIP(s *corev1.Service) string {
+	switch s.Spec.Type {
+	case corev1.ServiceTypeExternalName:
+		return s.Spec.ExternalName
+	case corev1.ServiceTypeLoadBalancer:
+		ips := make([]string, 0, len(s.Status.LoadBalancer.Ingress))
+		for _, ing := range s.Status.LoadBalancer.Ingress {
+			if ing.IP != "" {
+				ips = append(ips, ing.IP)
+			} else if ing.Hostname != "" {
+				ips = append(ips, ing.Hostname)
+			}
+		}
+		if len(ips) > 0 {
+			return strings.Join(ips, ",")
+		}
+		return "<pending>"
+	}
+	if len(s.Spec.ExternalIPs) > 0 {
+		return strings.Join(s.Spec.ExternalIPs, ",")
+	}
+	return "<none>"
+}
+
+func servicePorts(s *corev1.Service) string {
+	if len(s.Spec.Ports) == 0 {
+		return "<none>"
+	}
+	parts := make([]string, 0, len(s.Spec.Ports))
+	for _, p := range s.Spec.Ports {
+		if p.NodePort != 0 {
+			parts = append(parts, fmt.Sprintf("%d:%d/%s", p.Port, p.NodePort, p.Protocol))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d/%s", p.Port, p.Protocol))
+		}
+	}
+	return strings.Join(parts, ",")
 }
 
 // derivePodStatus mirrors kubectl's STATUS column logic: it walks init

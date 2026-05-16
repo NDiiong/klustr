@@ -1,5 +1,23 @@
 export namespace kube {
 	
+	export class ConfigMapInfo {
+	    name: string;
+	    namespace: string;
+	    keys: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ConfigMapInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.keys = source["keys"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ContextInfo {
 	    name: string;
 	    cluster: string;
@@ -120,6 +138,26 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class SecretInfo {
+	    name: string;
+	    namespace: string;
+	    type: string;
+	    keys: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SecretInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.type = source["type"];
+	        this.keys = source["keys"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ServerVersion {
 	    gitVersion: string;
 	    platform: string;
@@ -132,6 +170,30 @@ export namespace kube {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.gitVersion = source["gitVersion"];
 	        this.platform = source["platform"];
+	    }
+	}
+	export class ServiceInfo {
+	    name: string;
+	    namespace: string;
+	    type: string;
+	    clusterIP: string;
+	    externalIP: string;
+	    ports: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ServiceInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.type = source["type"];
+	        this.clusterIP = source["clusterIP"];
+	        this.externalIP = source["externalIP"];
+	        this.ports = source["ports"];
+	        this.createdAt = source["createdAt"];
 	    }
 	}
 
