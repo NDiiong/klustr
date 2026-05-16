@@ -98,6 +98,17 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type PersistentVolumeInfo struct {
+	Name          string `json:"name"`
+	Capacity      string `json:"capacity"`
+	AccessModes   string `json:"accessModes"`
+	ReclaimPolicy string `json:"reclaimPolicy"`
+	Status        string `json:"status"`
+	Claim         string `json:"claim"`
+	StorageClass  string `json:"storageClass"`
+	CreatedAt     string `json:"createdAt"`
+}
+
 type PersistentVolumeClaimInfo struct {
 	Name         string `json:"name"`
 	Namespace    string `json:"namespace"`
@@ -340,6 +351,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	pvs := w.factory.Core().V1().PersistentVolumes().Informer()
+	if _, err := pvs.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("PersistentVolume") },
+		UpdateFunc: func(any, any) { w.touch("PersistentVolume") },
+		DeleteFunc: func(any) { w.touch("PersistentVolume") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	pvcs := w.factory.Core().V1().PersistentVolumeClaims().Informer()
 	if _, err := pvcs.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("PersistentVolumeClaim") },
@@ -386,7 +407,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 		for _, kind := range []string{
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
-			"ReplicaSet", "PersistentVolumeClaim",
+			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume",
 		} {
 			w.touch(kind)
 		}
@@ -811,6 +832,40 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) PersistentVolumes() []PersistentVolumeInfo {
+	pvs, err := w.factory.Core().V1().PersistentVolumes().Lister().List(labels.Everything())
+	if err != nil {
+		return []PersistentVolumeInfo{}
+	}
+	out := make([]PersistentVolumeInfo, 0, len(pvs))
+	for _, p := range pvs {
+		cap := ""
+		if q, ok := p.Spec.Capacity[corev1.ResourceStorage]; ok {
+			cap = q.String()
+		}
+		modes := make([]string, 0, len(p.Spec.AccessModes))
+		for _, m := range p.Spec.AccessModes {
+			modes = append(modes, string(m))
+		}
+		claim := ""
+		if p.Spec.ClaimRef != nil {
+			claim = p.Spec.ClaimRef.Namespace + "/" + p.Spec.ClaimRef.Name
+		}
+		out = append(out, PersistentVolumeInfo{
+			Name:          p.Name,
+			Capacity:      cap,
+			AccessModes:   strings.Join(modes, ","),
+			ReclaimPolicy: string(p.Spec.PersistentVolumeReclaimPolicy),
+			Status:        string(p.Status.Phase),
+			Claim:         claim,
+			StorageClass:  p.Spec.StorageClassName,
+			CreatedAt:     p.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

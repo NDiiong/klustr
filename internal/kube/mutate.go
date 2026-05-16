@@ -28,6 +28,7 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"CronJob":     {Group: "batch", Version: "v1", Resource: "cronjobs"},
 	"Ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
 	"PersistentVolumeClaim": {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
+	"PersistentVolume":      {Group: "", Version: "v1", Resource: "persistentvolumes"},
 }
 
 func resourceForKind(kind string) (schema.GroupVersionResource, error) {

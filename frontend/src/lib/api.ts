@@ -13,6 +13,7 @@ import {
   GetDaemonSet,
   GetReplicaSet,
   GetPersistentVolumeClaim,
+  GetPersistentVolume,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -29,6 +30,7 @@ import {
   ListDaemonSets,
   ListReplicaSets,
   ListPersistentVolumeClaims,
+  ListPersistentVolumes,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -64,6 +66,7 @@ export type StatefulSetInfo = kube.StatefulSetInfo
 export type DaemonSetInfo = kube.DaemonSetInfo
 export type ReplicaSetInfo = kube.ReplicaSetInfo
 export type PersistentVolumeClaimInfo = kube.PersistentVolumeClaimInfo
+export type PersistentVolumeInfo = kube.PersistentVolumeInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -79,6 +82,7 @@ export type StatefulSetDetail = kube.StatefulSetDetail
 export type DaemonSetDetail = kube.DaemonSetDetail
 export type ReplicaSetDetail = kube.ReplicaSetDetail
 export type PersistentVolumeClaimDetail = kube.PersistentVolumeClaimDetail
+export type PersistentVolumeDetail = kube.PersistentVolumeDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -121,6 +125,8 @@ export const api = {
     ListReplicaSets(name, namespace),
   listPersistentVolumeClaims: (name: string, namespace: string): Promise<PersistentVolumeClaimInfo[]> =>
     ListPersistentVolumeClaims(name, namespace),
+  listPersistentVolumes: (name: string): Promise<PersistentVolumeInfo[]> =>
+    ListPersistentVolumes(name),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -160,6 +166,8 @@ export const api = {
     GetReplicaSet(ctx, ns, name),
   getPersistentVolumeClaim: (ctx: string, ns: string, name: string): Promise<PersistentVolumeClaimDetail> =>
     GetPersistentVolumeClaim(ctx, ns, name),
+  getPersistentVolume: (ctx: string, name: string): Promise<PersistentVolumeDetail> =>
+    GetPersistentVolume(ctx, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

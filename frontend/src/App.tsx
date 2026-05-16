@@ -13,6 +13,7 @@ import { StatefulSetsView } from '@/features/statefulsets/StatefulSetsView'
 import { DaemonSetsView } from '@/features/daemonsets/DaemonSetsView'
 import { ReplicaSetsView } from '@/features/replicasets/ReplicaSetsView'
 import { PersistentVolumeClaimsView } from '@/features/pvcs/PersistentVolumeClaimsView'
+import { PersistentVolumesView } from '@/features/pvs/PersistentVolumesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -64,6 +65,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     label: 'Storage',
     items: [
       { label: 'PersistentVolumeClaims', view: 'persistentvolumeclaims' },
+      { label: 'PersistentVolumes', view: 'persistentvolumes' },
     ],
   },
   {
@@ -106,6 +108,8 @@ function MainView() {
       return <ReplicaSetsView />
     case 'persistentvolumeclaims':
       return <PersistentVolumeClaimsView />
+    case 'persistentvolumes':
+      return <PersistentVolumesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

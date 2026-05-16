@@ -22,6 +22,8 @@ export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDeta
 
 export function GetNode(arg1:string,arg2:string):Promise<kube.NodeDetail>;
 
+export function GetPersistentVolume(arg1:string,arg2:string):Promise<kube.PersistentVolumeDetail>;
+
 export function GetPersistentVolumeClaim(arg1:string,arg2:string,arg3:string):Promise<kube.PersistentVolumeClaimDetail>;
 
 export function GetPod(arg1:string,arg2:string,arg3:string):Promise<kube.PodDetail>;
@@ -57,6 +59,8 @@ export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 
 export function ListPersistentVolumeClaims(arg1:string,arg2:string):Promise<Array<kube.PersistentVolumeClaimInfo>>;
+
+export function ListPersistentVolumes(arg1:string):Promise<Array<kube.PersistentVolumeInfo>>;
 
 export function ListPodMetrics(arg1:string,arg2:string):Promise<Array<kube.PodMetrics>>;
 

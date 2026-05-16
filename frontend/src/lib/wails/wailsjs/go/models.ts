@@ -971,6 +971,72 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class PersistentVolumeDetail {
+	    name: string;
+	    uid: string;
+	    status: string;
+	    capacity: string;
+	    accessModes: string[];
+	    reclaimPolicy: string;
+	    storageClass: string;
+	    volumeMode: string;
+	    claim: string;
+	    source: string;
+	    message: string;
+	    reason: string;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PersistentVolumeDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.status = source["status"];
+	        this.capacity = source["capacity"];
+	        this.accessModes = source["accessModes"];
+	        this.reclaimPolicy = source["reclaimPolicy"];
+	        this.storageClass = source["storageClass"];
+	        this.volumeMode = source["volumeMode"];
+	        this.claim = source["claim"];
+	        this.source = source["source"];
+	        this.message = source["message"];
+	        this.reason = source["reason"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class PersistentVolumeInfo {
+	    name: string;
+	    capacity: string;
+	    accessModes: string;
+	    reclaimPolicy: string;
+	    status: string;
+	    claim: string;
+	    storageClass: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PersistentVolumeInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.capacity = source["capacity"];
+	        this.accessModes = source["accessModes"];
+	        this.reclaimPolicy = source["reclaimPolicy"];
+	        this.status = source["status"];
+	        this.claim = source["claim"];
+	        this.storageClass = source["storageClass"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class PodDetail {
 	    name: string;
 	    namespace: string;

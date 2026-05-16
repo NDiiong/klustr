@@ -53,6 +53,24 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type PersistentVolumeDetail struct {
+	Name          string            `json:"name"`
+	UID           string            `json:"uid"`
+	Status        string            `json:"status"`
+	Capacity      string            `json:"capacity"`
+	AccessModes   []string          `json:"accessModes"`
+	ReclaimPolicy string            `json:"reclaimPolicy"`
+	StorageClass  string            `json:"storageClass"`
+	VolumeMode    string            `json:"volumeMode"`
+	Claim         string            `json:"claim"`
+	Source        string            `json:"source"`
+	Message       string            `json:"message"`
+	Reason        string            `json:"reason"`
+	Labels        map[string]string `json:"labels"`
+	Annotations   map[string]string `json:"annotations"`
+	CreatedAt     string            `json:"createdAt"`
+}
+
 type PersistentVolumeClaimDetail struct {
 	Name         string            `json:"name"`
 	Namespace    string            `json:"namespace"`
@@ -320,6 +338,61 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
+}
+
+func (w *contextWatcher) PersistentVolume(name string) (*PersistentVolumeDetail, error) {
+	p, err := w.factory.Core().V1().PersistentVolumes().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	modes := make([]string, 0, len(p.Spec.AccessModes))
+	for _, m := range p.Spec.AccessModes {
+		modes = append(modes, string(m))
+	}
+	cap := ""
+	if q, ok := p.Spec.Capacity[corev1.ResourceStorage]; ok {
+		cap = q.String()
+	}
+	vm := ""
+	if p.Spec.VolumeMode != nil {
+		vm = string(*p.Spec.VolumeMode)
+	}
+	claim := ""
+	if p.Spec.ClaimRef != nil {
+		claim = p.Spec.ClaimRef.Namespace + "/" + p.Spec.ClaimRef.Name
+	}
+	return &PersistentVolumeDetail{
+		Name:          p.Name,
+		UID:           string(p.UID),
+		Status:        string(p.Status.Phase),
+		Capacity:      cap,
+		AccessModes:   modes,
+		ReclaimPolicy: string(p.Spec.PersistentVolumeReclaimPolicy),
+		StorageClass:  p.Spec.StorageClassName,
+		VolumeMode:    vm,
+		Claim:         claim,
+		Source:        pvSource(p),
+		Message:       p.Status.Message,
+		Reason:        p.Status.Reason,
+		Labels:        p.Labels,
+		Annotations:   p.Annotations,
+		CreatedAt:     p.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func pvSource(p *corev1.PersistentVolume) string {
+	s := p.Spec.PersistentVolumeSource
+	switch {
+	case s.HostPath != nil:
+		return "HostPath:" + s.HostPath.Path
+	case s.NFS != nil:
+		return "NFS:" + s.NFS.Server + ":" + s.NFS.Path
+	case s.CSI != nil:
+		return "CSI:" + s.CSI.Driver
+	case s.Local != nil:
+		return "Local:" + s.Local.Path
+	}
+	return ""
 }
 
 func (w *contextWatcher) PersistentVolumeClaim(namespace, name string) (*PersistentVolumeClaimDetail, error) {

@@ -42,6 +42,10 @@ export function GetNode(arg1, arg2) {
   return window['go']['app']['App']['GetNode'](arg1, arg2);
 }
 
+export function GetPersistentVolume(arg1, arg2) {
+  return window['go']['app']['App']['GetPersistentVolume'](arg1, arg2);
+}
+
 export function GetPersistentVolumeClaim(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetPersistentVolumeClaim'](arg1, arg2, arg3);
 }
@@ -112,6 +116,10 @@ export function ListNodes(arg1) {
 
 export function ListPersistentVolumeClaims(arg1, arg2) {
   return window['go']['app']['App']['ListPersistentVolumeClaims'](arg1, arg2);
+}
+
+export function ListPersistentVolumes(arg1) {
+  return window['go']['app']['App']['ListPersistentVolumes'](arg1);
 }
 
 export function ListPodMetrics(arg1, arg2) {
