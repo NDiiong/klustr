@@ -1369,7 +1369,7 @@ func (w *contextWatcher) Service(namespace, name string) (*ServiceDetail, error)
 	if err != nil {
 		return nil, err
 	}
-	clusterIPs := s.Spec.ClusterIPs
+	clusterIPs := append([]string{}, s.Spec.ClusterIPs...)
 	if len(clusterIPs) == 0 && s.Spec.ClusterIP != "" {
 		clusterIPs = []string{s.Spec.ClusterIP}
 	}
@@ -1383,7 +1383,7 @@ func (w *contextWatcher) Service(namespace, name string) (*ServiceDetail, error)
 			NodePort:   p.NodePort,
 		})
 	}
-	externalIPs := s.Spec.ExternalIPs
+	externalIPs := append([]string{}, s.Spec.ExternalIPs...)
 	if s.Spec.Type == corev1.ServiceTypeLoadBalancer {
 		for _, ing := range s.Status.LoadBalancer.Ingress {
 			if ing.IP != "" {
