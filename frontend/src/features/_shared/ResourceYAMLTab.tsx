@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 
@@ -51,6 +52,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
       await api.applyResourceYAML(contextName, draft)
     },
     onSuccess: () => {
+      toast.success(`Applied ${kind.toLowerCase()}/${name}`)
       setSource(draft)
       setEditing(false)
     },

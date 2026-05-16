@@ -18,6 +18,7 @@ import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
+import { Toaster } from '@/components/ui/sonner'
 import { api } from '@/lib/api'
 import { onPFUpdate } from '@/lib/events'
 import { useUIStore, type ResourceView } from '@/store/ui'
@@ -205,6 +206,7 @@ function App() {
       </div>
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
+      <Toaster position="bottom-right" />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Network } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -27,9 +28,10 @@ export function PortForwardButton({ contextName, resource }: Props) {
   const start = useMutation({
     mutationFn: async () => {
       if (!contextName) throw new Error('no context')
-      await api.startPortForward(contextName, resource.namespace, resource.name, localPort, remotePort)
+      return api.startPortForward(contextName, resource.namespace, resource.name, localPort, remotePort)
     },
-    onSuccess: () => {
+    onSuccess: (info) => {
+      toast.success(`Forwarding localhost:${info.localPort} → ${resource.name}:${info.remotePort}`)
       setOpen(false)
     },
   })

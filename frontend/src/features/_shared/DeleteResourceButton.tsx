@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,7 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
       await api.deleteResource(contextName, resource.kind, resource.namespace, resource.name)
     },
     onSuccess: () => {
+      toast.success(`Deleted ${resource.kind.toLowerCase()}/${resource.name}`)
       setSelectedResource(null)
     },
   })

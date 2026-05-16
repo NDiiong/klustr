@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Sliders } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export function ScaleResourceButton({ contextName, resource, currentReplicas }: 
       await api.scaleResource(contextName, resource.kind, resource.namespace, resource.name, replicas)
     },
     onSuccess: () => {
+      toast.success(`Scaled ${resource.kind.toLowerCase()}/${resource.name} to ${replicas}`)
       setOpen(false)
     },
   })
