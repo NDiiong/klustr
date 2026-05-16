@@ -45,6 +45,18 @@ function columnId<T>(c: ColumnDef<T, any>): string {
   return ''
 }
 
+const EMPTY_SIZING: ColumnSizingState = {}
+
+function sizingEqual(a: ColumnSizingState, b: ColumnSizingState): boolean {
+  const ka = Object.keys(a)
+  const kb = Object.keys(b)
+  if (ka.length !== kb.length) return false
+  for (const k of ka) {
+    if (a[k] !== b[k]) return false
+  }
+  return true
+}
+
 function mergeOrder(all: string[], saved: string[]): string[] {
   const seen = new Set<string>()
   const result: string[] = []
@@ -86,6 +98,7 @@ export function ResourceTable<T>({
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
   const prefs = useTablePrefs((s) => s.byKind[kind])
+  const columnSizing = useMemo<ColumnSizingState>(() => prefs?.sizing ?? EMPTY_SIZING, [prefs?.sizing])
   const setOrder = useTablePrefs((s) => s.setOrder)
   const setHidden = useTablePrefs((s) => s.setHidden)
   const setSizing = useTablePrefs((s) => s.setSizing)
@@ -166,7 +179,7 @@ export function ResourceTable<T>({
       globalFilter: filter,
       columnOrder,
       columnVisibility,
-      columnSizing: prefs?.sizing ?? {},
+      columnSizing,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setFilter,
@@ -182,8 +195,8 @@ export function ResourceTable<T>({
       setHidden(kind, hidden)
     },
     onColumnSizingChange: (updater) => {
-      const next =
-        typeof updater === 'function' ? updater(prefs?.sizing ?? {}) : (updater as ColumnSizingState)
+      const next = typeof updater === 'function' ? updater(columnSizing) : updater
+      if (sizingEqual(columnSizing, next)) return
       setSizing(kind, next)
     },
     enableColumnResizing: true,
