@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import { Eraser, Pause, Play } from 'lucide-react'
+import { ArrowDownToLine, Eraser, Pause, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
@@ -28,6 +28,7 @@ export function PodLogsTab({ detail }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [streaming, setStreaming] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [atBottom, setAtBottom] = useState(true)
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -69,8 +70,14 @@ export function PodLogsTab({ detail }: Props) {
     })
     observer.observe(termHostRef.current)
 
+    const scrollDisposable = term.onScroll(() => {
+      const buf = term.buffer.active
+      setAtBottom(buf.viewportY >= buf.baseY)
+    })
+
     return () => {
       observer.disconnect()
+      scrollDisposable.dispose()
       term.dispose()
       termRef.current = null
       fitRef.current = null
@@ -188,7 +195,19 @@ export function PodLogsTab({ detail }: Props) {
           {error}
         </div>
       )}
-      <div ref={termHostRef} className="min-h-0 flex-1 bg-background px-2 py-1" />
+      <div className="relative min-h-0 flex-1">
+        <div ref={termHostRef} className="absolute inset-0 bg-background px-2 py-1" />
+        {!atBottom && (
+          <button
+            type="button"
+            onClick={() => termRef.current?.scrollToBottom()}
+            className="absolute bottom-3 right-4 inline-flex items-center gap-1 rounded-full border border-border bg-popover px-3 py-1 text-xs text-popover-foreground shadow-sm hover:bg-muted"
+          >
+            <ArrowDownToLine className="size-3" />
+            Jump to bottom
+          </button>
+        )}
+      </div>
     </div>
   )
 }
