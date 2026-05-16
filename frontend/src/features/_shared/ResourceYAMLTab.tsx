@@ -188,7 +188,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name }: Props) {
               {String(apply.error)}
             </div>
           )}
-          <DialogFooter className="border-t border-border px-6 py-3">
+          <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-2 border-t border-border bg-transparent px-6 py-3 sm:gap-2">
             <Button type="button" variant="outline" onClick={() => setDiffOpen(false)} disabled={apply.isPending}>
               Cancel
             </Button>
