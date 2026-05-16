@@ -4,6 +4,7 @@ import { api, type StatefulSetInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<StatefulSetInfo>()
 
@@ -19,6 +20,7 @@ function readyClass(ready: string): string {
 export function StatefulSetsView() {
   const statefulSets = useResources((s) => s.statefulSets)
   const setStatefulSets = useResources((s) => s.setStatefulSets)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -51,6 +53,9 @@ export function StatefulSetsView() {
       setData={setStatefulSets}
       fetch={api.listStatefulSets}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'StatefulSet', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

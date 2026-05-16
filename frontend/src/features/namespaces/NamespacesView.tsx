@@ -4,6 +4,7 @@ import { api, type NamespaceInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<NamespaceInfo>()
 
@@ -16,6 +17,7 @@ function phaseClass(phase: string): string {
 export function NamespacesView() {
   const namespaces = useResources((s) => s.namespaces)
   const setNamespaces = useResources((s) => s.setNamespaces)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -42,6 +44,7 @@ export function NamespacesView() {
       setData={setNamespaces}
       fetch={(ctx) => api.listNamespaces(ctx)}
       columns={columns}
+      onRowClick={(row) => setSelectedResource({ kind: 'Namespace', namespace: '', name: row.name })}
     />
   )
 }

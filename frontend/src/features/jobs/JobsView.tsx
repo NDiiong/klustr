@@ -4,6 +4,7 @@ import { api, type JobInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<JobInfo>()
 
@@ -25,6 +26,7 @@ function jobStatusClass(status: string): string {
 export function JobsView() {
   const jobs = useResources((s) => s.jobs)
   const setJobs = useResources((s) => s.setJobs)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -54,6 +56,9 @@ export function JobsView() {
       setData={setJobs}
       fetch={api.listJobs}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Job', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

@@ -4,6 +4,7 @@ import { api, type NodeInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<NodeInfo>()
 
@@ -20,6 +21,7 @@ function nodeStatusClass(status: string): string {
 export function NodesView() {
   const nodes = useResources((s) => s.nodes)
   const setNodes = useResources((s) => s.setNodes)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -53,6 +55,7 @@ export function NodesView() {
       setData={setNodes}
       fetch={(ctx) => api.listNodes(ctx)}
       columns={columns}
+      onRowClick={(row) => setSelectedResource({ kind: 'Node', namespace: '', name: row.name })}
     />
   )
 }

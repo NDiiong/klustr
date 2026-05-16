@@ -4,12 +4,14 @@ import { api, type DaemonSetInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<DaemonSetInfo>()
 
 export function DaemonSetsView() {
   const daemonSets = useResources((s) => s.daemonSets)
   const setDaemonSets = useResources((s) => s.setDaemonSets)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -39,6 +41,9 @@ export function DaemonSetsView() {
       setData={setDaemonSets}
       fetch={api.listDaemonSets}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'DaemonSet', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

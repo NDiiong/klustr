@@ -4,6 +4,7 @@ import { api, type SecretInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<SecretInfo>()
 
@@ -15,6 +16,7 @@ function shortenSecretType(t: string): string {
 export function SecretsView() {
   const secrets = useResources((s) => s.secrets)
   const setSecrets = useResources((s) => s.setSecrets)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -43,6 +45,9 @@ export function SecretsView() {
       setData={setSecrets}
       fetch={api.listSecrets}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Secret', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

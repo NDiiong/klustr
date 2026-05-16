@@ -4,6 +4,7 @@ import { api, type DeploymentInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<DeploymentInfo>()
 
@@ -19,6 +20,7 @@ function readyClass(ready: string): string {
 export function DeploymentsView() {
   const deployments = useResources((s) => s.deployments)
   const setDeployments = useResources((s) => s.setDeployments)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -53,6 +55,9 @@ export function DeploymentsView() {
       setData={setDeployments}
       fetch={api.listDeployments}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Deployment', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

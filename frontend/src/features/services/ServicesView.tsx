@@ -4,12 +4,14 @@ import { api, type ServiceInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<ServiceInfo>()
 
 export function ServicesView() {
   const services = useResources((s) => s.services)
   const setServices = useResources((s) => s.setServices)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -46,6 +48,9 @@ export function ServicesView() {
       setData={setServices}
       fetch={api.listServices}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Service', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

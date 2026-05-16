@@ -4,12 +4,14 @@ import { api, type CronJobInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<CronJobInfo>()
 
 export function CronJobsView() {
   const cronJobs = useResources((s) => s.cronJobs)
   const setCronJobs = useResources((s) => s.setCronJobs)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -46,6 +48,9 @@ export function CronJobsView() {
       setData={setCronJobs}
       fetch={api.listCronJobs}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'CronJob', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }

@@ -4,12 +4,14 @@ import { api, type IngressInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
+import { useUIStore } from '@/store/ui'
 
 const columnHelper = createColumnHelper<IngressInfo>()
 
 export function IngressesView() {
   const ingresses = useResources((s) => s.ingresses)
   const setIngresses = useResources((s) => s.setIngresses)
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
 
   const columns = useMemo(
     () => [
@@ -43,6 +45,9 @@ export function IngressesView() {
       setData={setIngresses}
       fetch={api.listIngresses}
       columns={columns}
+      onRowClick={(row) =>
+        setSelectedResource({ kind: 'Ingress', namespace: row.namespace, name: row.name })
+      }
     />
   )
 }
