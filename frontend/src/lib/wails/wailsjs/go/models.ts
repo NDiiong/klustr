@@ -423,6 +423,114 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class EndpointSlicePort {
+	    name: string;
+	    port: number;
+	    protocol: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointSlicePort(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.port = source["port"];
+	        this.protocol = source["protocol"];
+	    }
+	}
+	export class EndpointSliceEndpoint {
+	    addresses: string[];
+	    nodeName: string;
+	    hostname: string;
+	    ready: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointSliceEndpoint(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.addresses = source["addresses"];
+	        this.nodeName = source["nodeName"];
+	        this.hostname = source["hostname"];
+	        this.ready = source["ready"];
+	    }
+	}
+	export class EndpointSliceDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    addressType: string;
+	    service: string;
+	    endpoints: EndpointSliceEndpoint[];
+	    ports: EndpointSlicePort[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointSliceDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.addressType = source["addressType"];
+	        this.service = source["service"];
+	        this.endpoints = this.convertValues(source["endpoints"], EndpointSliceEndpoint);
+	        this.ports = this.convertValues(source["ports"], EndpointSlicePort);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class EndpointSliceInfo {
+	    name: string;
+	    namespace: string;
+	    addressType: string;
+	    ports: string;
+	    endpoints: number;
+	    service: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointSliceInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.addressType = source["addressType"];
+	        this.ports = source["ports"];
+	        this.endpoints = source["endpoints"];
+	        this.service = source["service"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
 	export class EventInfo {
 	    namespace: string;
 	    name: string;

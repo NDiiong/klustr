@@ -53,6 +53,32 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type EndpointSliceEndpoint struct {
+	Addresses []string `json:"addresses"`
+	NodeName  string   `json:"nodeName"`
+	Hostname  string   `json:"hostname"`
+	Ready     bool     `json:"ready"`
+}
+
+type EndpointSlicePort struct {
+	Name     string `json:"name"`
+	Port     int32  `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+type EndpointSliceDetail struct {
+	Name        string                  `json:"name"`
+	Namespace   string                  `json:"namespace"`
+	UID         string                  `json:"uid"`
+	AddressType string                  `json:"addressType"`
+	Service     string                  `json:"service"`
+	Endpoints   []EndpointSliceEndpoint `json:"endpoints"`
+	Ports       []EndpointSlicePort     `json:"ports"`
+	Labels      map[string]string       `json:"labels"`
+	Annotations map[string]string       `json:"annotations"`
+	CreatedAt   string                  `json:"createdAt"`
+}
+
 type PodDisruptionBudgetDetail struct {
 	Name             string            `json:"name"`
 	Namespace        string            `json:"namespace"`
@@ -398,6 +424,62 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) EndpointSlice(namespace, name string) (*EndpointSliceDetail, error) {
+	s, err := w.factory.Discovery().V1().EndpointSlices().Lister().EndpointSlices(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	endpoints := make([]EndpointSliceEndpoint, 0, len(s.Endpoints))
+	for _, e := range s.Endpoints {
+		ready := false
+		if e.Conditions.Ready != nil {
+			ready = *e.Conditions.Ready
+		}
+		node := ""
+		if e.NodeName != nil {
+			node = *e.NodeName
+		}
+		host := ""
+		if e.Hostname != nil {
+			host = *e.Hostname
+		}
+		endpoints = append(endpoints, EndpointSliceEndpoint{
+			Addresses: append([]string(nil), e.Addresses...),
+			NodeName:  node,
+			Hostname:  host,
+			Ready:     ready,
+		})
+	}
+	ports := make([]EndpointSlicePort, 0, len(s.Ports))
+	for _, p := range s.Ports {
+		port := int32(0)
+		if p.Port != nil {
+			port = *p.Port
+		}
+		proto := ""
+		if p.Protocol != nil {
+			proto = string(*p.Protocol)
+		}
+		pname := ""
+		if p.Name != nil {
+			pname = *p.Name
+		}
+		ports = append(ports, EndpointSlicePort{Name: pname, Port: port, Protocol: proto})
+	}
+	return &EndpointSliceDetail{
+		Name:        s.Name,
+		Namespace:   s.Namespace,
+		UID:         string(s.UID),
+		AddressType: string(s.AddressType),
+		Service:     s.Labels["kubernetes.io/service-name"],
+		Endpoints:   endpoints,
+		Ports:       ports,
+		Labels:      s.Labels,
+		Annotations: s.Annotations,
+		CreatedAt:   s.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

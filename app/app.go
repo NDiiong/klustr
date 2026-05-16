@@ -101,6 +101,10 @@ func (a *App) GetPodDisruptionBudget(contextName, namespace, name string) (*kube
 	return a.clients.PodDisruptionBudget(contextName, namespace, name)
 }
 
+func (a *App) GetEndpointSlice(contextName, namespace, name string) (*kube.EndpointSliceDetail, error) {
+	return a.clients.EndpointSlice(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -289,6 +293,10 @@ func (a *App) ListHorizontalPodAutoscalers(name, namespace string) []kube.Horizo
 
 func (a *App) ListPodDisruptionBudgets(name, namespace string) []kube.PodDisruptionBudgetInfo {
 	return a.clients.PodDisruptionBudgets(name, namespace)
+}
+
+func (a *App) ListEndpointSlices(name, namespace string) []kube.EndpointSliceInfo {
+	return a.clients.EndpointSlices(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

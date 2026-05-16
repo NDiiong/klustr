@@ -12,6 +12,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -99,6 +100,16 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
+}
+
+type EndpointSliceInfo struct {
+	Name        string `json:"name"`
+	Namespace   string `json:"namespace"`
+	AddressType string `json:"addressType"`
+	Ports       string `json:"ports"`
+	Endpoints   int    `json:"endpoints"`
+	Service     string `json:"service"`
+	CreatedAt   string `json:"createdAt"`
 }
 
 type PodDisruptionBudgetInfo struct {
@@ -394,6 +405,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	endpointSlices := w.factory.Discovery().V1().EndpointSlices().Informer()
+	if _, err := endpointSlices.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("EndpointSlice") },
+		UpdateFunc: func(any, any) { w.touch("EndpointSlice") },
+		DeleteFunc: func(any) { w.touch("EndpointSlice") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	pdbs := w.factory.Policy().V1().PodDisruptionBudgets().Informer()
 	if _, err := pdbs.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("PodDisruptionBudget") },
@@ -492,6 +513,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
+			"EndpointSlice",
 		} {
 			w.touch(kind)
 		}
@@ -913,6 +935,48 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) EndpointSlices(namespace string) []EndpointSliceInfo {
+	lister := w.factory.Discovery().V1().EndpointSlices().Lister()
+	var (
+		slices []*discoveryv1.EndpointSlice
+		err    error
+	)
+	if namespace == "" {
+		slices, err = lister.List(labels.Everything())
+	} else {
+		slices, err = lister.EndpointSlices(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []EndpointSliceInfo{}
+	}
+	out := make([]EndpointSliceInfo, 0, len(slices))
+	for _, s := range slices {
+		ports := make([]string, 0, len(s.Ports))
+		for _, p := range s.Ports {
+			port := int32(0)
+			if p.Port != nil {
+				port = *p.Port
+			}
+			proto := ""
+			if p.Protocol != nil {
+				proto = string(*p.Protocol)
+			}
+			ports = append(ports, fmt.Sprintf("%d/%s", port, proto))
+		}
+		out = append(out, EndpointSliceInfo{
+			Name:        s.Name,
+			Namespace:   s.Namespace,
+			AddressType: string(s.AddressType),
+			Ports:       strings.Join(ports, ","),
+			Endpoints:   len(s.Endpoints),
+			Service:     s.Labels["kubernetes.io/service-name"],
+			CreatedAt:   s.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
