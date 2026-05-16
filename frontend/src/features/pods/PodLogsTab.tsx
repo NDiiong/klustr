@@ -4,6 +4,8 @@ import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
+import { useThemeMode } from '@/features/_shared/useThemeMode'
+import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { useUIStore } from '@/store/ui'
 
 const TAIL_LINES = 200
@@ -14,6 +16,7 @@ type Props = {
 
 export function PodLogsTab({ detail }: Props) {
   const selectedContext = useUIStore((s) => s.selectedContext)
+  const themeMode = useThemeMode()
   const containerNames = useMemo(
     () => [...detail.initContainers.map((c) => c.name), ...detail.containers.map((c) => c.name)],
     [detail.initContainers, detail.containers],
@@ -34,8 +37,7 @@ export function PodLogsTab({ detail }: Props) {
         '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       fontSize: 12,
       scrollback: 10_000,
-      theme: { background: '#00000000' },
-      allowTransparency: true,
+      theme: xtermThemeFor(themeMode),
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -59,7 +61,15 @@ export function PodLogsTab({ detail }: Props) {
       termRef.current = null
       fitRef.current = null
     }
+    // intentionally not depending on themeMode: see effect below for live updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (termRef.current) {
+      termRef.current.options.theme = xtermThemeFor(themeMode)
+    }
+  }, [themeMode])
 
   useEffect(() => {
     if (!selectedContext || !container) return
