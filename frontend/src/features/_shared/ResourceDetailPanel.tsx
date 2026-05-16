@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type PodDetail } from '@/lib/api'
 import { useUIStore, type SelectedResource } from '@/store/ui'
@@ -30,25 +30,25 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
   const open = resource !== null
 
   return (
-    <Sheet
+    <Dialog
       open={open}
       onOpenChange={(o) => {
         if (!o) setSelectedResource(null)
       }}
     >
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl">
-        <SheetHeader className="border-b border-border px-6 py-4">
+      <DialogContent className="flex h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
+        <DialogHeader className="border-b border-border px-6 py-4">
           <div className="text-xs uppercase tracking-wide text-muted-foreground">{resource?.kind}</div>
-          <SheetTitle className="truncate text-base">{resource?.name}</SheetTitle>
+          <DialogTitle className="truncate text-base">{resource?.name}</DialogTitle>
           {resource?.namespace && (
             <div className="text-xs text-muted-foreground">{resource.namespace}</div>
           )}
-        </SheetHeader>
+        </DialogHeader>
         {resource && (
           <DetailContent key={`${resource.kind}/${resource.namespace}/${resource.name}`} contextName={contextName} resource={resource} />
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }
 
