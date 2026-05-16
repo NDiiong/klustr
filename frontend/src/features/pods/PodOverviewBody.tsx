@@ -5,29 +5,31 @@ import { Chips, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/
 export function PodOverviewBody({ detail }: { detail: PodDetail }) {
   return (
     <div className="space-y-6">
-      <Section title="Status">
-        <Field label="Status">{detail.status}</Field>
-        <Field label="Phase">{detail.phase}</Field>
-        <Field label="QoS Class">{detail.qosClass || '—'}</Field>
-        <Field label="Restart Policy">{detail.restartPolicy}</Field>
-        <Field label="Age">{formatAge(detail.createdAt)}</Field>
-      </Section>
-
-      <Section title="Networking">
-        <Field label="Pod IP" mono>{detail.podIP || '—'}</Field>
-        <Field label="Host IP" mono>{detail.hostIP || '—'}</Field>
-        <Field label="Node">{detail.node || '—'}</Field>
-        <Field label="Service Account">{detail.serviceAccount || 'default'}</Field>
-        {detail.priorityClassName && <Field label="Priority Class">{detail.priorityClassName}</Field>}
-      </Section>
-
-      {detail.owners.length > 0 && (
-        <Section title="Controlled By">
-          {detail.owners.map((o, i) => (
-            <Field key={i} label={o.kind}>{o.name}</Field>
-          ))}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Section title="Status">
+          <Field label="Status">{detail.status}</Field>
+          <Field label="Phase">{detail.phase}</Field>
+          <Field label="QoS Class">{detail.qosClass || '—'}</Field>
+          <Field label="Restart Policy">{detail.restartPolicy}</Field>
+          <Field label="Age">{formatAge(detail.createdAt)}</Field>
         </Section>
-      )}
+
+        <Section title="Networking">
+          <Field label="Pod IP" mono>{detail.podIP || '—'}</Field>
+          <Field label="Host IP" mono>{detail.hostIP || '—'}</Field>
+          <Field label="Node">{detail.node || '—'}</Field>
+          <Field label="Service Account">{detail.serviceAccount || 'default'}</Field>
+          {detail.priorityClassName && <Field label="Priority Class">{detail.priorityClassName}</Field>}
+        </Section>
+
+        {detail.owners.length > 0 && (
+          <Section title="Controlled By">
+            {detail.owners.map((o, i) => (
+              <Field key={i} label={o.kind}>{o.name}</Field>
+            ))}
+          </Section>
+        )}
+      </div>
 
       {detail.initContainers.length > 0 && <PodContainersTable title="Init Containers" containers={detail.initContainers} />}
       <PodContainersTable title="Containers" containers={detail.containers} />

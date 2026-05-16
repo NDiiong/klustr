@@ -17,21 +17,23 @@ export function NodeDetailBody({
   if (!detail) return null
   return (
     <div className="space-y-6">
-      <Section title="Status">
-        <Field label="Status">{detail.status}</Field>
-        <Field label="Roles">{detail.roles}</Field>
-        <Field label="Age">{formatAge(detail.createdAt)}</Field>
-      </Section>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Section title="Status">
+          <Field label="Status">{detail.status}</Field>
+          <Field label="Roles">{detail.roles}</Field>
+          <Field label="Age">{formatAge(detail.createdAt)}</Field>
+        </Section>
+        <Section title="Network">
+          <Field label="Internal IP" mono>{detail.internalIP}</Field>
+          {detail.hostname && <Field label="Hostname">{detail.hostname}</Field>}
+        </Section>
+      </div>
       <Section title="System">
         <Field label="Kubelet">{detail.version}</Field>
         <Field label="OS">{detail.osImage}</Field>
         <Field label="Kernel">{detail.kernelVersion}</Field>
         <Field label="Container Runtime">{detail.containerRuntime}</Field>
         <Field label="Architecture">{detail.architecture}</Field>
-      </Section>
-      <Section title="Network">
-        <Field label="Internal IP" mono>{detail.internalIP}</Field>
-        {detail.hostname && <Field label="Hostname">{detail.hostname}</Field>}
       </Section>
       {Object.keys(detail.capacity ?? {}).length > 0 && (
         <Section title="Capacity / Allocatable">

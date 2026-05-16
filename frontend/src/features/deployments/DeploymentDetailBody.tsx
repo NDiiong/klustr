@@ -20,12 +20,14 @@ export function DeploymentDetailBody({
   if (!detail) return null
   return (
     <div className="space-y-6">
-      <Section title="Status">
-        <Field label="Strategy">{detail.strategy}</Field>
-        <Field label="Replicas">{`${detail.ready}/${detail.replicas} ready · ${detail.updated} updated · ${detail.available} available · ${detail.unavailable} unavailable`}</Field>
-        <Field label="Age">{formatAge(detail.createdAt)}</Field>
-      </Section>
-      <MaybeSection title="Selector" items={detail.selector} render={() => <Chips items={detail.selector} />} />
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Section title="Status">
+          <Field label="Strategy">{detail.strategy}</Field>
+          <Field label="Replicas">{`${detail.ready}/${detail.replicas} ready · ${detail.updated} updated · ${detail.available} available · ${detail.unavailable} unavailable`}</Field>
+          <Field label="Age">{formatAge(detail.createdAt)}</Field>
+        </Section>
+        <MaybeSection title="Selector" items={detail.selector} render={() => <Chips items={detail.selector} />} />
+      </div>
       <ContainersTable title="Containers" containers={detail.containers} />
       {detail.conditions.length > 0 && (
         <Section title="Conditions">

@@ -19,13 +19,16 @@ export function ServiceDetailBody({
   if (!detail) return null
   return (
     <div className="space-y-6">
-      <Section title="Service">
-        <Field label="Type">{detail.type}</Field>
-        <Field label="Cluster IPs" mono>{detail.clusterIPs.join(', ') || '—'}</Field>
-        <Field label="External IPs" mono>{detail.externalIPs.length > 0 ? detail.externalIPs.join(', ') : '—'}</Field>
-        <Field label="Session Affinity">{detail.sessionAffinity || 'None'}</Field>
-        <Field label="Age">{formatAge(detail.createdAt)}</Field>
-      </Section>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Section title="Service">
+          <Field label="Type">{detail.type}</Field>
+          <Field label="Cluster IPs" mono>{detail.clusterIPs.join(', ') || '—'}</Field>
+          <Field label="External IPs" mono>{detail.externalIPs.length > 0 ? detail.externalIPs.join(', ') : '—'}</Field>
+          <Field label="Session Affinity">{detail.sessionAffinity || 'None'}</Field>
+          <Field label="Age">{formatAge(detail.createdAt)}</Field>
+        </Section>
+        <MaybeSection title="Selector" items={detail.selector} render={() => <Chips items={detail.selector} />} />
+      </div>
       {detail.ports.length > 0 && (
         <Section title="Ports">
           <div className="overflow-hidden rounded border border-border">
@@ -54,7 +57,6 @@ export function ServiceDetailBody({
           </div>
         </Section>
       )}
-      <MaybeSection title="Selector" items={detail.selector} render={() => <Chips items={detail.selector} />} />
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>
