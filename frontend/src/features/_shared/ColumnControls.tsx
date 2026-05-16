@@ -1,4 +1,5 @@
-import { ArrowDown, ArrowUp, Columns3, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import { Columns3, GripVertical, RotateCcw } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import type { Column, Table } from '@tanstack/react-table'
@@ -10,14 +11,18 @@ type Props<T> = {
 
 export function ColumnControls<T>({ table, onReset }: Props<T>) {
   const orderedColumns = table.getAllLeafColumns()
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
-  const move = (id: string, dir: -1 | 1) => {
-    const current = orderedColumns.map((c) => c.id)
-    const idx = current.indexOf(id)
-    const target = idx + dir
-    if (idx < 0 || target < 0 || target >= current.length) return
-    const next = current.slice()
-    ;[next[idx], next[target]] = [next[target], next[idx]]
+  const drop = (targetId: string) => {
+    if (!dragId || dragId === targetId) return
+    const ids = orderedColumns.map((c) => c.id)
+    const from = ids.indexOf(dragId)
+    const to = ids.indexOf(targetId)
+    if (from < 0 || to < 0) return
+    const next = ids.slice()
+    next.splice(from, 1)
+    next.splice(to, 0, dragId)
     table.setColumnOrder(next)
   }
 
@@ -42,13 +47,44 @@ export function ColumnControls<T>({ table, onReset }: Props<T>) {
           </button>
         </div>
         <ul className="max-h-80 overflow-y-auto py-1">
-          {orderedColumns.map((col, idx) => {
+          {orderedColumns.map((col) => {
             const label = labelFor(col)
+            const isOver = overId === col.id && dragId !== null && dragId !== col.id
+            const dragging = dragId === col.id
             return (
               <li
                 key={col.id}
-                className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-muted/40"
+                draggable
+                onDragStart={(e) => {
+                  setDragId(col.id)
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
+                onDragOver={(e) => {
+                  if (!dragId) return
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                  if (overId !== col.id) setOverId(col.id)
+                }}
+                onDragLeave={() => {
+                  if (overId === col.id) setOverId(null)
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  drop(col.id)
+                  setDragId(null)
+                  setOverId(null)
+                }}
+                onDragEnd={() => {
+                  setDragId(null)
+                  setOverId(null)
+                }}
+                className={[
+                  'flex items-center gap-2 px-2 py-1 text-xs',
+                  isOver ? 'border-t-2 border-primary' : 'border-t-2 border-transparent',
+                  dragging ? 'opacity-40' : 'hover:bg-muted/40',
+                ].join(' ')}
               >
+                <GripVertical className="size-3.5 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing" />
                 <input
                   type="checkbox"
                   className="size-3.5 cursor-pointer accent-foreground"
@@ -56,24 +92,6 @@ export function ColumnControls<T>({ table, onReset }: Props<T>) {
                   onChange={() => col.toggleVisibility()}
                 />
                 <span className="flex-1 truncate">{label}</span>
-                <button
-                  type="button"
-                  aria-label="Move up"
-                  disabled={idx === 0}
-                  onClick={() => move(col.id, -1)}
-                  className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ArrowUp className="size-3" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Move down"
-                  disabled={idx === orderedColumns.length - 1}
-                  onClick={() => move(col.id, 1)}
-                  className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  <ArrowDown className="size-3" />
-                </button>
               </li>
             )
           })}
