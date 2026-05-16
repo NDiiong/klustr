@@ -20,6 +20,7 @@ import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { onPFUpdate } from '@/lib/events'
 import { useUIStore, type ResourceView } from '@/store/ui'
@@ -168,6 +169,7 @@ function App() {
   }, [selectedContext, resetResources])
 
   return (
+    <TooltipProvider delayDuration={250}>
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-3">
         <div className="flex items-center gap-2">
@@ -234,6 +236,7 @@ function App() {
       <CommandPalette />
       <Toaster position="bottom-right" />
     </div>
+    </TooltipProvider>
   )
 }
 

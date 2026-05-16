@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type ContainerPort, type PodDetail } from '@/lib/api'
 import type { SelectedResource } from '@/store/ui'
 
@@ -81,12 +82,17 @@ export function PortForwardButton({ contextName, resource }: Props) {
         else setDetail(null)
       }}
     >
-      <DialogTrigger asChild>
-        <Button size="xs" variant="outline">
-          <Network />
-          Forward
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="xs" variant="outline">
+              <Network />
+              Forward
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Forward a container port to your machine</TooltipContent>
+      </Tooltip>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Port-forward</DialogTitle>

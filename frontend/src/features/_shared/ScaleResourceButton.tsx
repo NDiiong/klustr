@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import type { ResourceKind, SelectedResource } from '@/store/ui'
 
@@ -53,12 +54,17 @@ export function ScaleResourceButton({ contextName, resource, currentReplicas }: 
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button size="xs" variant="outline">
-          <Sliders />
-          Scale
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="xs" variant="outline">
+              <Sliders />
+              Scale
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Change replica count via the scale subresource</TooltipContent>
+      </Tooltip>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Scale {resource.kind}</DialogTitle>

@@ -13,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { useUIStore, type SelectedResource } from '@/store/ui'
 
@@ -37,12 +38,19 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button size="xs" variant="outline" className="text-destructive hover:text-destructive">
-          <Trash2 />
-          Delete
-        </Button>
-      </AlertDialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <AlertDialogTrigger asChild>
+            <Button size="xs" variant="outline" className="text-destructive hover:text-destructive">
+              <Trash2 />
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          Delete this {resource.kind.toLowerCase()} from the cluster — not reversible
+        </TooltipContent>
+      </Tooltip>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {resource.kind}?</AlertDialogTitle>
