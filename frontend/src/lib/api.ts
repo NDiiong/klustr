@@ -24,6 +24,7 @@ import {
   GetIngressClass,
   GetPriorityClass,
   GetRuntimeClass,
+  GetLease,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -51,6 +52,7 @@ import {
   ListIngressClasses,
   ListPriorityClasses,
   ListRuntimeClasses,
+  ListLeases,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -97,6 +99,7 @@ export type LimitRangeInfo = kube.LimitRangeInfo
 export type IngressClassInfo = kube.IngressClassInfo
 export type PriorityClassInfo = kube.PriorityClassInfo
 export type RuntimeClassInfo = kube.RuntimeClassInfo
+export type LeaseInfo = kube.LeaseInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -127,6 +130,7 @@ export type LimitRangeItem = kube.LimitRangeItem
 export type IngressClassDetail = kube.IngressClassDetail
 export type PriorityClassDetail = kube.PriorityClassDetail
 export type RuntimeClassDetail = kube.RuntimeClassDetail
+export type LeaseDetail = kube.LeaseDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -187,6 +191,8 @@ export const api = {
   listIngressClasses: (name: string): Promise<IngressClassInfo[]> => ListIngressClasses(name),
   listPriorityClasses: (name: string): Promise<PriorityClassInfo[]> => ListPriorityClasses(name),
   listRuntimeClasses: (name: string): Promise<RuntimeClassInfo[]> => ListRuntimeClasses(name),
+  listLeases: (name: string, namespace: string): Promise<LeaseInfo[]> =>
+    ListLeases(name, namespace),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -248,6 +254,8 @@ export const api = {
     GetPriorityClass(ctx, name),
   getRuntimeClass: (ctx: string, name: string): Promise<RuntimeClassDetail> =>
     GetRuntimeClass(ctx, name),
+  getLease: (ctx: string, ns: string, name: string): Promise<LeaseDetail> =>
+    GetLease(ctx, ns, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

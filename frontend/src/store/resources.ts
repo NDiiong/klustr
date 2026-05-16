@@ -16,6 +16,7 @@ import type {
   IngressClassInfo,
   PriorityClassInfo,
   RuntimeClassInfo,
+  LeaseInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -49,6 +50,7 @@ type ResourcesState = {
   ingressClasses: IngressClassInfo[]
   priorityClasses: PriorityClassInfo[]
   runtimeClasses: RuntimeClassInfo[]
+  leases: LeaseInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -74,6 +76,7 @@ type ResourcesState = {
   setIngressClasses: (list: IngressClassInfo[]) => void
   setPriorityClasses: (list: PriorityClassInfo[]) => void
   setRuntimeClasses: (list: RuntimeClassInfo[]) => void
+  setLeases: (list: LeaseInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -104,6 +107,7 @@ function emptyLists() {
     ingressClasses: [] as IngressClassInfo[],
     priorityClasses: [] as PriorityClassInfo[],
     runtimeClasses: [] as RuntimeClassInfo[],
+    leases: [] as LeaseInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -134,6 +138,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setIngressClasses: (list) => set({ ingressClasses: list }),
   setPriorityClasses: (list) => set({ priorityClasses: list }),
   setRuntimeClasses: (list) => set({ runtimeClasses: list }),
+  setLeases: (list) => set({ leases: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

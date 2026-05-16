@@ -962,6 +962,56 @@ export namespace kube {
 		    return a;
 		}
 	}
+	export class LeaseDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    holderIdentity: string;
+	    leaseDurationSeconds: number;
+	    acquireTime: string;
+	    renewTime: string;
+	    leaseTransitions: number;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LeaseDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.holderIdentity = source["holderIdentity"];
+	        this.leaseDurationSeconds = source["leaseDurationSeconds"];
+	        this.acquireTime = source["acquireTime"];
+	        this.renewTime = source["renewTime"];
+	        this.leaseTransitions = source["leaseTransitions"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class LeaseInfo {
+	    name: string;
+	    namespace: string;
+	    holder: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LeaseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.holder = source["holder"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class LimitRangeItem {
 	    type: string;
 	    max: Record<string, string>;

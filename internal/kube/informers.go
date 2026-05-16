@@ -11,6 +11,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
+	coordv1 "k8s.io/api/coordination/v1"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	policyv1 "k8s.io/api/policy/v1"
@@ -100,6 +101,13 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
+}
+
+type LeaseInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Holder    string `json:"holder"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type RuntimeClassInfo struct {
@@ -442,6 +450,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	leases := w.factory.Coordination().V1().Leases().Informer()
+	if _, err := leases.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Lease") },
+		UpdateFunc: func(any, any) { w.touch("Lease") },
+		DeleteFunc: func(any) { w.touch("Lease") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	runtimeClasses := w.factory.Node().V1().RuntimeClasses().Informer()
 	if _, err := runtimeClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("RuntimeClass") },
@@ -601,7 +619,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
-			"PriorityClass", "RuntimeClass",
+			"PriorityClass", "RuntimeClass", "Lease",
 		} {
 			w.touch(kind)
 		}
@@ -1023,6 +1041,37 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) Leases(namespace string) []LeaseInfo {
+	lister := w.factory.Coordination().V1().Leases().Lister()
+	var (
+		leases []*coordv1.Lease
+		err    error
+	)
+	if namespace == "" {
+		leases, err = lister.List(labels.Everything())
+	} else {
+		leases, err = lister.Leases(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []LeaseInfo{}
+	}
+	out := make([]LeaseInfo, 0, len(leases))
+	for _, l := range leases {
+		holder := ""
+		if l.Spec.HolderIdentity != nil {
+			holder = *l.Spec.HolderIdentity
+		}
+		out = append(out, LeaseInfo{
+			Name:      l.Name,
+			Namespace: l.Namespace,
+			Holder:    holder,
+			CreatedAt: l.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

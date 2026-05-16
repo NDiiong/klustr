@@ -24,6 +24,7 @@ import { LimitRangesView } from '@/features/limitranges/LimitRangesView'
 import { IngressClassesView } from '@/features/ingressclasses/IngressClassesView'
 import { PriorityClassesView } from '@/features/priorityclasses/PriorityClassesView'
 import { RuntimeClassesView } from '@/features/runtimeclasses/RuntimeClassesView'
+import { LeasesView } from '@/features/leases/LeasesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -93,6 +94,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Namespaces', view: 'namespaces' },
       { label: 'PriorityClasses', view: 'priorityclasses' },
       { label: 'RuntimeClasses', view: 'runtimeclasses' },
+      { label: 'Leases', view: 'leases' },
     ],
   },
 ]
@@ -150,6 +152,8 @@ function MainView() {
       return <PriorityClassesView />
     case 'runtimeclasses':
       return <RuntimeClassesView />
+    case 'leases':
+      return <LeasesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

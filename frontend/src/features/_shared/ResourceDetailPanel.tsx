@@ -31,6 +31,7 @@ import { LimitRangeDetailBody } from '@/features/limitranges/LimitRangeDetailBod
 import { IngressClassDetailBody } from '@/features/ingressclasses/IngressClassDetailBody'
 import { PriorityClassDetailBody } from '@/features/priorityclasses/PriorityClassDetailBody'
 import { RuntimeClassDetailBody } from '@/features/runtimeclasses/RuntimeClassDetailBody'
+import { LeaseDetailBody } from '@/features/leases/LeaseDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -255,6 +256,8 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return <PriorityClassDetailBody contextName={contextName} name={resource.name} />
     case 'RuntimeClass':
       return <RuntimeClassDetailBody contextName={contextName} name={resource.name} />
+    case 'Lease':
+      return <LeaseDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

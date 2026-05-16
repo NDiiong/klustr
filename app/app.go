@@ -125,6 +125,10 @@ func (a *App) GetRuntimeClass(contextName, name string) (*kube.RuntimeClassDetai
 	return a.clients.RuntimeClass(contextName, name)
 }
 
+func (a *App) GetLease(contextName, namespace, name string) (*kube.LeaseDetail, error) {
+	return a.clients.Lease(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -337,6 +341,10 @@ func (a *App) ListPriorityClasses(name string) []kube.PriorityClassInfo {
 
 func (a *App) ListRuntimeClasses(name string) []kube.RuntimeClassInfo {
 	return a.clients.RuntimeClasses(name)
+}
+
+func (a *App) ListLeases(name, namespace string) []kube.LeaseInfo {
+	return a.clients.Leases(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

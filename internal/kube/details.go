@@ -53,6 +53,20 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type LeaseDetail struct {
+	Name                 string            `json:"name"`
+	Namespace            string            `json:"namespace"`
+	UID                  string            `json:"uid"`
+	HolderIdentity       string            `json:"holderIdentity"`
+	LeaseDurationSeconds int32             `json:"leaseDurationSeconds"`
+	AcquireTime          string            `json:"acquireTime"`
+	RenewTime            string            `json:"renewTime"`
+	LeaseTransitions     int32             `json:"leaseTransitions"`
+	Labels               map[string]string `json:"labels"`
+	Annotations          map[string]string `json:"annotations"`
+	CreatedAt            string            `json:"createdAt"`
+}
+
 type RuntimeClassDetail struct {
 	Name        string            `json:"name"`
 	UID         string            `json:"uid"`
@@ -494,6 +508,46 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) Lease(namespace, name string) (*LeaseDetail, error) {
+	l, err := w.factory.Coordination().V1().Leases().Lister().Leases(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	holder := ""
+	if l.Spec.HolderIdentity != nil {
+		holder = *l.Spec.HolderIdentity
+	}
+	var dur int32 = 0
+	if l.Spec.LeaseDurationSeconds != nil {
+		dur = *l.Spec.LeaseDurationSeconds
+	}
+	acquire := ""
+	if l.Spec.AcquireTime != nil {
+		acquire = l.Spec.AcquireTime.UTC().Format(time.RFC3339)
+	}
+	renew := ""
+	if l.Spec.RenewTime != nil {
+		renew = l.Spec.RenewTime.UTC().Format(time.RFC3339)
+	}
+	var trans int32 = 0
+	if l.Spec.LeaseTransitions != nil {
+		trans = *l.Spec.LeaseTransitions
+	}
+	return &LeaseDetail{
+		Name:                 l.Name,
+		Namespace:            l.Namespace,
+		UID:                  string(l.UID),
+		HolderIdentity:       holder,
+		LeaseDurationSeconds: dur,
+		AcquireTime:          acquire,
+		RenewTime:            renew,
+		LeaseTransitions:     trans,
+		Labels:               l.Labels,
+		Annotations:          l.Annotations,
+		CreatedAt:            l.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

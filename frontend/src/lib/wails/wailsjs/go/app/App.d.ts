@@ -24,6 +24,8 @@ export function GetIngressClass(arg1:string,arg2:string):Promise<kube.IngressCla
 
 export function GetJob(arg1:string,arg2:string,arg3:string):Promise<kube.JobDetail>;
 
+export function GetLease(arg1:string,arg2:string,arg3:string):Promise<kube.LeaseDetail>;
+
 export function GetLimitRange(arg1:string,arg2:string,arg3:string):Promise<kube.LimitRangeDetail>;
 
 export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDetail>;
@@ -79,6 +81,8 @@ export function ListIngressClasses(arg1:string):Promise<Array<kube.IngressClassI
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
 
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
+
+export function ListLeases(arg1:string,arg2:string):Promise<Array<kube.LeaseInfo>>;
 
 export function ListLimitRanges(arg1:string,arg2:string):Promise<Array<kube.LimitRangeInfo>>;
 
