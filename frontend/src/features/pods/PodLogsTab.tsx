@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
-import { ArrowDownToLine, Eraser, Pause, Play } from 'lucide-react'
+import { ArrowDownToLine, Eraser, Filter, Pause, Play, Regex } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
@@ -29,11 +29,37 @@ export function PodLogsTab({ detail }: Props) {
   const [streaming, setStreaming] = useState(false)
   const [paused, setPaused] = useState(false)
   const [atBottom, setAtBottom] = useState(true)
+  const [filterValue, setFilterValue] = useState('')
+  const [useRegex, setUseRegex] = useState(false)
+  const [filterError, setFilterError] = useState<string | null>(null)
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
   const pausedRef = useRef(false)
   const bufferRef = useRef<string[]>([])
+  const predicateRef = useRef<(line: string) => boolean>(() => true)
+
+  useEffect(() => {
+    if (!filterValue) {
+      predicateRef.current = () => true
+      setFilterError(null)
+      return
+    }
+    if (useRegex) {
+      try {
+        const re = new RegExp(filterValue, 'i')
+        predicateRef.current = (line) => re.test(line)
+        setFilterError(null)
+      } catch (e: unknown) {
+        predicateRef.current = () => false
+        setFilterError(String(e))
+      }
+    } else {
+      const needle = filterValue.toLowerCase()
+      predicateRef.current = (line) => line.toLowerCase().includes(needle)
+      setFilterError(null)
+    }
+  }, [filterValue, useRegex])
 
   useEffect(() => {
     pausedRef.current = paused
@@ -115,6 +141,7 @@ export function PodLogsTab({ detail }: Props) {
         sessionId = id
         setStreaming(true)
         unsubLine = EventsOn(`pod:logs:line:${id}`, (line: string) => {
+          if (!predicateRef.current(line)) return
           if (pausedRef.current) {
             bufferRef.current.push(line)
             // cap buffer at 5000 lines while paused
@@ -186,10 +213,40 @@ export function PodLogsTab({ detail }: Props) {
           <Eraser />
           Clear
         </Button>
-        <span className={['ml-auto', paused ? 'text-amber-500' : streaming ? 'text-emerald-500' : 'text-muted-foreground'].join(' ')}>
-          {paused ? '❙❙ paused' : streaming ? '● live' : '○ idle'}
-        </span>
+        <div className="ml-auto flex items-center gap-1">
+          <div className="relative w-44">
+            <Filter className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-muted-foreground/70" />
+            <input
+              type="text"
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              placeholder={useRegex ? 'Regex filter…' : 'Substring filter…'}
+              className={[
+                'h-6 w-full rounded border bg-background pl-6 pr-2 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring',
+                filterError ? 'border-destructive' : 'border-border',
+              ].join(' ')}
+            />
+          </div>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant={useRegex ? 'default' : 'outline'}
+            aria-pressed={useRegex}
+            aria-label="Toggle regex mode"
+            onClick={() => setUseRegex((v) => !v)}
+          >
+            <Regex />
+          </Button>
+          <span className={paused ? 'text-amber-500' : streaming ? 'text-emerald-500' : 'text-muted-foreground'}>
+            {paused ? '❙❙ paused' : streaming ? '● live' : '○ idle'}
+          </span>
+        </div>
       </div>
+      {filterError && (
+        <div className="border-b border-destructive/40 bg-destructive/10 px-4 py-1 text-[10px] font-mono text-destructive break-words">
+          {filterError}
+        </div>
+      )}
       {error && (
         <div className="border-b border-destructive/40 bg-destructive/10 px-4 py-2 text-xs font-mono text-destructive break-words">
           {error}
