@@ -23,6 +23,7 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"StatefulSet": {Group: "apps", Version: "v1", Resource: "statefulsets"},
 	"DaemonSet":   {Group: "apps", Version: "v1", Resource: "daemonsets"},
 	"ReplicaSet":  {Group: "apps", Version: "v1", Resource: "replicasets"},
+
 	"Job":         {Group: "batch", Version: "v1", Resource: "jobs"},
 	"CronJob":     {Group: "batch", Version: "v1", Resource: "cronjobs"},
 	"Ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},

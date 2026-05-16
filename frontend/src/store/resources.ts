@@ -3,6 +3,7 @@ import type {
   ConfigMapInfo,
   CronJobInfo,
   DaemonSetInfo,
+  ReplicaSetInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -23,6 +24,7 @@ type ResourcesState = {
   secrets: SecretInfo[]
   statefulSets: StatefulSetInfo[]
   daemonSets: DaemonSetInfo[]
+  replicaSets: ReplicaSetInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -35,6 +37,7 @@ type ResourcesState = {
   setSecrets: (list: SecretInfo[]) => void
   setStatefulSets: (list: StatefulSetInfo[]) => void
   setDaemonSets: (list: DaemonSetInfo[]) => void
+  setReplicaSets: (list: ReplicaSetInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -52,6 +55,7 @@ function emptyLists() {
     secrets: [] as SecretInfo[],
     statefulSets: [] as StatefulSetInfo[],
     daemonSets: [] as DaemonSetInfo[],
+    replicaSets: [] as ReplicaSetInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -69,6 +73,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setSecrets: (list) => set({ secrets: list }),
   setStatefulSets: (list) => set({ statefulSets: list }),
   setDaemonSets: (list) => set({ daemonSets: list }),
+  setReplicaSets: (list) => set({ replicaSets: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

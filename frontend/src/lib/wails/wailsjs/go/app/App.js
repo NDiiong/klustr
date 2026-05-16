@@ -46,6 +46,10 @@ export function GetPod(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetPod'](arg1, arg2, arg3);
 }
 
+export function GetReplicaSet(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetReplicaSet'](arg1, arg2, arg3);
+}
+
 export function GetResourceYAML(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['GetResourceYAML'](arg1, arg2, arg3, arg4);
 }
@@ -112,6 +116,10 @@ export function ListPods(arg1, arg2) {
 
 export function ListPortForwards() {
   return window['go']['app']['App']['ListPortForwards']();
+}
+
+export function ListReplicaSets(arg1, arg2) {
+  return window['go']['app']['App']['ListReplicaSets'](arg1, arg2);
 }
 
 export function ListSecrets(arg1, arg2) {

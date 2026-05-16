@@ -11,6 +11,7 @@ import {
   GetConfigMap,
   GetCronJob,
   GetDaemonSet,
+  GetReplicaSet,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -25,6 +26,7 @@ import {
   ListContexts,
   ListCronJobs,
   ListDaemonSets,
+  ListReplicaSets,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -58,6 +60,7 @@ export type ConfigMapInfo = kube.ConfigMapInfo
 export type SecretInfo = kube.SecretInfo
 export type StatefulSetInfo = kube.StatefulSetInfo
 export type DaemonSetInfo = kube.DaemonSetInfo
+export type ReplicaSetInfo = kube.ReplicaSetInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -71,6 +74,7 @@ export type ContainerSummary = kube.ContainerSummary
 export type DeploymentDetail = kube.DeploymentDetail
 export type StatefulSetDetail = kube.StatefulSetDetail
 export type DaemonSetDetail = kube.DaemonSetDetail
+export type ReplicaSetDetail = kube.ReplicaSetDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -109,6 +113,8 @@ export const api = {
     ListStatefulSets(name, namespace),
   listDaemonSets: (name: string, namespace: string): Promise<DaemonSetInfo[]> =>
     ListDaemonSets(name, namespace),
+  listReplicaSets: (name: string, namespace: string): Promise<ReplicaSetInfo[]> =>
+    ListReplicaSets(name, namespace),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -144,6 +150,8 @@ export const api = {
     GetStatefulSet(ctx, ns, name),
   getDaemonSet: (ctx: string, ns: string, name: string): Promise<DaemonSetDetail> =>
     GetDaemonSet(ctx, ns, name),
+  getReplicaSet: (ctx: string, ns: string, name: string): Promise<ReplicaSetDetail> =>
+    GetReplicaSet(ctx, ns, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

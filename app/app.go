@@ -73,6 +73,10 @@ func (a *App) GetStatefulSet(contextName, namespace, name string) (*kube.Statefu
 	return a.clients.StatefulSet(contextName, namespace, name)
 }
 
+func (a *App) GetReplicaSet(contextName, namespace, name string) (*kube.ReplicaSetDetail, error) {
+	return a.clients.ReplicaSet(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -233,6 +237,10 @@ func (a *App) ListSecrets(name, namespace string) []kube.SecretInfo {
 
 func (a *App) ListStatefulSets(name, namespace string) []kube.StatefulSetInfo {
 	return a.clients.StatefulSets(name, namespace)
+}
+
+func (a *App) ListReplicaSets(name, namespace string) []kube.ReplicaSetInfo {
+	return a.clients.ReplicaSets(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

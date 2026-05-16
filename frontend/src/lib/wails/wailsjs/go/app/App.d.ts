@@ -24,6 +24,8 @@ export function GetNode(arg1:string,arg2:string):Promise<kube.NodeDetail>;
 
 export function GetPod(arg1:string,arg2:string,arg3:string):Promise<kube.PodDetail>;
 
+export function GetReplicaSet(arg1:string,arg2:string,arg3:string):Promise<kube.ReplicaSetDetail>;
+
 export function GetResourceYAML(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function GetSecret(arg1:string,arg2:string,arg3:string):Promise<kube.SecretDetail>;
@@ -57,6 +59,8 @@ export function ListPodMetrics(arg1:string,arg2:string):Promise<Array<kube.PodMe
 export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 
 export function ListPortForwards():Promise<Array<kube.PortForwardInfo>>;
+
+export function ListReplicaSets(arg1:string,arg2:string):Promise<Array<kube.ReplicaSetInfo>>;
 
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 

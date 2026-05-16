@@ -1045,6 +1045,88 @@ export namespace kube {
 	        this.error = source["error"];
 	    }
 	}
+	export class ReplicaSetDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    desired: number;
+	    current: number;
+	    ready: number;
+	    available: number;
+	    owners: OwnerRef[];
+	    selector: Record<string, string>;
+	    containers: ContainerSummary[];
+	    conditions: ConditionDetail[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReplicaSetDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.desired = source["desired"];
+	        this.current = source["current"];
+	        this.ready = source["ready"];
+	        this.available = source["available"];
+	        this.owners = this.convertValues(source["owners"], OwnerRef);
+	        this.selector = source["selector"];
+	        this.containers = this.convertValues(source["containers"], ContainerSummary);
+	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ReplicaSetInfo {
+	    name: string;
+	    namespace: string;
+	    desired: number;
+	    current: number;
+	    ready: number;
+	    ownedBy: string;
+	    images: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReplicaSetInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.desired = source["desired"];
+	        this.current = source["current"];
+	        this.ready = source["ready"];
+	        this.ownedBy = source["ownedBy"];
+	        this.images = source["images"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class SecretKeyInfo {
 	    key: string;
 	    size: number;

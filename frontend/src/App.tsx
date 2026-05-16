@@ -11,6 +11,7 @@ import { ConfigMapsView } from '@/features/configmaps/ConfigMapsView'
 import { SecretsView } from '@/features/secrets/SecretsView'
 import { StatefulSetsView } from '@/features/statefulsets/StatefulSetsView'
 import { DaemonSetsView } from '@/features/daemonsets/DaemonSetsView'
+import { ReplicaSetsView } from '@/features/replicasets/ReplicaSetsView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -39,6 +40,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Deployments', view: 'deployments' },
       { label: 'StatefulSets', view: 'statefulsets' },
       { label: 'DaemonSets', view: 'daemonsets' },
+      { label: 'ReplicaSets', view: 'replicasets' },
       { label: 'Jobs', view: 'jobs' },
       { label: 'CronJobs', view: 'cronjobs' },
     ],
@@ -93,6 +95,8 @@ function MainView() {
       return <StatefulSetsView />
     case 'daemonsets':
       return <DaemonSetsView />
+    case 'replicasets':
+      return <ReplicaSetsView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

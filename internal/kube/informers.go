@@ -98,6 +98,17 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type ReplicaSetInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Desired   int32  `json:"desired"`
+	Current   int32  `json:"current"`
+	Ready     int32  `json:"ready"`
+	OwnedBy   string `json:"ownedBy"`
+	Images    string `json:"images"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type DeploymentInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -318,6 +329,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	replicaSets := w.factory.Apps().V1().ReplicaSets().Informer()
+	if _, err := replicaSets.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("ReplicaSet") },
+		UpdateFunc: func(any, any) { w.touch("ReplicaSet") },
+		DeleteFunc: func(any) { w.touch("ReplicaSet") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	ingresses := w.factory.Networking().V1().Ingresses().Informer()
 	if _, err := ingresses.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("Ingress") },
@@ -344,6 +365,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 		for _, kind := range []string{
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
+			"ReplicaSet",
 		} {
 			w.touch(kind)
 		}
@@ -765,6 +787,52 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) ReplicaSets(namespace string) []ReplicaSetInfo {
+	lister := w.factory.Apps().V1().ReplicaSets().Lister()
+	var (
+		sets []*appsv1.ReplicaSet
+		err  error
+	)
+	if namespace == "" {
+		sets, err = lister.List(labels.Everything())
+	} else {
+		sets, err = lister.ReplicaSets(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []ReplicaSetInfo{}
+	}
+	out := make([]ReplicaSetInfo, 0, len(sets))
+	for _, r := range sets {
+		var desired int32
+		if r.Spec.Replicas != nil {
+			desired = *r.Spec.Replicas
+		}
+		owner := ""
+		for _, o := range r.OwnerReferences {
+			if o.Controller != nil && *o.Controller {
+				owner = o.Kind + "/" + o.Name
+				break
+			}
+		}
+		images := make([]string, 0, len(r.Spec.Template.Spec.Containers))
+		for _, c := range r.Spec.Template.Spec.Containers {
+			images = append(images, c.Image)
+		}
+		out = append(out, ReplicaSetInfo{
+			Name:      r.Name,
+			Namespace: r.Namespace,
+			Desired:   desired,
+			Current:   r.Status.Replicas,
+			Ready:     r.Status.ReadyReplicas,
+			OwnedBy:   owner,
+			Images:    strings.Join(images, ", "),
+			CreatedAt: r.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

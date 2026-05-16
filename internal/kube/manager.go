@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) ReplicaSet(contextName, namespace, name string) (*ReplicaSetDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.ReplicaSet(namespace, name)
+}
+
 func (m *ClientManager) DaemonSet(contextName, namespace, name string) (*DaemonSetDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -393,6 +401,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) ReplicaSets(contextName, namespace string) []ReplicaSetInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []ReplicaSetInfo{}
+	}
+	return w.ReplicaSets(namespace)
 }
 
 func (m *ClientManager) DaemonSets(contextName, namespace string) []DaemonSetInfo {

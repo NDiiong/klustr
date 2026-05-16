@@ -53,6 +53,23 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type ReplicaSetDetail struct {
+	Name        string             `json:"name"`
+	Namespace   string             `json:"namespace"`
+	UID         string             `json:"uid"`
+	Desired     int32              `json:"desired"`
+	Current     int32              `json:"current"`
+	Ready       int32              `json:"ready"`
+	Available   int32              `json:"available"`
+	Owners      []OwnerRef         `json:"owners"`
+	Selector    map[string]string  `json:"selector"`
+	Containers  []ContainerSummary `json:"containers"`
+	Conditions  []ConditionDetail  `json:"conditions"`
+	Labels      map[string]string  `json:"labels"`
+	Annotations map[string]string  `json:"annotations"`
+	CreatedAt   string             `json:"createdAt"`
+}
+
 type DaemonSetDetail struct {
 	Name           string             `json:"name"`
 	Namespace      string             `json:"namespace"`
@@ -284,6 +301,46 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) ReplicaSet(namespace, name string) (*ReplicaSetDetail, error) {
+	r, err := w.factory.Apps().V1().ReplicaSets().Lister().ReplicaSets(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	var desired int32
+	if r.Spec.Replicas != nil {
+		desired = *r.Spec.Replicas
+	}
+	owners := make([]OwnerRef, 0, len(r.OwnerReferences))
+	for _, o := range r.OwnerReferences {
+		owners = append(owners, OwnerRef{Kind: o.Kind, Name: o.Name})
+	}
+	conds := make([]ConditionDetail, 0, len(r.Status.Conditions))
+	for _, c := range r.Status.Conditions {
+		conds = append(conds, ConditionDetail{
+			Type:    string(c.Type),
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+	return &ReplicaSetDetail{
+		Name:        r.Name,
+		Namespace:   r.Namespace,
+		UID:         string(r.UID),
+		Desired:     desired,
+		Current:     r.Status.Replicas,
+		Ready:       r.Status.ReadyReplicas,
+		Available:   r.Status.AvailableReplicas,
+		Owners:      owners,
+		Selector:    matchLabels(r.Spec.Selector),
+		Containers:  containerSummaries(r.Spec.Template.Spec.Containers),
+		Conditions:  conds,
+		Labels:      r.Labels,
+		Annotations: r.Annotations,
+		CreatedAt:   r.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 
