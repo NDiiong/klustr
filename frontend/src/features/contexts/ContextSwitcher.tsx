@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { api, type ContextInfo } from '@/lib/api'
+import { ProviderIcon } from '@/features/_shared/providerIcons'
 import { useUIStore } from '@/store/ui'
 
 export function ContextSwitcher() {
@@ -42,11 +43,13 @@ export function ContextSwitcher() {
   }, [])
 
   const label = loading ? 'Loading…' : error ? 'No kubeconfig' : (selected ?? 'Select context')
+  const selectedCtx = selected ? contexts.find((c) => c.name === selected) : null
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" disabled={loading || !!error}>
+          {selectedCtx && <ProviderIcon context={selectedCtx} className="size-3.5" />}
           <span className="max-w-[18rem] truncate">{label}</span>
           <ChevronDown />
         </Button>
@@ -68,6 +71,7 @@ export function ContextSwitcher() {
                   ) : (
                     <span className="mt-0.5 inline-block size-3.5 shrink-0" />
                   )}
+                  <ProviderIcon context={c} className="mt-0.5 size-3.5 shrink-0" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 truncate text-sm">
                       <span className="truncate">{c.name}</span>

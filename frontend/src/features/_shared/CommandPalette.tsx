@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Boxes, Folder, LayoutGrid } from 'lucide-react'
+import { Folder, LayoutGrid } from 'lucide-react'
+import { ProviderIcon } from '@/features/_shared/providerIcons'
 import {
   CommandDialog,
   CommandEmpty,
@@ -123,7 +124,7 @@ export function CommandPalette() {
                     setOpen(false)
                   }}
                 >
-                  <Boxes />
+                  <ProviderIcon context={c} />
                   <span className="truncate">{c.name}</span>
                   {c.name === selectedContext && (
                     <span className="ml-auto text-[10px] text-muted-foreground">current</span>
