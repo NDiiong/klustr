@@ -251,7 +251,10 @@ export function ResourceTable<T>({
         <ColumnControls table={table} onReset={() => resetPrefs(kind)} />
       </div>
       <div className="flex-1 overflow-auto">
-        <table className="border-collapse text-sm" style={{ width: table.getTotalSize() }}>
+        <table
+          className="border-collapse text-sm"
+          style={{ width: '100%', minWidth: table.getTotalSize(), tableLayout: 'fixed' }}
+        >
           <thead className="sticky top-0 bg-background">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-border">
@@ -289,6 +292,7 @@ export function ResourceTable<T>({
                     </th>
                   )
                 })}
+                <th aria-hidden className="w-auto" />
               </tr>
             ))}
           </thead>
@@ -296,7 +300,7 @@ export function ResourceTable<T>({
             {table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={columns.length + 1}
                   className="px-3 py-8 text-center text-sm text-muted-foreground"
                 >
                   {filter
@@ -327,6 +331,7 @@ export function ResourceTable<T>({
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
+                    <td aria-hidden />
                   </tr>
                 )
               })
