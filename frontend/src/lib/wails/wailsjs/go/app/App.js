@@ -62,6 +62,10 @@ export function GetPod(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetPod'](arg1, arg2, arg3);
 }
 
+export function GetPodDisruptionBudget(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetPodDisruptionBudget'](arg1, arg2, arg3);
+}
+
 export function GetReplicaSet(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetReplicaSet'](arg1, arg2, arg3);
 }
@@ -140,6 +144,10 @@ export function ListPersistentVolumeClaims(arg1, arg2) {
 
 export function ListPersistentVolumes(arg1) {
   return window['go']['app']['App']['ListPersistentVolumes'](arg1);
+}
+
+export function ListPodDisruptionBudgets(arg1, arg2) {
+  return window['go']['app']['App']['ListPodDisruptionBudgets'](arg1, arg2);
 }
 
 export function ListPodMetrics(arg1, arg2) {

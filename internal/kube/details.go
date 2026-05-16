@@ -53,6 +53,23 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type PodDisruptionBudgetDetail struct {
+	Name             string            `json:"name"`
+	Namespace        string            `json:"namespace"`
+	UID              string            `json:"uid"`
+	MinAvailable     string            `json:"minAvailable"`
+	MaxUnavailable   string            `json:"maxUnavailable"`
+	Selector         string            `json:"selector"`
+	CurrentHealthy   int32             `json:"currentHealthy"`
+	DesiredHealthy   int32             `json:"desiredHealthy"`
+	ExpectedPods     int32             `json:"expectedPods"`
+	DisruptionsAllowed int32           `json:"disruptionsAllowed"`
+	Conditions       []ConditionDetail `json:"conditions"`
+	Labels           map[string]string `json:"labels"`
+	Annotations      map[string]string `json:"annotations"`
+	CreatedAt        string            `json:"createdAt"`
+}
+
 type HorizontalPodAutoscalerDetail struct {
 	Name            string            `json:"name"`
 	Namespace       string            `json:"namespace"`
@@ -381,6 +398,46 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) PodDisruptionBudget(namespace, name string) (*PodDisruptionBudgetDetail, error) {
+	p, err := w.factory.Policy().V1().PodDisruptionBudgets().Lister().PodDisruptionBudgets(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	minAvail := ""
+	if p.Spec.MinAvailable != nil {
+		minAvail = p.Spec.MinAvailable.String()
+	}
+	maxUnavail := ""
+	if p.Spec.MaxUnavailable != nil {
+		maxUnavail = p.Spec.MaxUnavailable.String()
+	}
+	conds := make([]ConditionDetail, 0, len(p.Status.Conditions))
+	for _, c := range p.Status.Conditions {
+		conds = append(conds, ConditionDetail{
+			Type:    c.Type,
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+	return &PodDisruptionBudgetDetail{
+		Name:               p.Name,
+		Namespace:          p.Namespace,
+		UID:                string(p.UID),
+		MinAvailable:       minAvail,
+		MaxUnavailable:     maxUnavail,
+		Selector:           formatLabelSelector(p.Spec.Selector),
+		CurrentHealthy:     p.Status.CurrentHealthy,
+		DesiredHealthy:     p.Status.DesiredHealthy,
+		ExpectedPods:       p.Status.ExpectedPods,
+		DisruptionsAllowed: p.Status.DisruptionsAllowed,
+		Conditions:         conds,
+		Labels:             p.Labels,
+		Annotations:        p.Annotations,
+		CreatedAt:          p.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

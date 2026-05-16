@@ -9,6 +9,7 @@ import type {
   StorageClassInfo,
   NetworkPolicyInfo,
   HorizontalPodAutoscalerInfo,
+  PodDisruptionBudgetInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -35,6 +36,7 @@ type ResourcesState = {
   storageClasses: StorageClassInfo[]
   networkPolicies: NetworkPolicyInfo[]
   horizontalPodAutoscalers: HorizontalPodAutoscalerInfo[]
+  podDisruptionBudgets: PodDisruptionBudgetInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -53,6 +55,7 @@ type ResourcesState = {
   setStorageClasses: (list: StorageClassInfo[]) => void
   setNetworkPolicies: (list: NetworkPolicyInfo[]) => void
   setHorizontalPodAutoscalers: (list: HorizontalPodAutoscalerInfo[]) => void
+  setPodDisruptionBudgets: (list: PodDisruptionBudgetInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -76,6 +79,7 @@ function emptyLists() {
     storageClasses: [] as StorageClassInfo[],
     networkPolicies: [] as NetworkPolicyInfo[],
     horizontalPodAutoscalers: [] as HorizontalPodAutoscalerInfo[],
+    podDisruptionBudgets: [] as PodDisruptionBudgetInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -99,6 +103,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setStorageClasses: (list) => set({ storageClasses: list }),
   setNetworkPolicies: (list) => set({ networkPolicies: list }),
   setHorizontalPodAutoscalers: (list) => set({ horizontalPodAutoscalers: list }),
+  setPodDisruptionBudgets: (list) => set({ podDisruptionBudgets: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

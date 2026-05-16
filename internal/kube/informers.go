@@ -12,6 +12,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1 "k8s.io/api/policy/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -98,6 +99,17 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
+}
+
+type PodDisruptionBudgetInfo struct {
+	Name           string `json:"name"`
+	Namespace      string `json:"namespace"`
+	MinAvailable   string `json:"minAvailable"`
+	MaxUnavailable string `json:"maxUnavailable"`
+	CurrentHealthy int32  `json:"currentHealthy"`
+	DesiredHealthy int32  `json:"desiredHealthy"`
+	Allowed        int32  `json:"allowed"`
+	CreatedAt      string `json:"createdAt"`
 }
 
 type HorizontalPodAutoscalerInfo struct {
@@ -382,6 +394,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	pdbs := w.factory.Policy().V1().PodDisruptionBudgets().Informer()
+	if _, err := pdbs.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("PodDisruptionBudget") },
+		UpdateFunc: func(any, any) { w.touch("PodDisruptionBudget") },
+		DeleteFunc: func(any) { w.touch("PodDisruptionBudget") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	hpas := w.factory.Autoscaling().V2().HorizontalPodAutoscalers().Informer()
 	if _, err := hpas.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("HorizontalPodAutoscaler") },
@@ -469,7 +491,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
-			"NetworkPolicy", "HorizontalPodAutoscaler",
+			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
 		} {
 			w.touch(kind)
 		}
@@ -891,6 +913,45 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) PodDisruptionBudgets(namespace string) []PodDisruptionBudgetInfo {
+	lister := w.factory.Policy().V1().PodDisruptionBudgets().Lister()
+	var (
+		pdbs []*policyv1.PodDisruptionBudget
+		err  error
+	)
+	if namespace == "" {
+		pdbs, err = lister.List(labels.Everything())
+	} else {
+		pdbs, err = lister.PodDisruptionBudgets(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []PodDisruptionBudgetInfo{}
+	}
+	out := make([]PodDisruptionBudgetInfo, 0, len(pdbs))
+	for _, p := range pdbs {
+		minAvail := ""
+		if p.Spec.MinAvailable != nil {
+			minAvail = p.Spec.MinAvailable.String()
+		}
+		maxUnavail := ""
+		if p.Spec.MaxUnavailable != nil {
+			maxUnavail = p.Spec.MaxUnavailable.String()
+		}
+		out = append(out, PodDisruptionBudgetInfo{
+			Name:           p.Name,
+			Namespace:      p.Namespace,
+			MinAvailable:   minAvail,
+			MaxUnavailable: maxUnavail,
+			CurrentHealthy: p.Status.CurrentHealthy,
+			DesiredHealthy: p.Status.DesiredHealthy,
+			Allowed:        p.Status.DisruptionsAllowed,
+			CreatedAt:      p.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

@@ -17,6 +17,7 @@ import {
   GetStorageClass,
   GetNetworkPolicy,
   GetHorizontalPodAutoscaler,
+  GetPodDisruptionBudget,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -37,6 +38,7 @@ import {
   ListStorageClasses,
   ListNetworkPolicies,
   ListHorizontalPodAutoscalers,
+  ListPodDisruptionBudgets,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -76,6 +78,7 @@ export type PersistentVolumeInfo = kube.PersistentVolumeInfo
 export type StorageClassInfo = kube.StorageClassInfo
 export type NetworkPolicyInfo = kube.NetworkPolicyInfo
 export type HorizontalPodAutoscalerInfo = kube.HorizontalPodAutoscalerInfo
+export type PodDisruptionBudgetInfo = kube.PodDisruptionBudgetInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -95,6 +98,7 @@ export type PersistentVolumeDetail = kube.PersistentVolumeDetail
 export type StorageClassDetail = kube.StorageClassDetail
 export type NetworkPolicyDetail = kube.NetworkPolicyDetail
 export type HorizontalPodAutoscalerDetail = kube.HorizontalPodAutoscalerDetail
+export type PodDisruptionBudgetDetail = kube.PodDisruptionBudgetDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -144,6 +148,8 @@ export const api = {
     ListNetworkPolicies(name, namespace),
   listHorizontalPodAutoscalers: (name: string, namespace: string): Promise<HorizontalPodAutoscalerInfo[]> =>
     ListHorizontalPodAutoscalers(name, namespace),
+  listPodDisruptionBudgets: (name: string, namespace: string): Promise<PodDisruptionBudgetInfo[]> =>
+    ListPodDisruptionBudgets(name, namespace),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -191,6 +197,8 @@ export const api = {
     GetNetworkPolicy(ctx, ns, name),
   getHorizontalPodAutoscaler: (ctx: string, ns: string, name: string): Promise<HorizontalPodAutoscalerDetail> =>
     GetHorizontalPodAutoscaler(ctx, ns, name),
+  getPodDisruptionBudget: (ctx: string, ns: string, name: string): Promise<PodDisruptionBudgetDetail> =>
+    GetPodDisruptionBudget(ctx, ns, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

@@ -1233,6 +1233,88 @@ export namespace kube {
 		    return a;
 		}
 	}
+	export class PodDisruptionBudgetDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    minAvailable: string;
+	    maxUnavailable: string;
+	    selector: string;
+	    currentHealthy: number;
+	    desiredHealthy: number;
+	    expectedPods: number;
+	    disruptionsAllowed: number;
+	    conditions: ConditionDetail[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PodDisruptionBudgetDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.minAvailable = source["minAvailable"];
+	        this.maxUnavailable = source["maxUnavailable"];
+	        this.selector = source["selector"];
+	        this.currentHealthy = source["currentHealthy"];
+	        this.desiredHealthy = source["desiredHealthy"];
+	        this.expectedPods = source["expectedPods"];
+	        this.disruptionsAllowed = source["disruptionsAllowed"];
+	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PodDisruptionBudgetInfo {
+	    name: string;
+	    namespace: string;
+	    minAvailable: string;
+	    maxUnavailable: string;
+	    currentHealthy: number;
+	    desiredHealthy: number;
+	    allowed: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PodDisruptionBudgetInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.minAvailable = source["minAvailable"];
+	        this.maxUnavailable = source["maxUnavailable"];
+	        this.currentHealthy = source["currentHealthy"];
+	        this.desiredHealthy = source["desiredHealthy"];
+	        this.allowed = source["allowed"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class PodInfo {
 	    name: string;
 	    namespace: string;

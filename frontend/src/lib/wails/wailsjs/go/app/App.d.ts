@@ -32,6 +32,8 @@ export function GetPersistentVolumeClaim(arg1:string,arg2:string,arg3:string):Pr
 
 export function GetPod(arg1:string,arg2:string,arg3:string):Promise<kube.PodDetail>;
 
+export function GetPodDisruptionBudget(arg1:string,arg2:string,arg3:string):Promise<kube.PodDisruptionBudgetDetail>;
+
 export function GetReplicaSet(arg1:string,arg2:string,arg3:string):Promise<kube.ReplicaSetDetail>;
 
 export function GetResourceYAML(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
@@ -71,6 +73,8 @@ export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 export function ListPersistentVolumeClaims(arg1:string,arg2:string):Promise<Array<kube.PersistentVolumeClaimInfo>>;
 
 export function ListPersistentVolumes(arg1:string):Promise<Array<kube.PersistentVolumeInfo>>;
+
+export function ListPodDisruptionBudgets(arg1:string,arg2:string):Promise<Array<kube.PodDisruptionBudgetInfo>>;
 
 export function ListPodMetrics(arg1:string,arg2:string):Promise<Array<kube.PodMetrics>>;
 

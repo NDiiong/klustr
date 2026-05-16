@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) PodDisruptionBudget(contextName, namespace, name string) (*PodDisruptionBudgetDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.PodDisruptionBudget(namespace, name)
+}
+
 func (m *ClientManager) HorizontalPodAutoscaler(contextName, namespace, name string) (*HorizontalPodAutoscalerDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -441,6 +449,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) PodDisruptionBudgets(contextName, namespace string) []PodDisruptionBudgetInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []PodDisruptionBudgetInfo{}
+	}
+	return w.PodDisruptionBudgets(namespace)
 }
 
 func (m *ClientManager) HorizontalPodAutoscalers(contextName, namespace string) []HorizontalPodAutoscalerInfo {
