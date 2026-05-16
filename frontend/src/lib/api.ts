@@ -14,7 +14,9 @@ import {
   ListServices,
   ListStatefulSets,
   PingContext,
+  StartPodLogs,
   StartWatch,
+  StopPodLogs,
   StopWatch,
 } from '@/lib/wails/wailsjs/go/app/App'
 import { kube } from '@/lib/wails/wailsjs/go/models'
@@ -66,4 +68,14 @@ export const api = {
   listNodes: (name: string): Promise<NodeInfo[]> => ListNodes(name),
   getPod: (contextName: string, namespace: string, name: string): Promise<PodDetail> =>
     GetPod(contextName, namespace, name),
+  startPodLogs: (
+    contextName: string,
+    namespace: string,
+    podName: string,
+    container: string,
+    follow: boolean,
+    tailLines: number,
+  ): Promise<string> =>
+    StartPodLogs(contextName, namespace, podName, container, follow, tailLines),
+  stopPodLogs: (sessionId: string): Promise<void> => StopPodLogs(sessionId),
 }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type ContainerDetail, type PodDetail } from '@/lib/api'
 import { onKubeChange } from '@/lib/events'
 import { formatAge } from '@/lib/time'
 import { useUIStore, type SelectedResource } from '@/store/ui'
+import { PodLogsTab } from './PodLogsTab'
 
 type Props = {
   contextName: string | null
@@ -14,7 +16,12 @@ export function PodDetailPanel({ contextName, resource }: Props) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const [detail, setDetail] = useState<PodDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<'overview' | 'logs'>('overview')
   const open = resource !== null && resource.kind === 'Pod'
+
+  useEffect(() => {
+    if (!open) setTab('overview')
+  }, [open, resource?.namespace, resource?.name])
 
   useEffect(() => {
     if (!open || !contextName || !resource) {
@@ -48,21 +55,38 @@ export function PodDetailPanel({ contextName, resource }: Props) {
   }, [open, contextName, resource?.namespace, resource?.name])
 
   return (
-    <Sheet open={open} onOpenChange={(o) => { if (!o) setSelectedResource(null) }}>
-      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) setSelectedResource(null)
+      }}
+    >
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-3xl">
         <SheetHeader className="border-b border-border px-6 py-4">
           <div className="text-xs uppercase tracking-wide text-muted-foreground">Pod</div>
           <SheetTitle className="truncate text-base">{resource?.name}</SheetTitle>
           <div className="text-xs text-muted-foreground">{resource?.namespace}</div>
         </SheetHeader>
-        <div className="space-y-6 px-6 py-4">
-          {error && (
-            <div className="rounded border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive break-words font-mono">
-              {error}
-            </div>
-          )}
-          {detail && <PodOverview detail={detail} />}
-        </div>
+
+        <Tabs value={tab} onValueChange={(v) => setTab(v as 'overview' | 'logs')} className="flex min-h-0 flex-1 flex-col">
+          <TabsList className="mx-6 mt-3 w-fit">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="logs" disabled={!detail}>Logs</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            {error && (
+              <div className="rounded border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive break-words font-mono">
+                {error}
+              </div>
+            )}
+            {detail && <PodOverview detail={detail} />}
+          </TabsContent>
+
+          <TabsContent value="logs" className="min-h-0 flex-1 p-0">
+            {detail && <PodLogsTab detail={detail} />}
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   )
@@ -70,7 +94,7 @@ export function PodDetailPanel({ contextName, resource }: Props) {
 
 function PodOverview({ detail }: { detail: PodDetail }) {
   return (
-    <>
+    <div className="space-y-6">
       <Section title="Status">
         <Field label="Status">{detail.status}</Field>
         <Field label="Phase">{detail.phase}</Field>
@@ -136,7 +160,7 @@ function PodOverview({ detail }: { detail: PodDetail }) {
           <Chips items={detail.annotations} />
         </Section>
       )}
-    </>
+    </div>
   )
 }
 
