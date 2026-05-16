@@ -32,17 +32,36 @@ export function PodResourceBars({
           <MiniBar label="M" value={mem} usageColorClass={usageColor(mem)} />
         </div>
       </TooltipTrigger>
-      <TooltipContent className="font-mono text-[11px]">
-        <div className="mb-1 text-muted-foreground">CPU</div>
-        <div>usage&nbsp;&nbsp;{formatCPU(cpuUsageMC)}</div>
-        <div>request&nbsp;{cpuRequestMC > 0 ? formatCPU(cpuRequestMC) : '—'}</div>
-        <div>limit&nbsp;&nbsp;&nbsp;{cpuLimitMC > 0 ? formatCPU(cpuLimitMC) : '—'}</div>
-        <div className="mt-2 mb-1 text-muted-foreground">Memory</div>
-        <div>usage&nbsp;&nbsp;{formatMem(memUsageB)}</div>
-        <div>request&nbsp;{memRequestB > 0 ? formatMem(memRequestB) : '—'}</div>
-        <div>limit&nbsp;&nbsp;&nbsp;{memLimitB > 0 ? formatMem(memLimitB) : '—'}</div>
+      <TooltipContent className="flex flex-col items-stretch gap-0 p-3 font-mono text-[11px]">
+        <ResourceBlock
+          title="CPU"
+          usage={formatCPU(cpuUsageMC)}
+          request={cpuRequestMC > 0 ? formatCPU(cpuRequestMC) : '—'}
+          limit={cpuLimitMC > 0 ? formatCPU(cpuLimitMC) : '—'}
+        />
+        <div className="my-2 h-px bg-background/20" />
+        <ResourceBlock
+          title="Memory"
+          usage={formatMem(memUsageB)}
+          request={memRequestB > 0 ? formatMem(memRequestB) : '—'}
+          limit={memLimitB > 0 ? formatMem(memLimitB) : '—'}
+        />
       </TooltipContent>
     </Tooltip>
+  )
+}
+
+function ResourceBlock({ title, usage, request, limit }: { title: string; usage: string; request: string; limit: string }) {
+  return (
+    <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5">
+      <div className="col-span-2 mb-0.5 text-[10px] uppercase tracking-wide opacity-60">{title}</div>
+      <div className="opacity-60">usage</div>
+      <div className="text-right">{usage}</div>
+      <div className="opacity-60">request</div>
+      <div className="text-right">{request}</div>
+      <div className="opacity-60">limit</div>
+      <div className="text-right">{limit}</div>
+    </div>
   )
 }
 
