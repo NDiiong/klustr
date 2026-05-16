@@ -12,6 +12,8 @@ import { ArrowDown, ArrowUp, ChevronsUpDown, Search, X } from 'lucide-react'
 import { onKubeChange } from '@/lib/events'
 import { useUIStore } from '@/store/ui'
 
+type RowIdentity = { namespace?: string; name?: string }
+
 type Scope = 'namespaced' | 'cluster'
 
 type Noun = { singular: string; plural: string }
@@ -26,6 +28,10 @@ export type ResourceTableProps<T> = {
   columns: ColumnDef<T, any>[]
   defaultSort?: SortingState
   onRowClick?: (row: T) => void
+}
+
+function identityKey(r: RowIdentity): string {
+  return `${r.namespace ?? ''}/${r.name ?? ''}`
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -48,11 +54,24 @@ export function ResourceTable<T>({
 }: ResourceTableProps<T>) {
   const selectedContext = useUIStore((s) => s.selectedContext)
   const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const selectedResource = useUIStore((s) => s.selectedResource)
+  const lastSelectedResource = useUIStore((s) => s.lastSelectedResource)
   const namespaceArg = scope === 'namespaced' ? selectedNamespace : null
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
   const [, setTick] = useState(0)
   const filterRef = useRef<HTMLInputElement>(null)
+  const [flashKey, setFlashKey] = useState<string | null>(null)
+
+  // When the detail panel closes we flash the row that was just open.
+  useEffect(() => {
+    if (selectedResource) return
+    if (!lastSelectedResource) return
+    const key = identityKey(lastSelectedResource)
+    setFlashKey(key)
+    const id = window.setTimeout(() => setFlashKey(null), 1_200)
+    return () => window.clearTimeout(id)
+  }, [selectedResource, lastSelectedResource])
 
   // Drop filter input when the table contents drop to 0 on context/namespace change
   useEffect(() => {
@@ -205,22 +224,27 @@ export function ResourceTable<T>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={[
-                    'border-b border-border last:border-b-0 hover:bg-muted/50',
-                    onRowClick ? 'cursor-pointer' : '',
-                  ].join(' ')}
-                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="whitespace-nowrap px-3 py-1.5 align-middle">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const identity = row.original as RowIdentity
+                const flashing = flashKey !== null && flashKey === identityKey(identity)
+                return (
+                  <tr
+                    key={row.id}
+                    className={[
+                      'border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors',
+                      onRowClick ? 'cursor-pointer' : '',
+                      flashing ? 'bg-emerald-100/60 dark:bg-emerald-400/15' : '',
+                    ].join(' ')}
+                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="whitespace-nowrap px-3 py-1.5 align-middle">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </table>

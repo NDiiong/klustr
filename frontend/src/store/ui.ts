@@ -40,6 +40,7 @@ type UIState = {
   selectedNamespace: string | null
   selectedView: ResourceView
   selectedResource: SelectedResource | null
+  lastSelectedResource: SelectedResource | null
   setSelectedContext: (name: string | null) => void
   setSelectedNamespace: (name: string | null) => void
   setSelectedView: (view: ResourceView) => void
@@ -51,13 +52,24 @@ export const useUIStore = create<UIState>((set) => ({
   selectedNamespace: null,
   selectedView: 'overview',
   selectedResource: null,
+  lastSelectedResource: null,
   setSelectedContext: (name) =>
     set((s) =>
       s.selectedContext === name
         ? s
-        : { selectedContext: name, selectedNamespace: null, selectedResource: null },
+        : {
+            selectedContext: name,
+            selectedNamespace: null,
+            selectedResource: null,
+            lastSelectedResource: null,
+          },
     ),
   setSelectedNamespace: (name) => set({ selectedNamespace: name }),
-  setSelectedView: (view) => set({ selectedView: view, selectedResource: null }),
-  setSelectedResource: (resource) => set({ selectedResource: resource }),
+  setSelectedView: (view) =>
+    set({ selectedView: view, selectedResource: null, lastSelectedResource: null }),
+  setSelectedResource: (resource) =>
+    set((s) => ({
+      selectedResource: resource,
+      lastSelectedResource: resource ?? s.selectedResource ?? s.lastSelectedResource,
+    })),
 }))
