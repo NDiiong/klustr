@@ -32,9 +32,17 @@ export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.Sta
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
+export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
+
+export function SendExecInput(arg1:string,arg2:string):Promise<void>;
+
+export function StartExec(arg1:string,arg2:string,arg3:string,arg4:string,arg5:Array<string>):Promise<string>;
+
 export function StartPodLogs(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean,arg6:number):Promise<string>;
 
 export function StartWatch(arg1:string):Promise<void>;
+
+export function StopExec(arg1:string):Promise<void>;
 
 export function StopPodLogs(arg1:string):Promise<void>;
 

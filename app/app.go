@@ -94,6 +94,46 @@ func (a *App) StopPodLogs(sessionID string) {
 	a.clients.StopLogs(sessionID)
 }
 
+func (a *App) StartExec(contextName, namespace, podName, container string, command []string) (string, error) {
+	var sessionID string
+	id, err := a.clients.StartExec(
+		a.ctx, contextName, namespace, podName, container, command,
+		func(data []byte) {
+			if sessionID == "" {
+				return
+			}
+			runtime.EventsEmit(a.ctx, "exec:out:"+sessionID, string(data))
+		},
+		func(err error) {
+			if sessionID == "" {
+				return
+			}
+			msg := ""
+			if err != nil {
+				msg = err.Error()
+			}
+			runtime.EventsEmit(a.ctx, "exec:close:"+sessionID, msg)
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	sessionID = id
+	return id, nil
+}
+
+func (a *App) SendExecInput(sessionID, data string) {
+	a.clients.SendExecInput(sessionID, data)
+}
+
+func (a *App) ResizeExec(sessionID string, cols, rows int) {
+	a.clients.ResizeExec(sessionID, uint16(cols), uint16(rows))
+}
+
+func (a *App) StopExec(sessionID string) {
+	a.clients.StopExec(sessionID)
+}
+
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
 	return a.clients.Deployments(name, namespace)
 }

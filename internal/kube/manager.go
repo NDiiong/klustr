@@ -29,6 +29,7 @@ type ClientManager struct {
 	cache    map[string]*kubernetes.Clientset
 	watchers map[string]*contextWatcher
 	logs     *logSessionManager
+	execs    *execSessionManager
 	onChange func(ContextChange)
 }
 
@@ -38,6 +39,7 @@ func NewClientManager() *ClientManager {
 		cache:    make(map[string]*kubernetes.Clientset),
 		watchers: make(map[string]*contextWatcher),
 		logs:     newLogSessionManager(),
+		execs:    newExecSessionManager(),
 	}
 }
 
@@ -198,6 +200,36 @@ func (m *ClientManager) StartLogs(
 
 func (m *ClientManager) StopLogs(id string) {
 	m.logs.stop(id)
+}
+
+func (m *ClientManager) StartExec(
+	parent context.Context,
+	contextName, namespace, podName, container string,
+	command []string,
+	onData ExecDataFunc,
+	onClose ExecCloseFunc,
+) (string, error) {
+	cs, err := m.Clientset(contextName)
+	if err != nil {
+		return "", err
+	}
+	cfg, err := m.restConfig(contextName)
+	if err != nil {
+		return "", err
+	}
+	return m.execs.start(parent, cfg, cs, namespace, podName, container, command, onData, onClose)
+}
+
+func (m *ClientManager) SendExecInput(sessionID, data string) {
+	m.execs.sendInput(sessionID, data)
+}
+
+func (m *ClientManager) ResizeExec(sessionID string, cols, rows uint16) {
+	m.execs.resize(sessionID, cols, rows)
+}
+
+func (m *ClientManager) StopExec(sessionID string) {
+	m.execs.stop(sessionID)
 }
 
 func (m *ClientManager) Deployments(contextName, namespace string) []DeploymentInfo {

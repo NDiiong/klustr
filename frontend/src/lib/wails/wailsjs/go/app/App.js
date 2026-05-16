@@ -62,12 +62,28 @@ export function PingContext(arg1) {
   return window['go']['app']['App']['PingContext'](arg1);
 }
 
+export function ResizeExec(arg1, arg2, arg3) {
+  return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
+}
+
+export function SendExecInput(arg1, arg2) {
+  return window['go']['app']['App']['SendExecInput'](arg1, arg2);
+}
+
+export function StartExec(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['StartExec'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function StartPodLogs(arg1, arg2, arg3, arg4, arg5, arg6) {
   return window['go']['app']['App']['StartPodLogs'](arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
 export function StartWatch(arg1) {
   return window['go']['app']['App']['StartWatch'](arg1);
+}
+
+export function StopExec(arg1) {
+  return window['go']['app']['App']['StopExec'](arg1);
 }
 
 export function StopPodLogs(arg1) {
