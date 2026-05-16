@@ -887,6 +887,90 @@ export namespace kube {
 	        this.name = source["name"];
 	    }
 	}
+	export class PersistentVolumeClaimDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    status: string;
+	    volume: string;
+	    storageClass: string;
+	    volumeMode: string;
+	    accessModes: string[];
+	    capacity: string;
+	    request: string;
+	    selector: Record<string, string>;
+	    conditions: ConditionDetail[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PersistentVolumeClaimDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.status = source["status"];
+	        this.volume = source["volume"];
+	        this.storageClass = source["storageClass"];
+	        this.volumeMode = source["volumeMode"];
+	        this.accessModes = source["accessModes"];
+	        this.capacity = source["capacity"];
+	        this.request = source["request"];
+	        this.selector = source["selector"];
+	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PersistentVolumeClaimInfo {
+	    name: string;
+	    namespace: string;
+	    status: string;
+	    volume: string;
+	    capacity: string;
+	    accessModes: string;
+	    storageClass: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PersistentVolumeClaimInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.status = source["status"];
+	        this.volume = source["volume"];
+	        this.capacity = source["capacity"];
+	        this.accessModes = source["accessModes"];
+	        this.storageClass = source["storageClass"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class PodDetail {
 	    name: string;
 	    namespace: string;

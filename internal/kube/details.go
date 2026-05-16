@@ -53,6 +53,24 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type PersistentVolumeClaimDetail struct {
+	Name         string            `json:"name"`
+	Namespace    string            `json:"namespace"`
+	UID          string            `json:"uid"`
+	Status       string            `json:"status"`
+	Volume       string            `json:"volume"`
+	StorageClass string            `json:"storageClass"`
+	VolumeMode   string            `json:"volumeMode"`
+	AccessModes  []string          `json:"accessModes"`
+	Capacity     string            `json:"capacity"`
+	Request      string            `json:"request"`
+	Selector     map[string]string `json:"selector"`
+	Conditions   []ConditionDetail `json:"conditions"`
+	Labels       map[string]string `json:"labels"`
+	Annotations  map[string]string `json:"annotations"`
+	CreatedAt    string            `json:"createdAt"`
+}
+
 type ReplicaSetDetail struct {
 	Name        string             `json:"name"`
 	Namespace   string             `json:"namespace"`
@@ -301,6 +319,59 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) PersistentVolumeClaim(namespace, name string) (*PersistentVolumeClaimDetail, error) {
+	p, err := w.factory.Core().V1().PersistentVolumeClaims().Lister().PersistentVolumeClaims(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	modes := make([]string, 0, len(p.Spec.AccessModes))
+	for _, m := range p.Spec.AccessModes {
+		modes = append(modes, string(m))
+	}
+	cap := ""
+	if q, ok := p.Status.Capacity[corev1.ResourceStorage]; ok {
+		cap = q.String()
+	}
+	req := ""
+	if q, ok := p.Spec.Resources.Requests[corev1.ResourceStorage]; ok {
+		req = q.String()
+	}
+	sc := ""
+	if p.Spec.StorageClassName != nil {
+		sc = *p.Spec.StorageClassName
+	}
+	vm := ""
+	if p.Spec.VolumeMode != nil {
+		vm = string(*p.Spec.VolumeMode)
+	}
+	conds := make([]ConditionDetail, 0, len(p.Status.Conditions))
+	for _, c := range p.Status.Conditions {
+		conds = append(conds, ConditionDetail{
+			Type:    string(c.Type),
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+	return &PersistentVolumeClaimDetail{
+		Name:         p.Name,
+		Namespace:    p.Namespace,
+		UID:          string(p.UID),
+		Status:       string(p.Status.Phase),
+		Volume:       p.Spec.VolumeName,
+		StorageClass: sc,
+		VolumeMode:   vm,
+		AccessModes:  modes,
+		Capacity:     cap,
+		Request:      req,
+		Selector:     matchLabels(p.Spec.Selector),
+		Conditions:   conds,
+		Labels:       p.Labels,
+		Annotations:  p.Annotations,
+		CreatedAt:    p.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

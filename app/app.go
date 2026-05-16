@@ -77,6 +77,10 @@ func (a *App) GetReplicaSet(contextName, namespace, name string) (*kube.ReplicaS
 	return a.clients.ReplicaSet(contextName, namespace, name)
 }
 
+func (a *App) GetPersistentVolumeClaim(contextName, namespace, name string) (*kube.PersistentVolumeClaimDetail, error) {
+	return a.clients.PersistentVolumeClaim(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -241,6 +245,10 @@ func (a *App) ListStatefulSets(name, namespace string) []kube.StatefulSetInfo {
 
 func (a *App) ListReplicaSets(name, namespace string) []kube.ReplicaSetInfo {
 	return a.clients.ReplicaSets(name, namespace)
+}
+
+func (a *App) ListPersistentVolumeClaims(name, namespace string) []kube.PersistentVolumeClaimInfo {
+	return a.clients.PersistentVolumeClaims(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {
