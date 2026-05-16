@@ -19,6 +19,7 @@ import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { StatusBar } from '@/features/_shared/StatusBar'
+import { PodSearchPalette } from '@/features/pods/PodSearchPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -237,6 +238,7 @@ function App() {
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
       <CommandPalette />
+      <PodSearchPalette />
       <Toaster position="bottom-right" />
     </div>
     </TooltipProvider>
