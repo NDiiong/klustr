@@ -53,6 +53,34 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type EndpointsSubsetAddress struct {
+	IP       string `json:"ip"`
+	Hostname string `json:"hostname"`
+	NodeName string `json:"nodeName"`
+	Ready    bool   `json:"ready"`
+}
+
+type EndpointsSubsetPort struct {
+	Name     string `json:"name"`
+	Port     int32  `json:"port"`
+	Protocol string `json:"protocol"`
+}
+
+type EndpointsSubset struct {
+	Addresses []EndpointsSubsetAddress `json:"addresses"`
+	Ports     []EndpointsSubsetPort    `json:"ports"`
+}
+
+type EndpointsDetail struct {
+	Name        string            `json:"name"`
+	Namespace   string            `json:"namespace"`
+	UID         string            `json:"uid"`
+	Subsets     []EndpointsSubset `json:"subsets"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 type WebhookSummary struct {
 	Name        string   `json:"name"`
 	ClientCfg   string   `json:"clientCfg"`
@@ -526,6 +554,45 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) Endpoints(namespace, name string) (*EndpointsDetail, error) {
+	e, err := w.factory.Core().V1().Endpoints().Lister().Endpoints(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	subs := make([]EndpointsSubset, 0, len(e.Subsets))
+	for _, s := range e.Subsets {
+		addrs := make([]EndpointsSubsetAddress, 0, len(s.Addresses)+len(s.NotReadyAddresses))
+		for _, a := range s.Addresses {
+			node := ""
+			if a.NodeName != nil {
+				node = *a.NodeName
+			}
+			addrs = append(addrs, EndpointsSubsetAddress{IP: a.IP, Hostname: a.Hostname, NodeName: node, Ready: true})
+		}
+		for _, a := range s.NotReadyAddresses {
+			node := ""
+			if a.NodeName != nil {
+				node = *a.NodeName
+			}
+			addrs = append(addrs, EndpointsSubsetAddress{IP: a.IP, Hostname: a.Hostname, NodeName: node, Ready: false})
+		}
+		ports := make([]EndpointsSubsetPort, 0, len(s.Ports))
+		for _, p := range s.Ports {
+			ports = append(ports, EndpointsSubsetPort{Name: p.Name, Port: p.Port, Protocol: string(p.Protocol)})
+		}
+		subs = append(subs, EndpointsSubset{Addresses: addrs, Ports: ports})
+	}
+	return &EndpointsDetail{
+		Name:        e.Name,
+		Namespace:   e.Namespace,
+		UID:         string(e.UID),
+		Subsets:     subs,
+		Labels:      e.Labels,
+		Annotations: e.Annotations,
+		CreatedAt:   e.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

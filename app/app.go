@@ -137,6 +137,10 @@ func (a *App) GetValidatingWebhookConfiguration(contextName, name string) (*kube
 	return a.clients.ValidatingWebhookConfiguration(contextName, name)
 }
 
+func (a *App) GetEndpoints(contextName, namespace, name string) (*kube.EndpointsDetail, error) {
+	return a.clients.Endpoints(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -361,6 +365,10 @@ func (a *App) ListMutatingWebhookConfigurations(name string) []kube.WebhookConfi
 
 func (a *App) ListValidatingWebhookConfigurations(name string) []kube.WebhookConfigurationInfo {
 	return a.clients.ValidatingWebhookConfigurations(name)
+}
+
+func (a *App) ListEndpoints(name, namespace string) []kube.EndpointsInfo {
+	return a.clients.EndpointsList(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

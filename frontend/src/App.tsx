@@ -27,6 +27,7 @@ import { RuntimeClassesView } from '@/features/runtimeclasses/RuntimeClassesView
 import { LeasesView } from '@/features/leases/LeasesView'
 import { MutatingWebhookConfigurationsView } from '@/features/webhooks/MutatingWebhookConfigurationsView'
 import { ValidatingWebhookConfigurationsView } from '@/features/webhooks/ValidatingWebhookConfigurationsView'
+import { EndpointsView } from '@/features/endpoints/EndpointsView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -78,6 +79,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Ingresses', view: 'ingresses' },
       { label: 'NetworkPolicies', view: 'networkpolicies' },
       { label: 'EndpointSlices', view: 'endpointslices' },
+      { label: 'Endpoints', view: 'endpoints' },
       { label: 'IngressClasses', view: 'ingressclasses' },
     ],
   },
@@ -162,6 +164,8 @@ function MainView() {
       return <MutatingWebhookConfigurationsView />
     case 'validatingwebhookconfigurations':
       return <ValidatingWebhookConfigurationsView />
+    case 'endpoints':
+      return <EndpointsView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

@@ -531,6 +531,135 @@ export namespace kube {
 	    }
 	}
 	
+	export class EndpointsSubsetPort {
+	    name: string;
+	    port: number;
+	    protocol: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointsSubsetPort(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.port = source["port"];
+	        this.protocol = source["protocol"];
+	    }
+	}
+	export class EndpointsSubsetAddress {
+	    ip: string;
+	    hostname: string;
+	    nodeName: string;
+	    ready: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointsSubsetAddress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ip = source["ip"];
+	        this.hostname = source["hostname"];
+	        this.nodeName = source["nodeName"];
+	        this.ready = source["ready"];
+	    }
+	}
+	export class EndpointsSubset {
+	    addresses: EndpointsSubsetAddress[];
+	    ports: EndpointsSubsetPort[];
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointsSubset(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.addresses = this.convertValues(source["addresses"], EndpointsSubsetAddress);
+	        this.ports = this.convertValues(source["ports"], EndpointsSubsetPort);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EndpointsDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    subsets: EndpointsSubset[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointsDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.subsets = this.convertValues(source["subsets"], EndpointsSubset);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EndpointsInfo {
+	    name: string;
+	    namespace: string;
+	    endpoints: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EndpointsInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.endpoints = source["endpoints"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
+	
+	
 	export class EventInfo {
 	    namespace: string;
 	    name: string;

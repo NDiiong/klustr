@@ -42,6 +42,7 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"Lease":                 {Group: "coordination.k8s.io", Version: "v1", Resource: "leases"},
 	"MutatingWebhookConfiguration":   {Group: "admissionregistration.k8s.io", Version: "v1", Resource: "mutatingwebhookconfigurations"},
 	"ValidatingWebhookConfiguration": {Group: "admissionregistration.k8s.io", Version: "v1", Resource: "validatingwebhookconfigurations"},
+	"Endpoints":              {Group: "", Version: "v1", Resource: "endpoints"},
 }
 
 func resourceForKind(kind string) (schema.GroupVersionResource, error) {

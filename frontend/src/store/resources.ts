@@ -18,6 +18,7 @@ import type {
   RuntimeClassInfo,
   LeaseInfo,
   WebhookConfigurationInfo,
+  EndpointsInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -54,6 +55,7 @@ type ResourcesState = {
   leases: LeaseInfo[]
   mutatingWebhookConfigurations: WebhookConfigurationInfo[]
   validatingWebhookConfigurations: WebhookConfigurationInfo[]
+  endpoints: EndpointsInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -82,6 +84,7 @@ type ResourcesState = {
   setLeases: (list: LeaseInfo[]) => void
   setMutatingWebhookConfigurations: (list: WebhookConfigurationInfo[]) => void
   setValidatingWebhookConfigurations: (list: WebhookConfigurationInfo[]) => void
+  setEndpoints: (list: EndpointsInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -115,6 +118,7 @@ function emptyLists() {
     leases: [] as LeaseInfo[],
     mutatingWebhookConfigurations: [] as WebhookConfigurationInfo[],
     validatingWebhookConfigurations: [] as WebhookConfigurationInfo[],
+    endpoints: [] as EndpointsInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -148,6 +152,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setLeases: (list) => set({ leases: list }),
   setMutatingWebhookConfigurations: (list) => set({ mutatingWebhookConfigurations: list }),
   setValidatingWebhookConfigurations: (list) => set({ validatingWebhookConfigurations: list }),
+  setEndpoints: (list) => set({ endpoints: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

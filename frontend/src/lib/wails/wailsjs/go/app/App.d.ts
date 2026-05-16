@@ -16,6 +16,8 @@ export function GetDeployment(arg1:string,arg2:string,arg3:string):Promise<kube.
 
 export function GetEndpointSlice(arg1:string,arg2:string,arg3:string):Promise<kube.EndpointSliceDetail>;
 
+export function GetEndpoints(arg1:string,arg2:string,arg3:string):Promise<kube.EndpointsDetail>;
+
 export function GetHorizontalPodAutoscaler(arg1:string,arg2:string,arg3:string):Promise<kube.HorizontalPodAutoscalerDetail>;
 
 export function GetIngress(arg1:string,arg2:string,arg3:string):Promise<kube.IngressDetail>;
@@ -75,6 +77,8 @@ export function ListDaemonSets(arg1:string,arg2:string):Promise<Array<kube.Daemo
 export function ListDeployments(arg1:string,arg2:string):Promise<Array<kube.DeploymentInfo>>;
 
 export function ListEndpointSlices(arg1:string,arg2:string):Promise<Array<kube.EndpointSliceInfo>>;
+
+export function ListEndpoints(arg1:string,arg2:string):Promise<Array<kube.EndpointsInfo>>;
 
 export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<kube.EventInfo>>;
 

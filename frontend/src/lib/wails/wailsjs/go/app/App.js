@@ -30,6 +30,10 @@ export function GetEndpointSlice(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetEndpointSlice'](arg1, arg2, arg3);
 }
 
+export function GetEndpoints(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetEndpoints'](arg1, arg2, arg3);
+}
+
 export function GetHorizontalPodAutoscaler(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetHorizontalPodAutoscaler'](arg1, arg2, arg3);
 }
@@ -148,6 +152,10 @@ export function ListDeployments(arg1, arg2) {
 
 export function ListEndpointSlices(arg1, arg2) {
   return window['go']['app']['App']['ListEndpointSlices'](arg1, arg2);
+}
+
+export function ListEndpoints(arg1, arg2) {
+  return window['go']['app']['App']['ListEndpoints'](arg1, arg2);
 }
 
 export function ListEvents(arg1, arg2, arg3, arg4) {

@@ -103,6 +103,13 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type EndpointsInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Endpoints string `json:"endpoints"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type WebhookConfigurationInfo struct {
 	Name      string `json:"name"`
 	Webhooks  int    `json:"webhooks"`
@@ -456,6 +463,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	endpoints := w.factory.Core().V1().Endpoints().Informer()
+	if _, err := endpoints.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Endpoints") },
+		UpdateFunc: func(any, any) { w.touch("Endpoints") },
+		DeleteFunc: func(any) { w.touch("Endpoints") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	vwh := w.factory.Admissionregistration().V1().ValidatingWebhookConfigurations().Informer()
 	if _, err := vwh.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("ValidatingWebhookConfiguration") },
@@ -647,6 +664,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
 			"PriorityClass", "RuntimeClass", "Lease",
 			"MutatingWebhookConfiguration", "ValidatingWebhookConfiguration",
+			"Endpoints",
 		} {
 			w.touch(kind)
 		}
@@ -1068,6 +1086,45 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) ListEndpoints(namespace string) []EndpointsInfo {
+	lister := w.factory.Core().V1().Endpoints().Lister()
+	var (
+		eps []*corev1.Endpoints
+		err error
+	)
+	if namespace == "" {
+		eps, err = lister.List(labels.Everything())
+	} else {
+		eps, err = lister.Endpoints(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []EndpointsInfo{}
+	}
+	out := make([]EndpointsInfo, 0, len(eps))
+	for _, e := range eps {
+		addrs := []string{}
+		for _, s := range e.Subsets {
+			for _, a := range s.Addresses {
+				for _, p := range s.Ports {
+					addrs = append(addrs, fmt.Sprintf("%s:%d", a.IP, p.Port))
+				}
+			}
+		}
+		joined := strings.Join(addrs, ", ")
+		if len(addrs) > 5 {
+			joined = strings.Join(addrs[:5], ", ") + fmt.Sprintf(" +%d more", len(addrs)-5)
+		}
+		out = append(out, EndpointsInfo{
+			Name:      e.Name,
+			Namespace: e.Namespace,
+			Endpoints: joined,
+			CreatedAt: e.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

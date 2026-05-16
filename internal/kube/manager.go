@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) Endpoints(contextName, namespace, name string) (*EndpointsDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Endpoints(namespace, name)
+}
+
 func (m *ClientManager) ValidatingWebhookConfiguration(contextName, name string) (*WebhookConfigurationDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -521,6 +529,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) EndpointsList(contextName, namespace string) []EndpointsInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []EndpointsInfo{}
+	}
+	return w.ListEndpoints(namespace)
 }
 
 func (m *ClientManager) ValidatingWebhookConfigurations(contextName string) []WebhookConfigurationInfo {
