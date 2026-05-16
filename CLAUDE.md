@@ -33,8 +33,11 @@ klustr/
 │   └── kube/
 │       ├── config.go       kubeconfig parsing, context discovery
 │       ├── manager.go      ClientManager: clientset cache per context
-│       ├── resources.go    generic list/get/delete/update via dynamic client
-│       ├── informers.go    watch-based live resource cache
+│       ├── mutate.go       generic apply/delete/scale via dynamic client + kindToGVR map
+│       ├── informers.go    watch-based live resource cache + per-kind list types
+│       ├── details.go      per-kind detail structs and Get() builders
+│       ├── events.go       core/v1 Events list filtered by involvedObject
+│       ├── metrics.go      metrics.k8s.io pod CPU/memory usage
 │       ├── logs.go         streaming log sessions
 │       ├── exec.go         SPDY exec sessions
 │       └── portforward.go  port-forward registry & lifecycle
@@ -66,29 +69,42 @@ We never poll the Kubernetes API. Resource lists are kept live by `client-go` In
 K8s API ──watch──> Informer ──cache+events──> Wails event ──> Zustand store ──> React UI
 ```
 
-- **Cluster-scoped informers:** `Node`, `Namespace` (one per active context).
-- **Namespace-scoped informers:** `Pod`, `Deployment`, `Service`, `ConfigMap`, `Secret`, etc. Restarted when the user switches namespace.
+- **Cluster-scoped informers:** `Node`, `Namespace`, `PersistentVolume`, `StorageClass`, `IngressClass`, `PriorityClass`, `RuntimeClass`, `MutatingWebhookConfiguration`, `ValidatingWebhookConfiguration` (one per active context).
+- **Namespace-scoped informers:** `Pod`, `Deployment`, `ReplicaSet`, `ReplicationController`, `StatefulSet`, `DaemonSet`, `Job`, `CronJob`, `Service`, `Endpoints`, `EndpointSlice`, `Ingress`, `NetworkPolicy`, `ConfigMap`, `Secret`, `PersistentVolumeClaim`, `ResourceQuota`, `LimitRange`, `HorizontalPodAutoscaler`, `PodDisruptionBudget`, `Lease`. Restarted when the user switches namespace.
 - Informer lifecycle is owned by `ClientManager`; cancellation propagates via `context.Context`.
 - The backend debounces event bursts (~100ms window) before emitting to the frontend to avoid flooding React.
+- Pod metrics are not informers — `metrics.k8s.io` only supports List. The frontend polls every 15 s and hides the column if the API is unavailable.
 
 ### Frontend state — three layers, never mixed
 
 | Layer | Tool | Use |
 |---|---|---|
-| Real-time resource state | Zustand (`resources` store) | Live caches fed by Wails events |
+| Real-time resource state | Zustand (`resources` store, plus `metrics`, `portForwards`) | Live caches fed by Wails events |
 | Server actions | TanStack Query (mutations only) | Delete, apply, scale, start port-forward |
-| UI state | Zustand (`ui` store, separate) | Selected context/namespace, theme, open tabs, sidebar width |
+| UI state | Zustand (`ui` store, plus `tablePrefs` persisted) | Selected context/namespace, theme, table column order/size/visibility |
 
 Do not put Informer data into TanStack Query's cache, and do not put mutation state into Zustand. Crossing these layers causes subtle bugs around invalidation and re-renders.
 
 ### UI layout
 
 Three-panel layout:
-- **Header:** context switcher, namespace selector, search, settings.
-- **Sidebar:** resource type navigation.
-- **Main:** resource list (TanStack Table) → detail panel with `Overview / YAML / Logs / Exec` tabs.
+- **Header:** context switcher, namespace selector, port-forward indicator, theme toggle.
+- **Sidebar:** resource type navigation grouped Workloads / Config / Network / Storage / Cluster.
+- **Main:** resource list (`ResourceTable` generic over `<T>`) → detail Dialog with `Overview / Logs / Exec / Events / YAML` tabs.
 
-Browser-like tabs allow multiple resources to be open simultaneously.
+### Adding a new built-in resource
+
+Each kind is a thin, repeatable slice. To add one:
+1. **Backend types**: `XxxInfo` (list shape) in `internal/kube/informers.go`, `XxxDetail` (detail shape) in `internal/kube/details.go`.
+2. **Informer**: register an event handler in `(*contextWatcher).start` that calls `w.touch("Xxx")`, then add `"Xxx"` to the initial-touch kind list.
+3. **Listers**: `(*contextWatcher).Xxxs(namespace)` and `(*contextWatcher).Xxx(namespace, name)`.
+4. **Manager**: forwarder methods on `*ClientManager`.
+5. **App bindings**: `ListXxxs` and `GetXxx` on `*App`.
+6. **GVR**: entry in `kindToGVR` so YAML edit/delete/scale work via the dynamic client.
+7. Run `wails generate module`.
+8. **Frontend**: types in `frontend/src/lib/api.ts`, slot in `frontend/src/store/resources.ts`, kind/view in `frontend/src/store/ui.ts`, `XxxView.tsx` + `XxxDetailBody.tsx` under `frontend/src/features/<plural>/`, dispatch case in `ResourceDetailPanel.tsx`, sidebar entry + `MainView` case in `App.tsx`.
+
+Always init Go slices through `append([]string{}, src...)` so nil never serializes as JSON `null` — the React detail bodies treat these as arrays unconditionally.
 
 ## Development Workflow
 
@@ -142,21 +158,25 @@ Docker is **not** required for local development. Docker is used only for reprod
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| 0. Setup | mise config + `wails init` + Tailwind/shadcn scaffolding + first window renders | **Current** |
-| 1. Contexts | kubeconfig discovery, context switcher UI, ClientManager backend | |
-| 2. Resource browser | Informer infrastructure + core resources (Pod, Deployment, Service, ConfigMap, Secret, Namespace) + YAML detail view | |
-| 3. Logs | xterm.js streaming log viewer | |
-| 4. Exec | xterm.js + SPDY exec sessions | |
-| 5. Mutations | Monaco YAML editor, delete, scale | |
-| 6. Port-forward | PF manager UI | |
-| 7. Polish & release | App icons, GitHub Actions build matrix, first release | |
+| 0. Setup | mise config + `wails init` + Tailwind/shadcn scaffolding + first window renders | done |
+| 1. Contexts | kubeconfig discovery, context switcher UI, ClientManager backend | done |
+| 2. Resource browser | Informer infrastructure + core resources + YAML detail view | done |
+| 3. Logs | xterm.js streaming log viewer (single pod + Stern-style aggregated workload logs with ANSI highlighting) | done |
+| 4. Exec | xterm.js + SPDY exec sessions | done |
+| 5. Mutations | Monaco YAML editor + diff dialog before apply, delete, scale | done |
+| 6. Port-forward | PF manager UI + status bar indicator | done |
+| 7. Polish | app icons, command palette, status bar, filter shortcut, log save/regex, code-split bundles, dark theme, copy buttons, restart-count badge, CPU/Mem usage bars, table column resize/reorder/visibility (persisted), drag-to-reorder columns, app-wide `user-select: none` on chrome | done |
+| 8. Resource breadth | Every built-in resource kind: Pods, Deployments, ReplicaSets, ReplicationControllers, StatefulSets, DaemonSets, Jobs, CronJobs, HPAs, PDBs, Services, Endpoints, EndpointSlices, Ingresses, IngressClasses, NetworkPolicies, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, Leases, Mutating/ValidatingWebhookConfigurations, PVCs, PVs, StorageClasses, Nodes, Namespaces, PriorityClasses, RuntimeClasses, Events (cluster-wide + per-resource) | done |
+| 9. Release | GitHub Actions build matrix, first release | todo |
 
 ## Things to Avoid
 
-- Polling the Kubernetes API instead of using Informers.
+- Polling the Kubernetes API instead of using Informers (metrics.k8s.io is the only exception — it has no watch).
 - Installing anything inside the cluster — Klustr is a pure client.
 - Importing Wails-specific packages into `internal/kube/...`.
-- Adding global stores beyond the three documented layers.
+- Returning nil slices from Go: the JSON encoder emits `null` and React `.length` access blows up. Use `append([]string{}, src...)`.
+- Passing a fresh object literal into TanStack `state.columnSizing` (or similar controlled props) every render — TanStack fires the change handler and the controlled store ping-pongs into an infinite loop.
+- Adding global stores beyond the documented layers (`resources`, `metrics`, `portForwards`, `ui`, `tablePrefs`).
 - Generating boilerplate docs (CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT) before they're needed.
 - Marketing-style copy or emoji in UI strings unless explicitly requested.
 - Editing auto-generated Wails bindings.
