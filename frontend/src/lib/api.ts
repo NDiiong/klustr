@@ -1,5 +1,6 @@
 import {
   ListContexts,
+  ListDeployments,
   ListNamespaces,
   ListPods,
   PingContext,
@@ -13,6 +14,7 @@ export type Kubeconfig = kube.Kubeconfig
 export type ServerVersion = kube.ServerVersion
 export type NamespaceInfo = kube.NamespaceInfo
 export type PodInfo = kube.PodInfo
+export type DeploymentInfo = kube.DeploymentInfo
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -21,4 +23,6 @@ export const api = {
   stopWatch: (name: string): Promise<void> => StopWatch(name),
   listNamespaces: (name: string): Promise<NamespaceInfo[]> => ListNamespaces(name),
   listPods: (name: string, namespace: string): Promise<PodInfo[]> => ListPods(name, namespace),
+  listDeployments: (name: string, namespace: string): Promise<DeploymentInfo[]> =>
+    ListDeployments(name, namespace),
 }

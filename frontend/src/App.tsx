@@ -5,6 +5,7 @@ import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
 import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
 import { PodsView } from '@/features/pods/PodsView'
+import { DeploymentsView } from '@/features/deployments/DeploymentsView'
 import { api } from '@/lib/api'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
@@ -16,7 +17,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     label: 'Workloads',
     items: [
       { label: 'Pods', view: 'pods' },
-      { label: 'Deployments' },
+      { label: 'Deployments', view: 'deployments' },
       { label: 'StatefulSets' },
       { label: 'DaemonSets' },
       { label: 'Jobs' },
@@ -50,6 +51,7 @@ function getInitialTheme(): Theme {
 function MainView() {
   const view = useUIStore((s) => s.selectedView)
   if (view === 'pods') return <PodsView />
+  if (view === 'deployments') return <DeploymentsView />
   return (
     <div className="flex flex-1 items-center justify-center">
       <ConnectionStatus />
