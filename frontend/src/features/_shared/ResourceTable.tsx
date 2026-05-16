@@ -317,7 +317,7 @@ export function ResourceTable<T>({
                     key={row.id}
                     className={[
                       'border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors',
-                      onRowClick ? 'cursor-pointer' : '',
+                      onRowClick ? 'cursor-pointer select-none' : '',
                       flashing ? 'bg-emerald-100/60 dark:bg-emerald-400/15' : '',
                     ].join(' ')}
                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
