@@ -1,8 +1,11 @@
 import {
+  ListConfigMaps,
   ListContexts,
   ListDeployments,
   ListNamespaces,
   ListPods,
+  ListSecrets,
+  ListServices,
   PingContext,
   StartWatch,
   StopWatch,
@@ -15,6 +18,9 @@ export type ServerVersion = kube.ServerVersion
 export type NamespaceInfo = kube.NamespaceInfo
 export type PodInfo = kube.PodInfo
 export type DeploymentInfo = kube.DeploymentInfo
+export type ServiceInfo = kube.ServiceInfo
+export type ConfigMapInfo = kube.ConfigMapInfo
+export type SecretInfo = kube.SecretInfo
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -25,4 +31,10 @@ export const api = {
   listPods: (name: string, namespace: string): Promise<PodInfo[]> => ListPods(name, namespace),
   listDeployments: (name: string, namespace: string): Promise<DeploymentInfo[]> =>
     ListDeployments(name, namespace),
+  listServices: (name: string, namespace: string): Promise<ServiceInfo[]> =>
+    ListServices(name, namespace),
+  listConfigMaps: (name: string, namespace: string): Promise<ConfigMapInfo[]> =>
+    ListConfigMaps(name, namespace),
+  listSecrets: (name: string, namespace: string): Promise<SecretInfo[]> =>
+    ListSecrets(name, namespace),
 }

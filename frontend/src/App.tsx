@@ -6,6 +6,7 @@ import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
 import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
 import { PodsView } from '@/features/pods/PodsView'
 import { DeploymentsView } from '@/features/deployments/DeploymentsView'
+import { ServicesView } from '@/features/services/ServicesView'
 import { api } from '@/lib/api'
 import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
@@ -30,7 +31,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
   },
   {
     label: 'Network',
-    items: [{ label: 'Services' }, { label: 'Ingresses' }],
+    items: [{ label: 'Services', view: 'services' }, { label: 'Ingresses' }],
   },
   {
     label: 'Cluster',
@@ -52,6 +53,7 @@ function MainView() {
   const view = useUIStore((s) => s.selectedView)
   if (view === 'pods') return <PodsView />
   if (view === 'deployments') return <DeploymentsView />
+  if (view === 'services') return <ServicesView />
   return (
     <div className="flex flex-1 items-center justify-center">
       <ConnectionStatus />

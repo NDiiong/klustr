@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 
-export type ResourceView = 'overview' | 'pods' | 'deployments'
+export type ResourceView =
+  | 'overview'
+  | 'pods'
+  | 'deployments'
+  | 'services'
+  | 'configmaps'
+  | 'secrets'
 
 type UIState = {
   selectedContext: string | null
