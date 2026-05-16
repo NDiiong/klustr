@@ -71,7 +71,7 @@ export namespace kube {
 	export class PodInfo {
 	    name: string;
 	    namespace: string;
-	    phase: string;
+	    status: string;
 	    ready: string;
 	    restarts: number;
 	    node: string;
@@ -86,7 +86,7 @@ export namespace kube {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
 	        this.namespace = source["namespace"];
-	        this.phase = source["phase"];
+	        this.status = source["status"];
 	        this.ready = source["ready"];
 	        this.restarts = source["restarts"];
 	        this.node = source["node"];

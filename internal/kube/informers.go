@@ -25,7 +25,7 @@ type NamespaceInfo struct {
 type PodInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
-	Phase     string `json:"phase"`
+	Status    string `json:"status"`
 	Ready     string `json:"ready"`
 	Restarts  int32  `json:"restarts"`
 	Node      string `json:"node"`
@@ -171,7 +171,7 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 		out = append(out, PodInfo{
 			Name:      p.Name,
 			Namespace: p.Namespace,
-			Phase:     string(p.Status.Phase),
+			Status:    derivePodStatus(p),
 			Ready:     fmt.Sprintf("%d/%d", ready, total),
 			Restarts:  restarts,
 			Node:      p.Spec.NodeName,
@@ -186,4 +186,54 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 		return out[i].Name < out[j].Name
 	})
 	return out
+}
+
+// derivePodStatus mirrors kubectl's STATUS column logic: it walks init
+// then regular container states to surface CrashLoopBackOff,
+// ImagePullBackOff, ContainerCreating, Completed, OOMKilled, Init:Reason
+// etc. instead of the coarse Pod.Status.Phase.
+func derivePodStatus(p *corev1.Pod) string {
+	if p.DeletionTimestamp != nil {
+		return "Terminating"
+	}
+
+	for i, init := range p.Status.InitContainerStatuses {
+		switch {
+		case init.State.Terminated != nil && init.State.Terminated.ExitCode == 0:
+			continue
+		case init.State.Terminated != nil:
+			if init.State.Terminated.Reason != "" {
+				return "Init:" + init.State.Terminated.Reason
+			}
+			if init.State.Terminated.Signal != 0 {
+				return fmt.Sprintf("Init:Signal:%d", init.State.Terminated.Signal)
+			}
+			return fmt.Sprintf("Init:ExitCode:%d", init.State.Terminated.ExitCode)
+		case init.State.Waiting != nil && init.State.Waiting.Reason != "" && init.State.Waiting.Reason != "PodInitializing":
+			return "Init:" + init.State.Waiting.Reason
+		default:
+			return fmt.Sprintf("Init:%d/%d", i, len(p.Spec.InitContainers))
+		}
+	}
+
+	for i := len(p.Status.ContainerStatuses) - 1; i >= 0; i-- {
+		c := p.Status.ContainerStatuses[i]
+		if c.State.Waiting != nil && c.State.Waiting.Reason != "" {
+			return c.State.Waiting.Reason
+		}
+		if c.State.Terminated != nil {
+			if c.State.Terminated.Reason != "" {
+				return c.State.Terminated.Reason
+			}
+			if c.State.Terminated.Signal != 0 {
+				return fmt.Sprintf("Signal:%d", c.State.Terminated.Signal)
+			}
+			return fmt.Sprintf("ExitCode:%d", c.State.Terminated.ExitCode)
+		}
+	}
+
+	if p.Status.Reason != "" {
+		return p.Status.Reason
+	}
+	return string(p.Status.Phase)
 }
