@@ -47,3 +47,7 @@ func (a *App) StopWatch(name string) {
 func (a *App) ListNamespaces(name string) []kube.NamespaceInfo {
 	return a.clients.Namespaces(name)
 }
+
+func (a *App) ListPods(name, namespace string) []kube.PodInfo {
+	return a.clients.Pods(name, namespace)
+}

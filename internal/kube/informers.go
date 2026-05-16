@@ -2,10 +2,12 @@ package kube
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -17,6 +19,17 @@ const debounceWindow = 100 * time.Millisecond
 type NamespaceInfo struct {
 	Name      string `json:"name"`
 	Phase     string `json:"phase"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type PodInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Phase     string `json:"phase"`
+	Ready     string `json:"ready"`
+	Restarts  int32  `json:"restarts"`
+	Node      string `json:"node"`
+	PodIP     string `json:"podIP"`
 	CreatedAt string `json:"createdAt"`
 }
 
@@ -54,10 +67,21 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	pods := w.factory.Core().V1().Pods().Informer()
+	if _, err := pods.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("Pod") },
+		UpdateFunc: func(any, any) { w.touch("Pod") },
+		DeleteFunc: func(any) { w.touch("Pod") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	w.factory.Start(ctx.Done())
 	go func() {
 		w.factory.WaitForCacheSync(ctx.Done())
 		w.touch("Namespace")
+		w.touch("Pod")
 	}()
 	return nil
 }
@@ -117,5 +141,49 @@ func (w *contextWatcher) Namespaces() []NamespaceInfo {
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+func (w *contextWatcher) Pods(namespace string) []PodInfo {
+	lister := w.factory.Core().V1().Pods().Lister()
+	var (
+		pods []*corev1.Pod
+		err  error
+	)
+	if namespace == "" {
+		pods, err = lister.List(labels.Everything())
+	} else {
+		pods, err = lister.Pods(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []PodInfo{}
+	}
+	out := make([]PodInfo, 0, len(pods))
+	for _, p := range pods {
+		ready, total := 0, len(p.Spec.Containers)
+		var restarts int32
+		for _, cs := range p.Status.ContainerStatuses {
+			if cs.Ready {
+				ready++
+			}
+			restarts += cs.RestartCount
+		}
+		out = append(out, PodInfo{
+			Name:      p.Name,
+			Namespace: p.Namespace,
+			Phase:     string(p.Status.Phase),
+			Ready:     fmt.Sprintf("%d/%d", ready, total),
+			Restarts:  restarts,
+			Node:      p.Spec.NodeName,
+			PodIP:     p.Status.PodIP,
+			CreatedAt: p.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Namespace != out[j].Namespace {
+			return out[i].Namespace < out[j].Namespace
+		}
+		return out[i].Name < out[j].Name
+	})
 	return out
 }

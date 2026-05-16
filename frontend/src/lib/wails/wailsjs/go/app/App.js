@@ -10,6 +10,10 @@ export function ListNamespaces(arg1) {
   return window['go']['app']['App']['ListNamespaces'](arg1);
 }
 
+export function ListPods(arg1, arg2) {
+  return window['go']['app']['App']['ListPods'](arg1, arg2);
+}
+
 export function PingContext(arg1) {
   return window['go']['app']['App']['PingContext'](arg1);
 }

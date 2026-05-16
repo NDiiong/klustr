@@ -68,6 +68,32 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class PodInfo {
+	    name: string;
+	    namespace: string;
+	    phase: string;
+	    ready: string;
+	    restarts: number;
+	    node: string;
+	    podIP: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PodInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.phase = source["phase"];
+	        this.ready = source["ready"];
+	        this.restarts = source["restarts"];
+	        this.node = source["node"];
+	        this.podIP = source["podIP"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ServerVersion {
 	    gitVersion: string;
 	    platform: string;

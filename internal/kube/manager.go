@@ -158,6 +158,16 @@ func (m *ClientManager) Namespaces(contextName string) []NamespaceInfo {
 	return w.Namespaces()
 }
 
+func (m *ClientManager) Pods(contextName, namespace string) []PodInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []PodInfo{}
+	}
+	return w.Pods(namespace)
+}
+
 func (m *ClientManager) restConfig(contextName string) (*rest.Config, error) {
 	overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(m.rules, overrides).ClientConfig()

@@ -6,6 +6,8 @@ export function ListContexts():Promise<kube.Kubeconfig>;
 
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 
+export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
+
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
 export function StartWatch(arg1:string):Promise<void>;
