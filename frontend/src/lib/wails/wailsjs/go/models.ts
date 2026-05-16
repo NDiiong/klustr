@@ -1,5 +1,23 @@
 export namespace kube {
 	
+	export class ConditionDetail {
+	    type: string;
+	    status: string;
+	    reason: string;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ConditionDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.status = source["status"];
+	        this.reason = source["reason"];
+	        this.message = source["message"];
+	    }
+	}
 	export class ConfigMapInfo {
 	    name: string;
 	    namespace: string;
@@ -16,6 +34,32 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	        this.keys = source["keys"];
 	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class ContainerDetail {
+	    name: string;
+	    image: string;
+	    state: string;
+	    stateReason: string;
+	    ready: boolean;
+	    restartCount: number;
+	    startedAt: string;
+	    lastState: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ContainerDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.image = source["image"];
+	        this.state = source["state"];
+	        this.stateReason = source["stateReason"];
+	        this.ready = source["ready"];
+	        this.restartCount = source["restartCount"];
+	        this.startedAt = source["startedAt"];
+	        this.lastState = source["lastState"];
 	    }
 	}
 	export class ContextInfo {
@@ -233,6 +277,86 @@ export namespace kube {
 	        this.internalIP = source["internalIP"];
 	        this.createdAt = source["createdAt"];
 	    }
+	}
+	export class OwnerRef {
+	    kind: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new OwnerRef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	    }
+	}
+	export class PodDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    status: string;
+	    phase: string;
+	    node: string;
+	    podIP: string;
+	    hostIP: string;
+	    qosClass: string;
+	    serviceAccount: string;
+	    restartPolicy: string;
+	    priorityClassName: string;
+	    createdAt: string;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    owners: OwnerRef[];
+	    initContainers: ContainerDetail[];
+	    containers: ContainerDetail[];
+	    conditions: ConditionDetail[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PodDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.status = source["status"];
+	        this.phase = source["phase"];
+	        this.node = source["node"];
+	        this.podIP = source["podIP"];
+	        this.hostIP = source["hostIP"];
+	        this.qosClass = source["qosClass"];
+	        this.serviceAccount = source["serviceAccount"];
+	        this.restartPolicy = source["restartPolicy"];
+	        this.priorityClassName = source["priorityClassName"];
+	        this.createdAt = source["createdAt"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.owners = this.convertValues(source["owners"], OwnerRef);
+	        this.initContainers = this.convertValues(source["initContainers"], ContainerDetail);
+	        this.containers = this.convertValues(source["containers"], ContainerDetail);
+	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class PodInfo {
 	    name: string;

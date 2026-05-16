@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -166,6 +167,16 @@ func (m *ClientManager) Pods(contextName, namespace string) []PodInfo {
 		return []PodInfo{}
 	}
 	return w.Pods(namespace)
+}
+
+func (m *ClientManager) Pod(contextName, namespace, name string) (*PodDetail, error) {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.Pod(namespace, name)
 }
 
 func (m *ClientManager) Deployments(contextName, namespace string) []DeploymentInfo {

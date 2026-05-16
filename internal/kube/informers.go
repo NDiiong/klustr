@@ -37,6 +37,51 @@ type PodInfo struct {
 	CreatedAt string `json:"createdAt"`
 }
 
+type OwnerRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+}
+
+type ContainerDetail struct {
+	Name         string `json:"name"`
+	Image        string `json:"image"`
+	State        string `json:"state"`
+	StateReason  string `json:"stateReason"`
+	Ready        bool   `json:"ready"`
+	RestartCount int32  `json:"restartCount"`
+	StartedAt    string `json:"startedAt"`
+	LastState    string `json:"lastState"`
+}
+
+type ConditionDetail struct {
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Reason  string `json:"reason"`
+	Message string `json:"message"`
+}
+
+type PodDetail struct {
+	Name              string            `json:"name"`
+	Namespace         string            `json:"namespace"`
+	UID               string            `json:"uid"`
+	Status            string            `json:"status"`
+	Phase             string            `json:"phase"`
+	Node              string            `json:"node"`
+	PodIP             string            `json:"podIP"`
+	HostIP            string            `json:"hostIP"`
+	QOSClass          string            `json:"qosClass"`
+	ServiceAccount    string            `json:"serviceAccount"`
+	RestartPolicy     string            `json:"restartPolicy"`
+	PriorityClassName string            `json:"priorityClassName"`
+	CreatedAt         string            `json:"createdAt"`
+	Labels            map[string]string `json:"labels"`
+	Annotations       map[string]string `json:"annotations"`
+	Owners            []OwnerRef        `json:"owners"`
+	InitContainers    []ContainerDetail `json:"initContainers"`
+	Containers        []ContainerDetail `json:"containers"`
+	Conditions        []ConditionDetail `json:"conditions"`
+}
+
 type DeploymentInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -345,6 +390,92 @@ func (w *contextWatcher) Namespaces() []NamespaceInfo {
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
+	p, err := w.factory.Core().V1().Pods().Lister().Pods(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	owners := make([]OwnerRef, 0, len(p.OwnerReferences))
+	for _, o := range p.OwnerReferences {
+		owners = append(owners, OwnerRef{Kind: o.Kind, Name: o.Name})
+	}
+	return &PodDetail{
+		Name:              p.Name,
+		Namespace:         p.Namespace,
+		UID:               string(p.UID),
+		Status:            derivePodStatus(p),
+		Phase:             string(p.Status.Phase),
+		Node:              p.Spec.NodeName,
+		PodIP:             p.Status.PodIP,
+		HostIP:            p.Status.HostIP,
+		QOSClass:          string(p.Status.QOSClass),
+		ServiceAccount:    p.Spec.ServiceAccountName,
+		RestartPolicy:     string(p.Spec.RestartPolicy),
+		PriorityClassName: p.Spec.PriorityClassName,
+		CreatedAt:         p.CreationTimestamp.UTC().Format(time.RFC3339),
+		Labels:            p.Labels,
+		Annotations:       p.Annotations,
+		Owners:            owners,
+		InitContainers:    containerDetails(p.Spec.InitContainers, p.Status.InitContainerStatuses),
+		Containers:        containerDetails(p.Spec.Containers, p.Status.ContainerStatuses),
+		Conditions:        podConditions(p.Status.Conditions),
+	}, nil
+}
+
+func containerDetails(specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
+	byName := make(map[string]corev1.ContainerStatus, len(statuses))
+	for _, s := range statuses {
+		byName[s.Name] = s
+	}
+	out := make([]ContainerDetail, 0, len(specs))
+	for _, c := range specs {
+		d := ContainerDetail{Name: c.Name, Image: c.Image}
+		if s, ok := byName[c.Name]; ok {
+			d.Ready = s.Ready
+			d.RestartCount = s.RestartCount
+			switch {
+			case s.State.Running != nil:
+				d.State = "Running"
+				d.StartedAt = s.State.Running.StartedAt.UTC().Format(time.RFC3339)
+			case s.State.Waiting != nil:
+				d.State = "Waiting"
+				d.StateReason = s.State.Waiting.Reason
+			case s.State.Terminated != nil:
+				d.State = "Terminated"
+				d.StateReason = s.State.Terminated.Reason
+				if s.State.Terminated.Reason == "" {
+					d.StateReason = fmt.Sprintf("ExitCode:%d", s.State.Terminated.ExitCode)
+				}
+				if !s.State.Terminated.FinishedAt.IsZero() {
+					d.StartedAt = s.State.Terminated.StartedAt.UTC().Format(time.RFC3339)
+				}
+			}
+			if s.LastTerminationState.Terminated != nil {
+				reason := s.LastTerminationState.Terminated.Reason
+				if reason == "" {
+					reason = fmt.Sprintf("ExitCode:%d", s.LastTerminationState.Terminated.ExitCode)
+				}
+				d.LastState = reason
+			}
+		}
+		out = append(out, d)
+	}
+	return out
+}
+
+func podConditions(conds []corev1.PodCondition) []ConditionDetail {
+	out := make([]ConditionDetail, 0, len(conds))
+	for _, c := range conds {
+		out = append(out, ConditionDetail{
+			Type:    string(c.Type),
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
 	return out
 }
 
