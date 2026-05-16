@@ -1543,6 +1543,64 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class StorageClassDetail {
+	    name: string;
+	    uid: string;
+	    provisioner: string;
+	    reclaimPolicy: string;
+	    volumeBindingMode: string;
+	    allowExpansion: boolean;
+	    isDefault: boolean;
+	    parameters: Record<string, string>;
+	    mountOptions: string[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StorageClassDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.provisioner = source["provisioner"];
+	        this.reclaimPolicy = source["reclaimPolicy"];
+	        this.volumeBindingMode = source["volumeBindingMode"];
+	        this.allowExpansion = source["allowExpansion"];
+	        this.isDefault = source["isDefault"];
+	        this.parameters = source["parameters"];
+	        this.mountOptions = source["mountOptions"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class StorageClassInfo {
+	    name: string;
+	    provisioner: string;
+	    reclaimPolicy: string;
+	    volumeBindingMode: string;
+	    allowExpansion: boolean;
+	    isDefault: boolean;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StorageClassInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.provisioner = source["provisioner"];
+	        this.reclaimPolicy = source["reclaimPolicy"];
+	        this.volumeBindingMode = source["volumeBindingMode"];
+	        this.allowExpansion = source["allowExpansion"];
+	        this.isDefault = source["isDefault"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 
 }
 

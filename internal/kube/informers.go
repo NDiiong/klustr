@@ -98,6 +98,16 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type StorageClassInfo struct {
+	Name              string `json:"name"`
+	Provisioner       string `json:"provisioner"`
+	ReclaimPolicy     string `json:"reclaimPolicy"`
+	VolumeBindingMode string `json:"volumeBindingMode"`
+	AllowExpansion    bool   `json:"allowExpansion"`
+	IsDefault         bool   `json:"isDefault"`
+	CreatedAt         string `json:"createdAt"`
+}
+
 type PersistentVolumeInfo struct {
 	Name          string `json:"name"`
 	Capacity      string `json:"capacity"`
@@ -351,6 +361,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	storageClasses := w.factory.Storage().V1().StorageClasses().Informer()
+	if _, err := storageClasses.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("StorageClass") },
+		UpdateFunc: func(any, any) { w.touch("StorageClass") },
+		DeleteFunc: func(any) { w.touch("StorageClass") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	pvs := w.factory.Core().V1().PersistentVolumes().Informer()
 	if _, err := pvs.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("PersistentVolume") },
@@ -407,7 +427,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 		for _, kind := range []string{
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
-			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume",
+			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 		} {
 			w.touch(kind)
 		}
@@ -832,6 +852,40 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) StorageClasses() []StorageClassInfo {
+	scs, err := w.factory.Storage().V1().StorageClasses().Lister().List(labels.Everything())
+	if err != nil {
+		return []StorageClassInfo{}
+	}
+	out := make([]StorageClassInfo, 0, len(scs))
+	for _, s := range scs {
+		mode := ""
+		if s.VolumeBindingMode != nil {
+			mode = string(*s.VolumeBindingMode)
+		}
+		reclaim := ""
+		if s.ReclaimPolicy != nil {
+			reclaim = string(*s.ReclaimPolicy)
+		}
+		allow := false
+		if s.AllowVolumeExpansion != nil {
+			allow = *s.AllowVolumeExpansion
+		}
+		isDefault := s.Annotations["storageclass.kubernetes.io/is-default-class"] == "true"
+		out = append(out, StorageClassInfo{
+			Name:              s.Name,
+			Provisioner:       s.Provisioner,
+			ReclaimPolicy:     reclaim,
+			VolumeBindingMode: mode,
+			AllowExpansion:    allow,
+			IsDefault:         isDefault,
+			CreatedAt:         s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

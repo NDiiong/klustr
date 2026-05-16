@@ -74,6 +74,10 @@ export function GetStatefulSet(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetStatefulSet'](arg1, arg2, arg3);
 }
 
+export function GetStorageClass(arg1, arg2) {
+  return window['go']['app']['App']['GetStorageClass'](arg1, arg2);
+}
+
 export function ListConfigMaps(arg1, arg2) {
   return window['go']['app']['App']['ListConfigMaps'](arg1, arg2);
 }
@@ -148,6 +152,10 @@ export function ListServices(arg1, arg2) {
 
 export function ListStatefulSets(arg1, arg2) {
   return window['go']['app']['App']['ListStatefulSets'](arg1, arg2);
+}
+
+export function ListStorageClasses(arg1) {
+  return window['go']['app']['App']['ListStorageClasses'](arg1);
 }
 
 export function PingContext(arg1) {

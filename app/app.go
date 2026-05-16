@@ -85,6 +85,10 @@ func (a *App) GetPersistentVolume(contextName, name string) (*kube.PersistentVol
 	return a.clients.PersistentVolume(contextName, name)
 }
 
+func (a *App) GetStorageClass(contextName, name string) (*kube.StorageClassDetail, error) {
+	return a.clients.StorageClass(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -257,6 +261,10 @@ func (a *App) ListPersistentVolumeClaims(name, namespace string) []kube.Persiste
 
 func (a *App) ListPersistentVolumes(name string) []kube.PersistentVolumeInfo {
 	return a.clients.PersistentVolumes(name)
+}
+
+func (a *App) ListStorageClasses(name string) []kube.StorageClassInfo {
+	return a.clients.StorageClasses(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

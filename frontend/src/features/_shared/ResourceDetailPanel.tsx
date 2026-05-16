@@ -21,6 +21,7 @@ import { DaemonSetDetailBody } from '@/features/daemonsets/DaemonSetDetailBody'
 import { ReplicaSetDetailBody } from '@/features/replicasets/ReplicaSetDetailBody'
 import { PersistentVolumeClaimDetailBody } from '@/features/pvcs/PersistentVolumeClaimDetailBody'
 import { PersistentVolumeDetailBody } from '@/features/pvs/PersistentVolumeDetailBody'
+import { StorageClassDetailBody } from '@/features/storageclasses/StorageClassDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -225,6 +226,8 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return <PersistentVolumeClaimDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'PersistentVolume':
       return <PersistentVolumeDetailBody contextName={contextName} name={resource.name} />
+    case 'StorageClass':
+      return <StorageClassDetailBody contextName={contextName} name={resource.name} />
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

@@ -53,6 +53,21 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type StorageClassDetail struct {
+	Name              string            `json:"name"`
+	UID               string            `json:"uid"`
+	Provisioner       string            `json:"provisioner"`
+	ReclaimPolicy     string            `json:"reclaimPolicy"`
+	VolumeBindingMode string            `json:"volumeBindingMode"`
+	AllowExpansion    bool              `json:"allowExpansion"`
+	IsDefault         bool              `json:"isDefault"`
+	Parameters        map[string]string `json:"parameters"`
+	MountOptions      []string          `json:"mountOptions"`
+	Labels            map[string]string `json:"labels"`
+	Annotations       map[string]string `json:"annotations"`
+	CreatedAt         string            `json:"createdAt"`
+}
+
 type PersistentVolumeDetail struct {
 	Name          string            `json:"name"`
 	UID           string            `json:"uid"`
@@ -337,6 +352,39 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) StorageClass(name string) (*StorageClassDetail, error) {
+	s, err := w.factory.Storage().V1().StorageClasses().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	mode := ""
+	if s.VolumeBindingMode != nil {
+		mode = string(*s.VolumeBindingMode)
+	}
+	reclaim := ""
+	if s.ReclaimPolicy != nil {
+		reclaim = string(*s.ReclaimPolicy)
+	}
+	allow := false
+	if s.AllowVolumeExpansion != nil {
+		allow = *s.AllowVolumeExpansion
+	}
+	return &StorageClassDetail{
+		Name:              s.Name,
+		UID:               string(s.UID),
+		Provisioner:       s.Provisioner,
+		ReclaimPolicy:     reclaim,
+		VolumeBindingMode: mode,
+		AllowExpansion:    allow,
+		IsDefault:         s.Annotations["storageclass.kubernetes.io/is-default-class"] == "true",
+		Parameters:        s.Parameters,
+		MountOptions:      append([]string(nil), s.MountOptions...),
+		Labels:            s.Labels,
+		Annotations:       s.Annotations,
+		CreatedAt:         s.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

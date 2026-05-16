@@ -14,6 +14,7 @@ import {
   GetReplicaSet,
   GetPersistentVolumeClaim,
   GetPersistentVolume,
+  GetStorageClass,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -31,6 +32,7 @@ import {
   ListReplicaSets,
   ListPersistentVolumeClaims,
   ListPersistentVolumes,
+  ListStorageClasses,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -67,6 +69,7 @@ export type DaemonSetInfo = kube.DaemonSetInfo
 export type ReplicaSetInfo = kube.ReplicaSetInfo
 export type PersistentVolumeClaimInfo = kube.PersistentVolumeClaimInfo
 export type PersistentVolumeInfo = kube.PersistentVolumeInfo
+export type StorageClassInfo = kube.StorageClassInfo
 export type JobInfo = kube.JobInfo
 export type CronJobInfo = kube.CronJobInfo
 export type IngressInfo = kube.IngressInfo
@@ -83,6 +86,7 @@ export type DaemonSetDetail = kube.DaemonSetDetail
 export type ReplicaSetDetail = kube.ReplicaSetDetail
 export type PersistentVolumeClaimDetail = kube.PersistentVolumeClaimDetail
 export type PersistentVolumeDetail = kube.PersistentVolumeDetail
+export type StorageClassDetail = kube.StorageClassDetail
 export type JobDetail = kube.JobDetail
 export type CronJobDetail = kube.CronJobDetail
 export type ServiceDetail = kube.ServiceDetail
@@ -127,6 +131,7 @@ export const api = {
     ListPersistentVolumeClaims(name, namespace),
   listPersistentVolumes: (name: string): Promise<PersistentVolumeInfo[]> =>
     ListPersistentVolumes(name),
+  listStorageClasses: (name: string): Promise<StorageClassInfo[]> => ListStorageClasses(name),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -168,6 +173,8 @@ export const api = {
     GetPersistentVolumeClaim(ctx, ns, name),
   getPersistentVolume: (ctx: string, name: string): Promise<PersistentVolumeDetail> =>
     GetPersistentVolume(ctx, name),
+  getStorageClass: (ctx: string, name: string): Promise<StorageClassDetail> =>
+    GetStorageClass(ctx, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

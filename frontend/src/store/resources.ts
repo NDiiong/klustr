@@ -6,6 +6,7 @@ import type {
   ReplicaSetInfo,
   PersistentVolumeClaimInfo,
   PersistentVolumeInfo,
+  StorageClassInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -29,6 +30,7 @@ type ResourcesState = {
   replicaSets: ReplicaSetInfo[]
   persistentVolumeClaims: PersistentVolumeClaimInfo[]
   persistentVolumes: PersistentVolumeInfo[]
+  storageClasses: StorageClassInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -44,6 +46,7 @@ type ResourcesState = {
   setReplicaSets: (list: ReplicaSetInfo[]) => void
   setPersistentVolumeClaims: (list: PersistentVolumeClaimInfo[]) => void
   setPersistentVolumes: (list: PersistentVolumeInfo[]) => void
+  setStorageClasses: (list: StorageClassInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -64,6 +67,7 @@ function emptyLists() {
     replicaSets: [] as ReplicaSetInfo[],
     persistentVolumeClaims: [] as PersistentVolumeClaimInfo[],
     persistentVolumes: [] as PersistentVolumeInfo[],
+    storageClasses: [] as StorageClassInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -84,6 +88,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setReplicaSets: (list) => set({ replicaSets: list }),
   setPersistentVolumeClaims: (list) => set({ persistentVolumeClaims: list }),
   setPersistentVolumes: (list) => set({ persistentVolumes: list }),
+  setStorageClasses: (list) => set({ storageClasses: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

@@ -38,6 +38,8 @@ export function GetService(arg1:string,arg2:string,arg3:string):Promise<kube.Ser
 
 export function GetStatefulSet(arg1:string,arg2:string,arg3:string):Promise<kube.StatefulSetDetail>;
 
+export function GetStorageClass(arg1:string,arg2:string):Promise<kube.StorageClassDetail>;
+
 export function ListConfigMaps(arg1:string,arg2:string):Promise<Array<kube.ConfigMapInfo>>;
 
 export function ListContexts():Promise<kube.Kubeconfig>;
@@ -75,6 +77,8 @@ export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretIn
 export function ListServices(arg1:string,arg2:string):Promise<Array<kube.ServiceInfo>>;
 
 export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.StatefulSetInfo>>;
+
+export function ListStorageClasses(arg1:string):Promise<Array<kube.StorageClassInfo>>;
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
