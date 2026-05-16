@@ -9,6 +9,7 @@ import (
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
@@ -97,6 +98,17 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
+}
+
+type HorizontalPodAutoscalerInfo struct {
+	Name           string `json:"name"`
+	Namespace      string `json:"namespace"`
+	Reference      string `json:"reference"`
+	MinReplicas    int32  `json:"minReplicas"`
+	MaxReplicas    int32  `json:"maxReplicas"`
+	CurrentReplicas int32 `json:"currentReplicas"`
+	Targets        string `json:"targets"`
+	CreatedAt      string `json:"createdAt"`
 }
 
 type NetworkPolicyInfo struct {
@@ -370,6 +382,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	hpas := w.factory.Autoscaling().V2().HorizontalPodAutoscalers().Informer()
+	if _, err := hpas.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("HorizontalPodAutoscaler") },
+		UpdateFunc: func(any, any) { w.touch("HorizontalPodAutoscaler") },
+		DeleteFunc: func(any) { w.touch("HorizontalPodAutoscaler") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	netpols := w.factory.Networking().V1().NetworkPolicies().Informer()
 	if _, err := netpols.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("NetworkPolicy") },
@@ -447,7 +469,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"Namespace", "Pod", "Deployment", "Service", "ConfigMap", "Secret",
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
-			"NetworkPolicy",
+			"NetworkPolicy", "HorizontalPodAutoscaler",
 		} {
 			w.touch(kind)
 		}
@@ -873,6 +895,62 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
 	return out
+}
+
+func (w *contextWatcher) HorizontalPodAutoscalers(namespace string) []HorizontalPodAutoscalerInfo {
+	lister := w.factory.Autoscaling().V2().HorizontalPodAutoscalers().Lister()
+	var (
+		hpas []*autoscalingv2.HorizontalPodAutoscaler
+		err  error
+	)
+	if namespace == "" {
+		hpas, err = lister.List(labels.Everything())
+	} else {
+		hpas, err = lister.HorizontalPodAutoscalers(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []HorizontalPodAutoscalerInfo{}
+	}
+	out := make([]HorizontalPodAutoscalerInfo, 0, len(hpas))
+	for _, h := range hpas {
+		var min int32 = 1
+		if h.Spec.MinReplicas != nil {
+			min = *h.Spec.MinReplicas
+		}
+		ref := h.Spec.ScaleTargetRef.Kind + "/" + h.Spec.ScaleTargetRef.Name
+		out = append(out, HorizontalPodAutoscalerInfo{
+			Name:            h.Name,
+			Namespace:       h.Namespace,
+			Reference:       ref,
+			MinReplicas:     min,
+			MaxReplicas:     h.Spec.MaxReplicas,
+			CurrentReplicas: h.Status.CurrentReplicas,
+			Targets:         hpaTargets(h),
+			CreatedAt:       h.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func hpaTargets(h *autoscalingv2.HorizontalPodAutoscaler) string {
+	parts := []string{}
+	for _, m := range h.Status.CurrentMetrics {
+		switch m.Type {
+		case autoscalingv2.ResourceMetricSourceType:
+			if m.Resource != nil {
+				cur := "?"
+				if m.Resource.Current.AverageUtilization != nil {
+					cur = fmt.Sprintf("%d%%", *m.Resource.Current.AverageUtilization)
+				}
+				parts = append(parts, fmt.Sprintf("%s=%s", m.Resource.Name, cur))
+			}
+		}
+	}
+	if len(parts) == 0 {
+		return "<unknown>"
+	}
+	return strings.Join(parts, ", ")
 }
 
 func (w *contextWatcher) NetworkPolicies(namespace string) []NetworkPolicyInfo {

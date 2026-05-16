@@ -16,6 +16,7 @@ import { PersistentVolumeClaimsView } from '@/features/pvcs/PersistentVolumeClai
 import { PersistentVolumesView } from '@/features/pvs/PersistentVolumesView'
 import { StorageClassesView } from '@/features/storageclasses/StorageClassesView'
 import { NetworkPoliciesView } from '@/features/networkpolicies/NetworkPoliciesView'
+import { HorizontalPodAutoscalersView } from '@/features/hpas/HorizontalPodAutoscalersView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -54,6 +55,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: 'ConfigMaps', view: 'configmaps' },
       { label: 'Secrets', view: 'secrets' },
+      { label: 'HorizontalPodAutoscalers', view: 'horizontalpodautoscalers' },
     ],
   },
   {
@@ -118,6 +120,8 @@ function MainView() {
       return <StorageClassesView />
     case 'networkpolicies':
       return <NetworkPoliciesView />
+    case 'horizontalpodautoscalers':
+      return <HorizontalPodAutoscalersView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

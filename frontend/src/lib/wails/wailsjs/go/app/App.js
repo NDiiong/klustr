@@ -26,6 +26,10 @@ export function GetDeployment(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetDeployment'](arg1, arg2, arg3);
 }
 
+export function GetHorizontalPodAutoscaler(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetHorizontalPodAutoscaler'](arg1, arg2, arg3);
+}
+
 export function GetIngress(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetIngress'](arg1, arg2, arg3);
 }
@@ -104,6 +108,10 @@ export function ListDeployments(arg1, arg2) {
 
 export function ListEvents(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['ListEvents'](arg1, arg2, arg3, arg4);
+}
+
+export function ListHorizontalPodAutoscalers(arg1, arg2) {
+  return window['go']['app']['App']['ListHorizontalPodAutoscalers'](arg1, arg2);
 }
 
 export function ListIngresses(arg1, arg2) {

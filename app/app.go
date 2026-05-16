@@ -93,6 +93,10 @@ func (a *App) GetNetworkPolicy(contextName, namespace, name string) (*kube.Netwo
 	return a.clients.NetworkPolicy(contextName, namespace, name)
 }
 
+func (a *App) GetHorizontalPodAutoscaler(contextName, namespace, name string) (*kube.HorizontalPodAutoscalerDetail, error) {
+	return a.clients.HorizontalPodAutoscaler(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -273,6 +277,10 @@ func (a *App) ListStorageClasses(name string) []kube.StorageClassInfo {
 
 func (a *App) ListNetworkPolicies(name, namespace string) []kube.NetworkPolicyInfo {
 	return a.clients.NetworkPolicies(name, namespace)
+}
+
+func (a *App) ListHorizontalPodAutoscalers(name, namespace string) []kube.HorizontalPodAutoscalerInfo {
+	return a.clients.HorizontalPodAutoscalers(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

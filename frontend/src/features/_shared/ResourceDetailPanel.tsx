@@ -23,6 +23,7 @@ import { PersistentVolumeClaimDetailBody } from '@/features/pvcs/PersistentVolum
 import { PersistentVolumeDetailBody } from '@/features/pvs/PersistentVolumeDetailBody'
 import { StorageClassDetailBody } from '@/features/storageclasses/StorageClassDetailBody'
 import { NetworkPolicyDetailBody } from '@/features/networkpolicies/NetworkPolicyDetailBody'
+import { HorizontalPodAutoscalerDetailBody } from '@/features/hpas/HorizontalPodAutoscalerDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
 import { CronJobDetailBody } from '@/features/cronjobs/CronJobDetailBody'
 import { ServiceDetailBody } from '@/features/services/ServiceDetailBody'
@@ -231,6 +232,8 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return <StorageClassDetailBody contextName={contextName} name={resource.name} />
     case 'NetworkPolicy':
       return <NetworkPolicyDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
+    case 'HorizontalPodAutoscaler':
+      return <HorizontalPodAutoscalerDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

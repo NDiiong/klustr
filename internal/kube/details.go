@@ -53,6 +53,22 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type HorizontalPodAutoscalerDetail struct {
+	Name            string            `json:"name"`
+	Namespace       string            `json:"namespace"`
+	UID             string            `json:"uid"`
+	Reference       string            `json:"reference"`
+	MinReplicas     int32             `json:"minReplicas"`
+	MaxReplicas     int32             `json:"maxReplicas"`
+	CurrentReplicas int32             `json:"currentReplicas"`
+	DesiredReplicas int32             `json:"desiredReplicas"`
+	Metrics         []string          `json:"metrics"`
+	Conditions      []ConditionDetail `json:"conditions"`
+	Labels          map[string]string `json:"labels"`
+	Annotations     map[string]string `json:"annotations"`
+	CreatedAt       string            `json:"createdAt"`
+}
+
 type NetworkPolicyDetail struct {
 	Name        string            `json:"name"`
 	Namespace   string            `json:"namespace"`
@@ -365,6 +381,45 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) HorizontalPodAutoscaler(namespace, name string) (*HorizontalPodAutoscalerDetail, error) {
+	h, err := w.factory.Autoscaling().V2().HorizontalPodAutoscalers().Lister().HorizontalPodAutoscalers(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	var minR int32 = 1
+	if h.Spec.MinReplicas != nil {
+		minR = *h.Spec.MinReplicas
+	}
+	metrics := make([]string, 0, len(h.Spec.Metrics))
+	for _, m := range h.Spec.Metrics {
+		metrics = append(metrics, fmt.Sprintf("%v", m))
+	}
+	conds := make([]ConditionDetail, 0, len(h.Status.Conditions))
+	for _, c := range h.Status.Conditions {
+		conds = append(conds, ConditionDetail{
+			Type:    string(c.Type),
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+	return &HorizontalPodAutoscalerDetail{
+		Name:            h.Name,
+		Namespace:       h.Namespace,
+		UID:             string(h.UID),
+		Reference:       h.Spec.ScaleTargetRef.Kind + "/" + h.Spec.ScaleTargetRef.Name,
+		MinReplicas:     minR,
+		MaxReplicas:     h.Spec.MaxReplicas,
+		CurrentReplicas: h.Status.CurrentReplicas,
+		DesiredReplicas: h.Status.DesiredReplicas,
+		Metrics:         metrics,
+		Conditions:      conds,
+		Labels:          h.Labels,
+		Annotations:     h.Annotations,
+		CreatedAt:       h.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 
