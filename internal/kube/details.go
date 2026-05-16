@@ -53,6 +53,25 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type LimitRangeItem struct {
+	Type                 string            `json:"type"`
+	Max                  map[string]string `json:"max"`
+	Min                  map[string]string `json:"min"`
+	Default              map[string]string `json:"default"`
+	DefaultRequest       map[string]string `json:"defaultRequest"`
+	MaxLimitRequestRatio map[string]string `json:"maxLimitRequestRatio"`
+}
+
+type LimitRangeDetail struct {
+	Name        string            `json:"name"`
+	Namespace   string            `json:"namespace"`
+	UID         string            `json:"uid"`
+	Limits      []LimitRangeItem  `json:"limits"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 type ResourceQuotaEntry struct {
 	Resource string `json:"resource"`
 	Used     string `json:"used"`
@@ -441,6 +460,33 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) LimitRange(namespace, name string) (*LimitRangeDetail, error) {
+	l, err := w.factory.Core().V1().LimitRanges().Lister().LimitRanges(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]LimitRangeItem, 0, len(l.Spec.Limits))
+	for _, li := range l.Spec.Limits {
+		items = append(items, LimitRangeItem{
+			Type:                 string(li.Type),
+			Max:                  quantitiesToStrings(li.Max),
+			Min:                  quantitiesToStrings(li.Min),
+			Default:              quantitiesToStrings(li.Default),
+			DefaultRequest:       quantitiesToStrings(li.DefaultRequest),
+			MaxLimitRequestRatio: quantitiesToStrings(li.MaxLimitRequestRatio),
+		})
+	}
+	return &LimitRangeDetail{
+		Name:        l.Name,
+		Namespace:   l.Namespace,
+		UID:         string(l.UID),
+		Limits:      items,
+		Labels:      l.Labels,
+		Annotations: l.Annotations,
+		CreatedAt:   l.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

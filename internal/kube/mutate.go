@@ -35,6 +35,7 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"PodDisruptionBudget":   {Group: "policy", Version: "v1", Resource: "poddisruptionbudgets"},
 	"EndpointSlice":         {Group: "discovery.k8s.io", Version: "v1", Resource: "endpointslices"},
 	"ResourceQuota":         {Group: "", Version: "v1", Resource: "resourcequotas"},
+	"LimitRange":            {Group: "", Version: "v1", Resource: "limitranges"},
 }
 
 func resourceForKind(kind string) (schema.GroupVersionResource, error) {

@@ -102,6 +102,13 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type LimitRangeInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Limits    int    `json:"limits"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type ResourceQuotaInfo struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -414,6 +421,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	limitRanges := w.factory.Core().V1().LimitRanges().Informer()
+	if _, err := limitRanges.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("LimitRange") },
+		UpdateFunc: func(any, any) { w.touch("LimitRange") },
+		DeleteFunc: func(any) { w.touch("LimitRange") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	resourceQuotas := w.factory.Core().V1().ResourceQuotas().Informer()
 	if _, err := resourceQuotas.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("ResourceQuota") },
@@ -532,7 +549,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
-			"EndpointSlice", "ResourceQuota",
+			"EndpointSlice", "ResourceQuota", "LimitRange",
 		} {
 			w.touch(kind)
 		}
@@ -954,6 +971,33 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) LimitRanges(namespace string) []LimitRangeInfo {
+	lister := w.factory.Core().V1().LimitRanges().Lister()
+	var (
+		lrs []*corev1.LimitRange
+		err error
+	)
+	if namespace == "" {
+		lrs, err = lister.List(labels.Everything())
+	} else {
+		lrs, err = lister.LimitRanges(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []LimitRangeInfo{}
+	}
+	out := make([]LimitRangeInfo, 0, len(lrs))
+	for _, l := range lrs {
+		out = append(out, LimitRangeInfo{
+			Name:      l.Name,
+			Namespace: l.Namespace,
+			Limits:    len(l.Spec.Limits),
+			CreatedAt: l.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

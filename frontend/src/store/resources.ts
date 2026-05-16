@@ -12,6 +12,7 @@ import type {
   PodDisruptionBudgetInfo,
   EndpointSliceInfo,
   ResourceQuotaInfo,
+  LimitRangeInfo,
   DeploymentInfo,
   IngressInfo,
   JobInfo,
@@ -41,6 +42,7 @@ type ResourcesState = {
   podDisruptionBudgets: PodDisruptionBudgetInfo[]
   endpointSlices: EndpointSliceInfo[]
   resourceQuotas: ResourceQuotaInfo[]
+  limitRanges: LimitRangeInfo[]
   jobs: JobInfo[]
   cronJobs: CronJobInfo[]
   ingresses: IngressInfo[]
@@ -62,6 +64,7 @@ type ResourcesState = {
   setPodDisruptionBudgets: (list: PodDisruptionBudgetInfo[]) => void
   setEndpointSlices: (list: EndpointSliceInfo[]) => void
   setResourceQuotas: (list: ResourceQuotaInfo[]) => void
+  setLimitRanges: (list: LimitRangeInfo[]) => void
   setJobs: (list: JobInfo[]) => void
   setCronJobs: (list: CronJobInfo[]) => void
   setIngresses: (list: IngressInfo[]) => void
@@ -88,6 +91,7 @@ function emptyLists() {
     podDisruptionBudgets: [] as PodDisruptionBudgetInfo[],
     endpointSlices: [] as EndpointSliceInfo[],
     resourceQuotas: [] as ResourceQuotaInfo[],
+    limitRanges: [] as LimitRangeInfo[],
     jobs: [] as JobInfo[],
     cronJobs: [] as CronJobInfo[],
     ingresses: [] as IngressInfo[],
@@ -114,6 +118,7 @@ export const useResources = create<ResourcesState>((set) => ({
   setPodDisruptionBudgets: (list) => set({ podDisruptionBudgets: list }),
   setEndpointSlices: (list) => set({ endpointSlices: list }),
   setResourceQuotas: (list) => set({ resourceQuotas: list }),
+  setLimitRanges: (list) => set({ limitRanges: list }),
   setJobs: (list) => set({ jobs: list }),
   setCronJobs: (list) => set({ cronJobs: list }),
   setIngresses: (list) => set({ ingresses: list }),

@@ -20,6 +20,7 @@ import { HorizontalPodAutoscalersView } from '@/features/hpas/HorizontalPodAutos
 import { PodDisruptionBudgetsView } from '@/features/pdbs/PodDisruptionBudgetsView'
 import { EndpointSlicesView } from '@/features/endpointslices/EndpointSlicesView'
 import { ResourceQuotasView } from '@/features/resourcequotas/ResourceQuotasView'
+import { LimitRangesView } from '@/features/limitranges/LimitRangesView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -61,6 +62,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'HorizontalPodAutoscalers', view: 'horizontalpodautoscalers' },
       { label: 'PodDisruptionBudgets', view: 'poddisruptionbudgets' },
       { label: 'ResourceQuotas', view: 'resourcequotas' },
+      { label: 'LimitRanges', view: 'limitranges' },
     ],
   },
   {
@@ -134,6 +136,8 @@ function MainView() {
       return <EndpointSlicesView />
     case 'resourcequotas':
       return <ResourceQuotasView />
+    case 'limitranges':
+      return <LimitRangesView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

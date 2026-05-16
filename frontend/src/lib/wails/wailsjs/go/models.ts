@@ -918,6 +918,89 @@ export namespace kube {
 		    return a;
 		}
 	}
+	export class LimitRangeItem {
+	    type: string;
+	    max: Record<string, string>;
+	    min: Record<string, string>;
+	    default: Record<string, string>;
+	    defaultRequest: Record<string, string>;
+	    maxLimitRequestRatio: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new LimitRangeItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.max = source["max"];
+	        this.min = source["min"];
+	        this.default = source["default"];
+	        this.defaultRequest = source["defaultRequest"];
+	        this.maxLimitRequestRatio = source["maxLimitRequestRatio"];
+	    }
+	}
+	export class LimitRangeDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    limits: LimitRangeItem[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LimitRangeDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.limits = this.convertValues(source["limits"], LimitRangeItem);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class LimitRangeInfo {
+	    name: string;
+	    namespace: string;
+	    limits: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LimitRangeInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.limits = source["limits"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
 	export class NamespaceDetail {
 	    name: string;
 	    uid: string;

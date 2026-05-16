@@ -22,6 +22,8 @@ export function GetIngress(arg1:string,arg2:string,arg3:string):Promise<kube.Ing
 
 export function GetJob(arg1:string,arg2:string,arg3:string):Promise<kube.JobDetail>;
 
+export function GetLimitRange(arg1:string,arg2:string,arg3:string):Promise<kube.LimitRangeDetail>;
+
 export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDetail>;
 
 export function GetNetworkPolicy(arg1:string,arg2:string,arg3:string):Promise<kube.NetworkPolicyDetail>;
@@ -69,6 +71,8 @@ export function ListHorizontalPodAutoscalers(arg1:string,arg2:string):Promise<Ar
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
 
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
+
+export function ListLimitRanges(arg1:string,arg2:string):Promise<Array<kube.LimitRangeInfo>>;
 
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 

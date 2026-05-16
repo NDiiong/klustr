@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) LimitRange(contextName, namespace, name string) (*LimitRangeDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.LimitRange(namespace, name)
+}
+
 func (m *ClientManager) ResourceQuota(contextName, namespace, name string) (*ResourceQuotaDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -465,6 +473,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) LimitRanges(contextName, namespace string) []LimitRangeInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []LimitRangeInfo{}
+	}
+	return w.LimitRanges(namespace)
 }
 
 func (m *ClientManager) ResourceQuotas(contextName, namespace string) []ResourceQuotaInfo {

@@ -42,6 +42,10 @@ export function GetJob(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetJob'](arg1, arg2, arg3);
 }
 
+export function GetLimitRange(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetLimitRange'](arg1, arg2, arg3);
+}
+
 export function GetNamespace(arg1, arg2) {
   return window['go']['app']['App']['GetNamespace'](arg1, arg2);
 }
@@ -136,6 +140,10 @@ export function ListIngresses(arg1, arg2) {
 
 export function ListJobs(arg1, arg2) {
   return window['go']['app']['App']['ListJobs'](arg1, arg2);
+}
+
+export function ListLimitRanges(arg1, arg2) {
+  return window['go']['app']['App']['ListLimitRanges'](arg1, arg2);
 }
 
 export function ListNamespaces(arg1) {

@@ -109,6 +109,10 @@ func (a *App) GetResourceQuota(contextName, namespace, name string) (*kube.Resou
 	return a.clients.ResourceQuota(contextName, namespace, name)
 }
 
+func (a *App) GetLimitRange(contextName, namespace, name string) (*kube.LimitRangeDetail, error) {
+	return a.clients.LimitRange(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -305,6 +309,10 @@ func (a *App) ListEndpointSlices(name, namespace string) []kube.EndpointSliceInf
 
 func (a *App) ListResourceQuotas(name, namespace string) []kube.ResourceQuotaInfo {
 	return a.clients.ResourceQuotas(name, namespace)
+}
+
+func (a *App) ListLimitRanges(name, namespace string) []kube.LimitRangeInfo {
+	return a.clients.LimitRanges(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {
