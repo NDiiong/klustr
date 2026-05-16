@@ -10,4 +10,21 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1024,
+    rolldownOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('/node_modules/')) {
+            if (id.includes('monaco-editor') || id.includes('@monaco-editor')) return 'monaco'
+            if (id.includes('@xterm')) return 'xterm'
+            if (id.includes('radix-ui') || id.includes('@radix-ui')) return 'radix'
+            if (id.includes('@tanstack')) return 'tanstack'
+            if (id.includes('lucide-react')) return 'lucide'
+            if (id.includes('cmdk')) return 'cmdk'
+          }
+        },
+      },
+    },
+  },
 })
