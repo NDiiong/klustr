@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Boxes, CheckCircle2, Loader2, OctagonX, Sparkles } from 'lucide-react'
 import { api, type ServerVersion } from '@/lib/api'
 import { useUIStore } from '@/store/ui'
 
@@ -35,31 +36,69 @@ export function ConnectionStatus() {
   }, [selected])
 
   if (status.kind === 'idle') {
-    return (
-      <div className="text-sm text-muted-foreground">Select a kubeconfig context to get started.</div>
-    )
+    return <WelcomeCard />
   }
 
   if (status.kind === 'pinging') {
-    return <div className="text-sm text-muted-foreground">Connecting to {selected}…</div>
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" />
+        Connecting to {selected}…
+      </div>
+    )
   }
 
   if (status.kind === 'error') {
     return (
-      <div className="max-w-xl text-center">
-        <div className="text-sm font-medium text-destructive">Cannot reach {selected}</div>
+      <div className="max-w-xl rounded-lg border border-destructive/40 bg-destructive/5 p-5 text-center">
+        <div className="inline-flex items-center gap-2 text-sm font-medium text-destructive">
+          <OctagonX className="size-4" />
+          Cannot reach {selected}
+        </div>
         <div className="mt-2 break-words font-mono text-xs text-muted-foreground">{status.message}</div>
       </div>
     )
   }
 
   return (
-    <div className="text-center">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">Connected</div>
+    <div className="rounded-lg border border-border bg-card px-8 py-6 text-center">
+      <div className="inline-flex items-center gap-2 text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+        <CheckCircle2 className="size-4" />
+        Connected
+      </div>
       <div className="mt-1 text-base font-semibold">{selected}</div>
       <div className="mt-2 text-xs text-muted-foreground">
         Kubernetes {status.version.gitVersion} · {status.version.platform}
       </div>
     </div>
+  )
+}
+
+function WelcomeCard() {
+  return (
+    <div className="max-w-md rounded-xl border border-border bg-card px-8 py-6 text-center shadow-sm">
+      <div className="inline-flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+        <Sparkles className="size-4" />
+        Welcome
+      </div>
+      <div className="mt-2 text-base font-semibold">Pick a kubeconfig context to get started.</div>
+      <div className="mt-1 text-xs text-muted-foreground">
+        The picker is in the header above, or hit <Shortcut>⌘ K</Shortcut> any time.
+      </div>
+      <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <Boxes className="size-3.5" />
+        <span>
+          Tip: press <Shortcut>/</Shortcut> in any list to filter, click a row to open details.
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function Shortcut({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="mx-0.5 inline-flex items-center rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-foreground">
+      {children}
+    </kbd>
   )
 }
