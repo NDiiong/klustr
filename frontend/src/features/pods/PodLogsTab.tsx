@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
+import { Eraser, Pause, Play } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
 import { useThemeMode } from '@/features/_shared/useThemeMode'
@@ -25,9 +27,21 @@ export function PodLogsTab({ detail }: Props) {
   const [container, setContainer] = useState(defaultContainer)
   const [error, setError] = useState<string | null>(null)
   const [streaming, setStreaming] = useState(false)
+  const [paused, setPaused] = useState(false)
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
+  const pausedRef = useRef(false)
+  const bufferRef = useRef<string[]>([])
+
+  useEffect(() => {
+    pausedRef.current = paused
+    if (!paused && termRef.current && bufferRef.current.length > 0) {
+      const term = termRef.current
+      for (const line of bufferRef.current) term.writeln(line)
+      bufferRef.current = []
+    }
+  }, [paused])
 
   useEffect(() => {
     if (!termHostRef.current) return
@@ -94,6 +108,12 @@ export function PodLogsTab({ detail }: Props) {
         sessionId = id
         setStreaming(true)
         unsubLine = EventsOn(`pod:logs:line:${id}`, (line: string) => {
+          if (pausedRef.current) {
+            bufferRef.current.push(line)
+            // cap buffer at 5000 lines while paused
+            if (bufferRef.current.length > 5_000) bufferRef.current.shift()
+            return
+          }
           term.writeln(line)
         })
         unsubClose = EventsOn(`pod:logs:close:${id}`, (msg: string) => {
@@ -115,6 +135,7 @@ export function PodLogsTab({ detail }: Props) {
       cancelled = true
       unsubLine?.()
       unsubClose?.()
+      bufferRef.current = []
       if (sessionId) {
         api.stopPodLogs(sessionId).catch(() => {})
         EventsOff(`pod:logs:line:${sessionId}`, `pod:logs:close:${sessionId}`)
@@ -137,8 +158,29 @@ export function PodLogsTab({ detail }: Props) {
             </option>
           ))}
         </select>
-        <span className={['ml-auto', streaming ? 'text-emerald-500' : 'text-muted-foreground'].join(' ')}>
-          {streaming ? '● live' : '○ idle'}
+        <Button
+          type="button"
+          size="xs"
+          variant="outline"
+          onClick={() => setPaused((p) => !p)}
+        >
+          {paused ? <Play /> : <Pause />}
+          {paused ? `Resume${bufferRef.current.length > 0 ? ` (${bufferRef.current.length})` : ''}` : 'Pause'}
+        </Button>
+        <Button
+          type="button"
+          size="xs"
+          variant="outline"
+          onClick={() => {
+            termRef.current?.clear()
+            bufferRef.current = []
+          }}
+        >
+          <Eraser />
+          Clear
+        </Button>
+        <span className={['ml-auto', paused ? 'text-amber-500' : streaming ? 'text-emerald-500' : 'text-muted-foreground'].join(' ')}>
+          {paused ? '❙❙ paused' : streaming ? '● live' : '○ idle'}
         </span>
       </div>
       {error && (
