@@ -1,4 +1,6 @@
 import {
+  ApplyResourceYAML,
+  DeleteResource,
   GetConfigMap,
   GetCronJob,
   GetDaemonSet,
@@ -8,6 +10,7 @@ import {
   GetNamespace,
   GetNode,
   GetPod,
+  GetResourceYAML,
   GetSecret,
   GetService,
   GetStatefulSet,
@@ -26,6 +29,7 @@ import {
   ListStatefulSets,
   PingContext,
   ResizeExec,
+  ScaleResource,
   SendExecInput,
   StartExec,
   StartPodLogs,
@@ -141,4 +145,12 @@ export const api = {
     GetIngress(ctx, ns, name),
   getNode: (ctx: string, name: string): Promise<NodeDetail> => GetNode(ctx, name),
   getNamespace: (ctx: string, name: string): Promise<NamespaceDetail> => GetNamespace(ctx, name),
+  getResourceYAML: (ctx: string, kind: string, ns: string, name: string): Promise<string> =>
+    GetResourceYAML(ctx, kind, ns, name),
+  applyResourceYAML: (ctx: string, yamlBody: string): Promise<void> =>
+    ApplyResourceYAML(ctx, yamlBody),
+  deleteResource: (ctx: string, kind: string, ns: string, name: string): Promise<void> =>
+    DeleteResource(ctx, kind, ns, name),
+  scaleResource: (ctx: string, kind: string, ns: string, name: string, replicas: number): Promise<void> =>
+    ScaleResource(ctx, kind, ns, name, replicas),
 }

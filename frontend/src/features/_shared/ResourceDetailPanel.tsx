@@ -5,6 +5,7 @@ import { api, type PodDetail } from '@/lib/api'
 import { useUIStore, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
 import { ErrorBox } from './DetailPrimitives'
+import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { PodExecTab } from '@/features/pods/PodExecTab'
@@ -45,7 +46,11 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
           )}
         </DialogHeader>
         {resource && (
-          <DetailContent key={`${resource.kind}/${resource.namespace}/${resource.name}`} contextName={contextName} resource={resource} />
+          <DetailContent
+            key={`${resource.kind}/${resource.namespace}/${resource.name}`}
+            contextName={contextName}
+            resource={resource}
+          />
         )}
       </DialogContent>
     </Dialog>
@@ -57,20 +62,21 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
     return <PodTabs contextName={contextName} namespace={resource.namespace} name={resource.name} />
   }
   return (
-    <SingleOverviewTabs>
-      <OverviewByKind contextName={contextName} resource={resource} />
-    </SingleOverviewTabs>
-  )
-}
-
-function SingleOverviewTabs({ children }: { children: React.ReactNode }) {
-  return (
-    <Tabs value="overview" className="flex min-h-0 flex-1 flex-col">
+    <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
-        {children}
+        <OverviewByKind contextName={contextName} resource={resource} />
+      </TabsContent>
+      <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
+        <ResourceYAMLTab
+          contextName={contextName}
+          kind={resource.kind}
+          namespace={resource.namespace}
+          name={resource.name}
+        />
       </TabsContent>
     </Tabs>
   )
@@ -87,18 +93,19 @@ function PodTabs({
 }) {
   const load = useCallback((ctx: string) => api.getPod(ctx, namespace, name), [namespace, name])
   const { detail, error } = useResourceDetail<PodDetail>(contextName, 'Pod', load)
-  const [tab, setTab] = useState<'overview' | 'logs' | 'exec'>('overview')
+  const [tab, setTab] = useState<'overview' | 'logs' | 'exec' | 'yaml'>('overview')
 
   useEffect(() => {
     setTab('overview')
   }, [namespace, name])
 
   return (
-    <Tabs value={tab} onValueChange={(v) => setTab(v as 'overview' | 'logs' | 'exec')} className="flex min-h-0 flex-1 flex-col">
+    <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="logs" disabled={!detail}>Logs</TabsTrigger>
         <TabsTrigger value="exec" disabled={!detail || detail.containers.length === 0}>Exec</TabsTrigger>
+        <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         {error && <ErrorBox>{error}</ErrorBox>}
@@ -109,6 +116,9 @@ function PodTabs({
       </TabsContent>
       <TabsContent value="exec" className="min-h-0 flex-1 p-0">
         {detail && <PodExecTab detail={detail} />}
+      </TabsContent>
+      <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
+        <ResourceYAMLTab contextName={contextName} kind="Pod" namespace={namespace} name={name} />
       </TabsContent>
     </Tabs>
   )
