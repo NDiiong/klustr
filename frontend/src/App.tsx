@@ -157,9 +157,6 @@ function App() {
           >
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
-          <Button variant="ghost" size="sm" disabled>
-            Settings
-          </Button>
         </div>
       </header>
 
