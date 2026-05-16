@@ -53,6 +53,23 @@ type StatefulSetDetail struct {
 	CreatedAt           string             `json:"createdAt"`
 }
 
+type ResourceQuotaEntry struct {
+	Resource string `json:"resource"`
+	Used     string `json:"used"`
+	Hard     string `json:"hard"`
+}
+
+type ResourceQuotaDetail struct {
+	Name        string               `json:"name"`
+	Namespace   string               `json:"namespace"`
+	UID         string               `json:"uid"`
+	Scopes      []string             `json:"scopes"`
+	Entries     []ResourceQuotaEntry `json:"entries"`
+	Labels      map[string]string    `json:"labels"`
+	Annotations map[string]string    `json:"annotations"`
+	CreatedAt   string               `json:"createdAt"`
+}
+
 type EndpointSliceEndpoint struct {
 	Addresses []string `json:"addresses"`
 	NodeName  string   `json:"nodeName"`
@@ -424,6 +441,44 @@ func (w *contextWatcher) StatefulSet(namespace, name string) (*StatefulSetDetail
 		Labels:              s.Labels,
 		Annotations:         s.Annotations,
 		CreatedAt:           s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) ResourceQuota(namespace, name string) (*ResourceQuotaDetail, error) {
+	q, err := w.factory.Core().V1().ResourceQuotas().Lister().ResourceQuotas(namespace).Get(name)
+	if err != nil {
+		return nil, err
+	}
+	scopes := make([]string, 0, len(q.Spec.Scopes))
+	for _, s := range q.Spec.Scopes {
+		scopes = append(scopes, string(s))
+	}
+	keys := make([]string, 0, len(q.Status.Hard))
+	for k := range q.Status.Hard {
+		keys = append(keys, string(k))
+	}
+	sort.Strings(keys)
+	entries := make([]ResourceQuotaEntry, 0, len(keys))
+	for _, k := range keys {
+		used := ""
+		if u, ok := q.Status.Used[corev1.ResourceName(k)]; ok {
+			used = u.String()
+		}
+		hard := ""
+		if h, ok := q.Status.Hard[corev1.ResourceName(k)]; ok {
+			hard = h.String()
+		}
+		entries = append(entries, ResourceQuotaEntry{Resource: k, Used: used, Hard: hard})
+	}
+	return &ResourceQuotaDetail{
+		Name:        q.Name,
+		Namespace:   q.Namespace,
+		UID:         string(q.UID),
+		Scopes:      scopes,
+		Entries:     entries,
+		Labels:      q.Labels,
+		Annotations: q.Annotations,
+		CreatedAt:   q.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
 

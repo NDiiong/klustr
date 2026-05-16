@@ -105,6 +105,10 @@ func (a *App) GetEndpointSlice(contextName, namespace, name string) (*kube.Endpo
 	return a.clients.EndpointSlice(contextName, namespace, name)
 }
 
+func (a *App) GetResourceQuota(contextName, namespace, name string) (*kube.ResourceQuotaDetail, error) {
+	return a.clients.ResourceQuota(contextName, namespace, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -297,6 +301,10 @@ func (a *App) ListPodDisruptionBudgets(name, namespace string) []kube.PodDisrupt
 
 func (a *App) ListEndpointSlices(name, namespace string) []kube.EndpointSliceInfo {
 	return a.clients.EndpointSlices(name, namespace)
+}
+
+func (a *App) ListResourceQuotas(name, namespace string) []kube.ResourceQuotaInfo {
+	return a.clients.ResourceQuotas(name, namespace)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {

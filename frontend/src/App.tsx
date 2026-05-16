@@ -19,6 +19,7 @@ import { NetworkPoliciesView } from '@/features/networkpolicies/NetworkPoliciesV
 import { HorizontalPodAutoscalersView } from '@/features/hpas/HorizontalPodAutoscalersView'
 import { PodDisruptionBudgetsView } from '@/features/pdbs/PodDisruptionBudgetsView'
 import { EndpointSlicesView } from '@/features/endpointslices/EndpointSlicesView'
+import { ResourceQuotasView } from '@/features/resourcequotas/ResourceQuotasView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -59,6 +60,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'Secrets', view: 'secrets' },
       { label: 'HorizontalPodAutoscalers', view: 'horizontalpodautoscalers' },
       { label: 'PodDisruptionBudgets', view: 'poddisruptionbudgets' },
+      { label: 'ResourceQuotas', view: 'resourcequotas' },
     ],
   },
   {
@@ -130,6 +132,8 @@ function MainView() {
       return <PodDisruptionBudgetsView />
     case 'endpointslices':
       return <EndpointSlicesView />
+    case 'resourcequotas':
+      return <ResourceQuotasView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

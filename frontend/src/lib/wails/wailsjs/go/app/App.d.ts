@@ -38,6 +38,8 @@ export function GetPodDisruptionBudget(arg1:string,arg2:string,arg3:string):Prom
 
 export function GetReplicaSet(arg1:string,arg2:string,arg3:string):Promise<kube.ReplicaSetDetail>;
 
+export function GetResourceQuota(arg1:string,arg2:string,arg3:string):Promise<kube.ResourceQuotaDetail>;
+
 export function GetResourceYAML(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function GetSecret(arg1:string,arg2:string,arg3:string):Promise<kube.SecretDetail>;
@@ -87,6 +89,8 @@ export function ListPods(arg1:string,arg2:string):Promise<Array<kube.PodInfo>>;
 export function ListPortForwards():Promise<Array<kube.PortForwardInfo>>;
 
 export function ListReplicaSets(arg1:string,arg2:string):Promise<Array<kube.ReplicaSetInfo>>;
+
+export function ListResourceQuotas(arg1:string,arg2:string):Promise<Array<kube.ResourceQuotaInfo>>;
 
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 

@@ -102,6 +102,15 @@ type PodDetail struct {
 	Conditions        []ConditionDetail `json:"conditions"`
 }
 
+type ResourceQuotaInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Scopes    string `json:"scopes"`
+	Used      int    `json:"used"`
+	Hard      int    `json:"hard"`
+	CreatedAt string `json:"createdAt"`
+}
+
 type EndpointSliceInfo struct {
 	Name        string `json:"name"`
 	Namespace   string `json:"namespace"`
@@ -405,6 +414,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	resourceQuotas := w.factory.Core().V1().ResourceQuotas().Informer()
+	if _, err := resourceQuotas.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("ResourceQuota") },
+		UpdateFunc: func(any, any) { w.touch("ResourceQuota") },
+		DeleteFunc: func(any) { w.touch("ResourceQuota") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	endpointSlices := w.factory.Discovery().V1().EndpointSlices().Informer()
 	if _, err := endpointSlices.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("EndpointSlice") },
@@ -513,7 +532,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"StatefulSet", "DaemonSet", "Job", "CronJob", "Ingress", "Node",
 			"ReplicaSet", "PersistentVolumeClaim", "PersistentVolume", "StorageClass",
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
-			"EndpointSlice",
+			"EndpointSlice", "ResourceQuota",
 		} {
 			w.touch(kind)
 		}
@@ -935,6 +954,39 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 			Service:   s.Spec.ServiceName,
 			Images:    strings.Join(images, ", "),
 			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) ResourceQuotas(namespace string) []ResourceQuotaInfo {
+	lister := w.factory.Core().V1().ResourceQuotas().Lister()
+	var (
+		qs  []*corev1.ResourceQuota
+		err error
+	)
+	if namespace == "" {
+		qs, err = lister.List(labels.Everything())
+	} else {
+		qs, err = lister.ResourceQuotas(namespace).List(labels.Everything())
+	}
+	if err != nil {
+		return []ResourceQuotaInfo{}
+	}
+	out := make([]ResourceQuotaInfo, 0, len(qs))
+	for _, q := range qs {
+		scopes := make([]string, 0, len(q.Spec.Scopes))
+		for _, s := range q.Spec.Scopes {
+			scopes = append(scopes, string(s))
+		}
+		out = append(out, ResourceQuotaInfo{
+			Name:      q.Name,
+			Namespace: q.Namespace,
+			Scopes:    strings.Join(scopes, ","),
+			Used:      len(q.Status.Used),
+			Hard:      len(q.Status.Hard),
+			CreatedAt: q.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })

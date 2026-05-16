@@ -74,6 +74,10 @@ export function GetReplicaSet(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetReplicaSet'](arg1, arg2, arg3);
 }
 
+export function GetResourceQuota(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetResourceQuota'](arg1, arg2, arg3);
+}
+
 export function GetResourceYAML(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['GetResourceYAML'](arg1, arg2, arg3, arg4);
 }
@@ -172,6 +176,10 @@ export function ListPortForwards() {
 
 export function ListReplicaSets(arg1, arg2) {
   return window['go']['app']['App']['ListReplicaSets'](arg1, arg2);
+}
+
+export function ListResourceQuotas(arg1, arg2) {
+  return window['go']['app']['App']['ListResourceQuotas'](arg1, arg2);
 }
 
 export function ListSecrets(arg1, arg2) {
