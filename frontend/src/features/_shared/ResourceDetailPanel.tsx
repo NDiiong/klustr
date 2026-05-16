@@ -268,6 +268,15 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
           loader={(ctx) => api.getMutatingWebhookConfiguration(ctx, resource.name)}
         />
       )
+    case 'ValidatingWebhookConfiguration':
+      return (
+        <WebhookConfigurationDetailBody
+          contextName={contextName}
+          name={resource.name}
+          kind="ValidatingWebhookConfiguration"
+          loader={(ctx) => api.getValidatingWebhookConfiguration(ctx, resource.name)}
+        />
+      )
     case 'Job':
       return <JobDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'CronJob':

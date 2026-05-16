@@ -122,6 +122,10 @@ export function GetStorageClass(arg1, arg2) {
   return window['go']['app']['App']['GetStorageClass'](arg1, arg2);
 }
 
+export function GetValidatingWebhookConfiguration(arg1, arg2) {
+  return window['go']['app']['App']['GetValidatingWebhookConfiguration'](arg1, arg2);
+}
+
 export function ListConfigMaps(arg1, arg2) {
   return window['go']['app']['App']['ListConfigMaps'](arg1, arg2);
 }
@@ -244,6 +248,10 @@ export function ListStatefulSets(arg1, arg2) {
 
 export function ListStorageClasses(arg1) {
   return window['go']['app']['App']['ListStorageClasses'](arg1);
+}
+
+export function ListValidatingWebhookConfigurations(arg1) {
+  return window['go']['app']['App']['ListValidatingWebhookConfigurations'](arg1);
 }
 
 export function PingContext(arg1) {

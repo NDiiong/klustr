@@ -456,6 +456,16 @@ func (w *contextWatcher) start(parent context.Context) error {
 		return err
 	}
 
+	vwh := w.factory.Admissionregistration().V1().ValidatingWebhookConfigurations().Informer()
+	if _, err := vwh.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    func(any) { w.touch("ValidatingWebhookConfiguration") },
+		UpdateFunc: func(any, any) { w.touch("ValidatingWebhookConfiguration") },
+		DeleteFunc: func(any) { w.touch("ValidatingWebhookConfiguration") },
+	}); err != nil {
+		cancel()
+		return err
+	}
+
 	mwh := w.factory.Admissionregistration().V1().MutatingWebhookConfigurations().Informer()
 	if _, err := mwh.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(any) { w.touch("MutatingWebhookConfiguration") },
@@ -636,7 +646,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			"NetworkPolicy", "HorizontalPodAutoscaler", "PodDisruptionBudget",
 			"EndpointSlice", "ResourceQuota", "LimitRange", "IngressClass",
 			"PriorityClass", "RuntimeClass", "Lease",
-			"MutatingWebhookConfiguration",
+			"MutatingWebhookConfiguration", "ValidatingWebhookConfiguration",
 		} {
 			w.touch(kind)
 		}
@@ -1061,6 +1071,23 @@ func (w *contextWatcher) StatefulSets(namespace string) []StatefulSetInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (w *contextWatcher) ValidatingWebhookConfigurations() []WebhookConfigurationInfo {
+	whs, err := w.factory.Admissionregistration().V1().ValidatingWebhookConfigurations().Lister().List(labels.Everything())
+	if err != nil {
+		return []WebhookConfigurationInfo{}
+	}
+	out := make([]WebhookConfigurationInfo, 0, len(whs))
+	for _, c := range whs {
+		out = append(out, WebhookConfigurationInfo{
+			Name:      c.Name,
+			Webhooks:  len(c.Webhooks),
+			CreatedAt: c.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

@@ -62,6 +62,8 @@ export function GetStatefulSet(arg1:string,arg2:string,arg3:string):Promise<kube
 
 export function GetStorageClass(arg1:string,arg2:string):Promise<kube.StorageClassDetail>;
 
+export function GetValidatingWebhookConfiguration(arg1:string,arg2:string):Promise<kube.WebhookConfigurationDetail>;
+
 export function ListConfigMaps(arg1:string,arg2:string):Promise<Array<kube.ConfigMapInfo>>;
 
 export function ListContexts():Promise<kube.Kubeconfig>;
@@ -123,6 +125,8 @@ export function ListServices(arg1:string,arg2:string):Promise<Array<kube.Service
 export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.StatefulSetInfo>>;
 
 export function ListStorageClasses(arg1:string):Promise<Array<kube.StorageClassInfo>>;
+
+export function ListValidatingWebhookConfigurations(arg1:string):Promise<Array<kube.WebhookConfigurationInfo>>;
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 

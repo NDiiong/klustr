@@ -26,6 +26,7 @@ import {
   GetRuntimeClass,
   GetLease,
   GetMutatingWebhookConfiguration,
+  GetValidatingWebhookConfiguration,
   GetDeployment,
   GetIngress,
   GetJob,
@@ -55,6 +56,7 @@ import {
   ListRuntimeClasses,
   ListLeases,
   ListMutatingWebhookConfigurations,
+  ListValidatingWebhookConfigurations,
   ListDeployments,
   ListIngresses,
   ListJobs,
@@ -200,6 +202,8 @@ export const api = {
     ListLeases(name, namespace),
   listMutatingWebhookConfigurations: (name: string): Promise<WebhookConfigurationInfo[]> =>
     ListMutatingWebhookConfigurations(name),
+  listValidatingWebhookConfigurations: (name: string): Promise<WebhookConfigurationInfo[]> =>
+    ListValidatingWebhookConfigurations(name),
   listJobs: (name: string, namespace: string): Promise<JobInfo[]> => ListJobs(name, namespace),
   listCronJobs: (name: string, namespace: string): Promise<CronJobInfo[]> =>
     ListCronJobs(name, namespace),
@@ -265,6 +269,8 @@ export const api = {
     GetLease(ctx, ns, name),
   getMutatingWebhookConfiguration: (ctx: string, name: string): Promise<WebhookConfigurationDetail> =>
     GetMutatingWebhookConfiguration(ctx, name),
+  getValidatingWebhookConfiguration: (ctx: string, name: string): Promise<WebhookConfigurationDetail> =>
+    GetValidatingWebhookConfiguration(ctx, name),
   getJob: (ctx: string, ns: string, name: string): Promise<JobDetail> => GetJob(ctx, ns, name),
   getCronJob: (ctx: string, ns: string, name: string): Promise<CronJobDetail> =>
     GetCronJob(ctx, ns, name),

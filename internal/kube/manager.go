@@ -266,6 +266,14 @@ func (m *ClientManager) StatefulSet(contextName, namespace, name string) (*State
 	return w.StatefulSet(namespace, name)
 }
 
+func (m *ClientManager) ValidatingWebhookConfiguration(contextName, name string) (*WebhookConfigurationDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.ValidatingWebhookConfiguration(name)
+}
+
 func (m *ClientManager) MutatingWebhookConfiguration(contextName, name string) (*WebhookConfigurationDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {
@@ -513,6 +521,16 @@ func (m *ClientManager) StatefulSets(contextName, namespace string) []StatefulSe
 		return []StatefulSetInfo{}
 	}
 	return w.StatefulSets(namespace)
+}
+
+func (m *ClientManager) ValidatingWebhookConfigurations(contextName string) []WebhookConfigurationInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []WebhookConfigurationInfo{}
+	}
+	return w.ValidatingWebhookConfigurations()
 }
 
 func (m *ClientManager) MutatingWebhookConfigurations(contextName string) []WebhookConfigurationInfo {

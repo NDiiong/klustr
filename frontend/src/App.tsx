@@ -26,6 +26,7 @@ import { PriorityClassesView } from '@/features/priorityclasses/PriorityClassesV
 import { RuntimeClassesView } from '@/features/runtimeclasses/RuntimeClassesView'
 import { LeasesView } from '@/features/leases/LeasesView'
 import { MutatingWebhookConfigurationsView } from '@/features/webhooks/MutatingWebhookConfigurationsView'
+import { ValidatingWebhookConfigurationsView } from '@/features/webhooks/ValidatingWebhookConfigurationsView'
 import { JobsView } from '@/features/jobs/JobsView'
 import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
@@ -97,6 +98,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'RuntimeClasses', view: 'runtimeclasses' },
       { label: 'Leases', view: 'leases' },
       { label: 'MutatingWebhooks', view: 'mutatingwebhookconfigurations' },
+      { label: 'ValidatingWebhooks', view: 'validatingwebhookconfigurations' },
     ],
   },
 ]
@@ -158,6 +160,8 @@ function MainView() {
       return <LeasesView />
     case 'mutatingwebhookconfigurations':
       return <MutatingWebhookConfigurationsView />
+    case 'validatingwebhookconfigurations':
+      return <ValidatingWebhookConfigurationsView />
     case 'jobs':
       return <JobsView />
     case 'cronjobs':

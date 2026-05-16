@@ -133,6 +133,10 @@ func (a *App) GetMutatingWebhookConfiguration(contextName, name string) (*kube.W
 	return a.clients.MutatingWebhookConfiguration(contextName, name)
 }
 
+func (a *App) GetValidatingWebhookConfiguration(contextName, name string) (*kube.WebhookConfigurationDetail, error) {
+	return a.clients.ValidatingWebhookConfiguration(contextName, name)
+}
+
 func (a *App) GetDaemonSet(contextName, namespace, name string) (*kube.DaemonSetDetail, error) {
 	return a.clients.DaemonSet(contextName, namespace, name)
 }
@@ -353,6 +357,10 @@ func (a *App) ListLeases(name, namespace string) []kube.LeaseInfo {
 
 func (a *App) ListMutatingWebhookConfigurations(name string) []kube.WebhookConfigurationInfo {
 	return a.clients.MutatingWebhookConfigurations(name)
+}
+
+func (a *App) ListValidatingWebhookConfigurations(name string) []kube.WebhookConfigurationInfo {
+	return a.clients.ValidatingWebhookConfigurations(name)
 }
 
 func (a *App) ListDaemonSets(name, namespace string) []kube.DaemonSetInfo {
