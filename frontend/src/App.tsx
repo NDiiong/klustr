@@ -51,7 +51,7 @@ function MainView() {
   const view = useUIStore((s) => s.selectedView)
   if (view === 'pods') return <PodsView />
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="flex flex-1 items-center justify-center">
       <ConnectionStatus />
     </div>
   )

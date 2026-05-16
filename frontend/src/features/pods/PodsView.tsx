@@ -97,14 +97,14 @@ export function PodsView() {
 
   if (!selectedContext) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         Select a kubeconfig context to see pods.
       </div>
     )
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-border px-4 py-2 text-xs text-muted-foreground">
         <span>
           {pods.length} pod{pods.length === 1 ? '' : 's'}
