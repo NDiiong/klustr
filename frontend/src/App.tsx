@@ -4,15 +4,37 @@ import { Button } from '@/components/ui/button'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
 import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
+import { PodsView } from '@/features/pods/PodsView'
 import { api } from '@/lib/api'
-import { useUIStore } from '@/store/ui'
+import { useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
 
-const RESOURCE_GROUPS = [
-  { label: 'Workloads', items: ['Pods', 'Deployments', 'StatefulSets', 'DaemonSets', 'Jobs', 'CronJobs'] },
-  { label: 'Config', items: ['ConfigMaps', 'Secrets'] },
-  { label: 'Network', items: ['Services', 'Ingresses'] },
-  { label: 'Cluster', items: ['Nodes', 'Namespaces'] },
+type NavItem = { label: string; view?: ResourceView }
+
+const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
+  {
+    label: 'Workloads',
+    items: [
+      { label: 'Pods', view: 'pods' },
+      { label: 'Deployments' },
+      { label: 'StatefulSets' },
+      { label: 'DaemonSets' },
+      { label: 'Jobs' },
+      { label: 'CronJobs' },
+    ],
+  },
+  {
+    label: 'Config',
+    items: [{ label: 'ConfigMaps' }, { label: 'Secrets' }],
+  },
+  {
+    label: 'Network',
+    items: [{ label: 'Services' }, { label: 'Ingresses' }],
+  },
+  {
+    label: 'Cluster',
+    items: [{ label: 'Nodes' }, { label: 'Namespaces' }],
+  },
 ]
 
 type Theme = 'light' | 'dark'
@@ -25,9 +47,21 @@ function getInitialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+function MainView() {
+  const view = useUIStore((s) => s.selectedView)
+  if (view === 'pods') return <PodsView />
+  return (
+    <div className="flex h-full items-center justify-center">
+      <ConnectionStatus />
+    </div>
+  )
+}
+
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const selectedContext = useUIStore((s) => s.selectedContext)
+  const selectedView = useUIStore((s) => s.selectedView)
+  const setSelectedView = useUIStore((s) => s.setSelectedView)
   const resetResources = useResources((s) => s.reset)
 
   useEffect(() => {
@@ -76,22 +110,36 @@ function App() {
                   {group.label}
                 </div>
                 <ul className="flex flex-col">
-                  {group.items.map((item) => (
-                    <li
-                      key={item}
-                      className="cursor-default rounded px-2 py-1 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    >
-                      {item}
-                    </li>
-                  ))}
+                  {group.items.map((item) => {
+                    const active = item.view !== undefined && item.view === selectedView
+                    const enabled = item.view !== undefined
+                    return (
+                      <li
+                        key={item.label}
+                        aria-disabled={!enabled}
+                        className={[
+                          'rounded px-2 py-1 text-sm',
+                          enabled
+                            ? 'cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                            : 'cursor-default text-muted-foreground/60',
+                          active ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+                        ].join(' ')}
+                        onClick={() => {
+                          if (item.view) setSelectedView(item.view)
+                        }}
+                      >
+                        {item.label}
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             ))}
           </nav>
         </aside>
 
-        <main className="flex flex-1 items-center justify-center overflow-auto p-6">
-          <ConnectionStatus />
+        <main className="flex flex-1 overflow-hidden">
+          <MainView />
         </main>
       </div>
     </div>
