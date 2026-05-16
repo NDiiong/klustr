@@ -32,6 +32,10 @@ export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.Sta
 
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
+export function StartPodLogs(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean,arg6:number):Promise<string>;
+
 export function StartWatch(arg1:string):Promise<void>;
+
+export function StopPodLogs(arg1:string):Promise<void>;
 
 export function StopWatch(arg1:string):Promise<void>;

@@ -62,8 +62,16 @@ export function PingContext(arg1) {
   return window['go']['app']['App']['PingContext'](arg1);
 }
 
+export function StartPodLogs(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['app']['App']['StartPodLogs'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 export function StartWatch(arg1) {
   return window['go']['app']['App']['StartWatch'](arg1);
+}
+
+export function StopPodLogs(arg1) {
+  return window['go']['app']['App']['StopPodLogs'](arg1);
 }
 
 export function StopWatch(arg1) {

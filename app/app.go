@@ -56,6 +56,44 @@ func (a *App) GetPod(contextName, namespace, name string) (*kube.PodDetail, erro
 	return a.clients.Pod(contextName, namespace, name)
 }
 
+func (a *App) StartPodLogs(contextName, namespace, podName, container string, follow bool, tailLines int) (string, error) {
+	var sessionID string
+	id, err := a.clients.StartLogs(
+		a.ctx,
+		contextName,
+		namespace,
+		podName,
+		container,
+		follow,
+		int64(tailLines),
+		func(line string) {
+			if sessionID == "" {
+				return
+			}
+			runtime.EventsEmit(a.ctx, "pod:logs:line:"+sessionID, line)
+		},
+		func(err error) {
+			if sessionID == "" {
+				return
+			}
+			msg := ""
+			if err != nil {
+				msg = err.Error()
+			}
+			runtime.EventsEmit(a.ctx, "pod:logs:close:"+sessionID, msg)
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	sessionID = id
+	return id, nil
+}
+
+func (a *App) StopPodLogs(sessionID string) {
+	a.clients.StopLogs(sessionID)
+}
+
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
 	return a.clients.Deployments(name, namespace)
 }

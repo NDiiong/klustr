@@ -28,6 +28,7 @@ type ClientManager struct {
 	rules    *clientcmd.ClientConfigLoadingRules
 	cache    map[string]*kubernetes.Clientset
 	watchers map[string]*contextWatcher
+	logs     *logSessionManager
 	onChange func(ContextChange)
 }
 
@@ -36,6 +37,7 @@ func NewClientManager() *ClientManager {
 		rules:    clientcmd.NewDefaultClientConfigLoadingRules(),
 		cache:    make(map[string]*kubernetes.Clientset),
 		watchers: make(map[string]*contextWatcher),
+		logs:     newLogSessionManager(),
 	}
 }
 
@@ -177,6 +179,25 @@ func (m *ClientManager) Pod(contextName, namespace, name string) (*PodDetail, er
 		return nil, fmt.Errorf("no active watch for context %q", contextName)
 	}
 	return w.Pod(namespace, name)
+}
+
+func (m *ClientManager) StartLogs(
+	parent context.Context,
+	contextName, namespace, podName, container string,
+	follow bool,
+	tailLines int64,
+	onLine LogLineFunc,
+	onClose LogCloseFunc,
+) (string, error) {
+	cs, err := m.Clientset(contextName)
+	if err != nil {
+		return "", err
+	}
+	return m.logs.start(parent, cs, namespace, podName, container, follow, tailLines, onLine, onClose)
+}
+
+func (m *ClientManager) StopLogs(id string) {
+	m.logs.stop(id)
 }
 
 func (m *ClientManager) Deployments(contextName, namespace string) []DeploymentInfo {
