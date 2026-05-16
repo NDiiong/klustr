@@ -17,17 +17,31 @@ type ServerVersion struct {
 	Platform   string `json:"platform"`
 }
 
+type ContextChange struct {
+	Context string
+	Kind    string
+}
+
 type ClientManager struct {
-	mu    sync.Mutex
-	rules *clientcmd.ClientConfigLoadingRules
-	cache map[string]*kubernetes.Clientset
+	mu       sync.Mutex
+	rules    *clientcmd.ClientConfigLoadingRules
+	cache    map[string]*kubernetes.Clientset
+	watchers map[string]*contextWatcher
+	onChange func(ContextChange)
 }
 
 func NewClientManager() *ClientManager {
 	return &ClientManager{
-		rules: clientcmd.NewDefaultClientConfigLoadingRules(),
-		cache: make(map[string]*kubernetes.Clientset),
+		rules:    clientcmd.NewDefaultClientConfigLoadingRules(),
+		cache:    make(map[string]*kubernetes.Clientset),
+		watchers: make(map[string]*contextWatcher),
 	}
+}
+
+func (m *ClientManager) SetOnChange(cb func(ContextChange)) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.onChange = cb
 }
 
 func (m *ClientManager) Kubeconfig() (*Kubeconfig, error) {
@@ -90,6 +104,58 @@ func (m *ClientManager) Ping(ctx context.Context, contextName string) (*ServerVe
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+func (m *ClientManager) Watch(ctx context.Context, contextName string) error {
+	cs, err := m.Clientset(contextName)
+	if err != nil {
+		return err
+	}
+
+	m.mu.Lock()
+	if existing, ok := m.watchers[contextName]; ok {
+		m.mu.Unlock()
+		existing.stop()
+		m.mu.Lock()
+	}
+	cb := m.onChange
+	m.mu.Unlock()
+
+	w := newContextWatcher(cs, func(kind string) {
+		if cb != nil {
+			cb(ContextChange{Context: contextName, Kind: kind})
+		}
+	})
+	if err := w.start(ctx); err != nil {
+		return err
+	}
+
+	m.mu.Lock()
+	m.watchers[contextName] = w
+	m.mu.Unlock()
+	return nil
+}
+
+func (m *ClientManager) StopWatch(contextName string) {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	if ok {
+		delete(m.watchers, contextName)
+	}
+	m.mu.Unlock()
+	if ok {
+		w.stop()
+	}
+}
+
+func (m *ClientManager) Namespaces(contextName string) []NamespaceInfo {
+	m.mu.Lock()
+	w, ok := m.watchers[contextName]
+	m.mu.Unlock()
+	if !ok {
+		return []NamespaceInfo{}
+	}
+	return w.Namespaces()
 }
 
 func (m *ClientManager) restConfig(contextName string) (*rest.Config, error) {

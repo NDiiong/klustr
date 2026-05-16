@@ -52,6 +52,22 @@ export namespace kube {
 		    return a;
 		}
 	}
+	export class NamespaceInfo {
+	    name: string;
+	    phase: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NamespaceInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.phase = source["phase"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ServerVersion {
 	    gitVersion: string;
 	    platform: string;

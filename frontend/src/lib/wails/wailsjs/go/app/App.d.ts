@@ -4,4 +4,10 @@ import {kube} from '../models';
 
 export function ListContexts():Promise<kube.Kubeconfig>;
 
+export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
+
 export function PingContext(arg1:string):Promise<kube.ServerVersion>;
+
+export function StartWatch(arg1:string):Promise<void>;
+
+export function StopWatch(arg1:string):Promise<void>;
