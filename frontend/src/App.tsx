@@ -109,6 +109,17 @@ function MainView() {
   }
 }
 
+const NAV_VIEWS: ResourceView[] = RESOURCE_GROUPS.flatMap((g) =>
+  g.items.map((i) => i.view).filter((v): v is ResourceView => v !== undefined),
+)
+
+function isEditableTarget(t: EventTarget | null): boolean {
+  if (!(t instanceof HTMLElement)) return false
+  if (t.isContentEditable) return true
+  const tag = t.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+}
+
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const selectedContext = useUIStore((s) => s.selectedContext)
@@ -117,6 +128,22 @@ function App() {
   const selectedResource = useUIStore((s) => s.selectedResource)
   const resetResources = useResources((s) => s.reset)
   const setPortForwards = usePortForwards((s) => s.setList)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      if (isEditableTarget(e.target)) return
+      e.preventDefault()
+      const current = NAV_VIEWS.indexOf(selectedView)
+      const start = current >= 0 ? current : 0
+      const delta = e.key === 'ArrowDown' ? 1 : -1
+      const next = (start + delta + NAV_VIEWS.length) % NAV_VIEWS.length
+      setSelectedView(NAV_VIEWS[next])
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedView, setSelectedView])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
