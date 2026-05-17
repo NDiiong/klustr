@@ -40,6 +40,7 @@ import { OverviewView } from '@/features/overview/OverviewView'
 import { WorkloadsOverviewView } from '@/features/overview/WorkloadsOverviewView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { RowActionDialogs } from '@/features/_shared/RowActionDialogs'
+import { KeyboardShortcutsDialog } from '@/features/_shared/KeyboardShortcutsDialog'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { NamespaceSearchPalette } from '@/features/contexts/NamespaceSearchPalette'
 import { StatusBar } from '@/features/_shared/StatusBar'
@@ -331,6 +332,7 @@ function App() {
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
       <RowActionDialogs />
+      <KeyboardShortcutsDialog />
       <CommandPalette />
       <NamespaceSearchPalette />
       <PodSearchPalette />

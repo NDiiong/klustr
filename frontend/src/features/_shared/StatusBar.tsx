@@ -74,7 +74,12 @@ export function StatusBar() {
           {portForwards.length} forward{portForwards.length === 1 ? '' : 's'}
         </span>
       )}
-      <span className="ml-auto font-mono">Klustr</span>
+      <span
+        className="ml-auto cursor-help font-mono text-muted-foreground/80 hover:text-foreground"
+        title="Press ? to view keyboard shortcuts"
+      >
+        Press <kbd className="rounded border border-border bg-muted px-1 py-px text-[9px] text-foreground">?</kbd> for shortcuts
+      </span>
     </footer>
   )
 }
