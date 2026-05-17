@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type ContainerPort, type PodDetail } from '@/lib/api'
+import { usePortForwards } from '@/store/portForwards'
 import type { SelectedResource } from '@/store/ui'
 
 type Props = {
@@ -23,10 +24,26 @@ type Props = {
 
 type PortOption = ContainerPort & { containerName: string }
 
+function suggestLocalPort(remote: number, used: Set<number>): number {
+  const candidates: number[] = []
+  if (remote >= 1024) candidates.push(remote)
+  candidates.push(remote + 8000)
+  candidates.push(remote + 10000)
+  for (const p of candidates) {
+    if (p >= 1024 && p <= 65535 && !used.has(p)) return p
+  }
+  for (let p = 30000; p < 60000; p++) {
+    if (!used.has(p)) return p
+  }
+  return 0
+}
+
 export function PortForwardButton({ contextName, resource }: Props) {
+  const activeForwards = usePortForwards((s) => s.list)
   const [open, setOpen] = useState(false)
   const [remotePort, setRemotePort] = useState<number>(80)
   const [localPort, setLocalPort] = useState<number>(0)
+  const [localPortTouched, setLocalPortTouched] = useState(false)
   const [detail, setDetail] = useState<PodDetail | null>(null)
 
   useEffect(() => {
@@ -62,6 +79,12 @@ export function PortForwardButton({ contextName, resource }: Props) {
     }
   }, [suggestions])
 
+  useEffect(() => {
+    if (localPortTouched) return
+    const used = new Set(activeForwards.map((f) => f.localPort))
+    setLocalPort(suggestLocalPort(remotePort, used))
+  }, [remotePort, activeForwards, localPortTouched])
+
   const start = useMutation({
     mutationFn: async () => {
       if (!contextName) throw new Error('no context')
@@ -78,8 +101,12 @@ export function PortForwardButton({ contextName, resource }: Props) {
       open={open}
       onOpenChange={(o) => {
         setOpen(o)
-        if (o) start.reset()
-        else setDetail(null)
+        if (o) {
+          start.reset()
+          setLocalPortTouched(false)
+        } else {
+          setDetail(null)
+        }
       }}
     >
       <Tooltip>
@@ -102,8 +129,8 @@ export function PortForwardButton({ contextName, resource }: Props) {
                 Forward a container port from{' '}
                 <span className="font-mono text-xs">pod/{resource.name}</span> in{' '}
                 <span className="font-mono text-xs">{resource.namespace}</span> to your machine.
-                Set the local port to <span className="font-mono text-xs">0</span> to let the OS
-                pick a free one.
+                A free local port is suggested; set it to{' '}
+                <span className="font-mono text-xs">0</span> to let the OS pick one.
               </p>
               {start.error && (
                 <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
@@ -149,7 +176,10 @@ export function PortForwardButton({ contextName, resource }: Props) {
             min={0}
             max={65535}
             value={localPort}
-            onChange={(e) => setLocalPort(Math.max(0, Number.parseInt(e.target.value, 10) || 0))}
+            onChange={(e) => {
+              setLocalPortTouched(true)
+              setLocalPort(Math.max(0, Number.parseInt(e.target.value, 10) || 0))
+            }}
             className="w-28 rounded border border-border bg-background px-2 py-1 text-sm"
           />
         </div>
