@@ -100,6 +100,7 @@ export type PersistentVolumeInfo = kube.PersistentVolumeInfo
 export type StorageClassInfo = kube.StorageClassInfo
 export type NetworkPolicyInfo = kube.NetworkPolicyInfo
 export type HorizontalPodAutoscalerInfo = kube.HorizontalPodAutoscalerInfo
+export type HPAMetricTarget = kube.HPAMetricTarget
 export type PodDisruptionBudgetInfo = kube.PodDisruptionBudgetInfo
 export type EndpointSliceInfo = kube.EndpointSliceInfo
 export type ResourceQuotaInfo = kube.ResourceQuotaInfo

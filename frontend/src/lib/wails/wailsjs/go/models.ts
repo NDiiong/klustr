@@ -712,6 +712,24 @@ export namespace kube {
 		    return a;
 		}
 	}
+	export class HPAMetricTarget {
+	    name: string;
+	    current: number;
+	    target: number;
+	    text: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new HPAMetricTarget(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.current = source["current"];
+	        this.target = source["target"];
+	        this.text = source["text"];
+	    }
+	}
 	export class HorizontalPodAutoscalerDetail {
 	    name: string;
 	    namespace: string;
@@ -773,7 +791,7 @@ export namespace kube {
 	    minReplicas: number;
 	    maxReplicas: number;
 	    currentReplicas: number;
-	    targets: string;
+	    metrics: HPAMetricTarget[];
 	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
@@ -788,9 +806,27 @@ export namespace kube {
 	        this.minReplicas = source["minReplicas"];
 	        this.maxReplicas = source["maxReplicas"];
 	        this.currentReplicas = source["currentReplicas"];
-	        this.targets = source["targets"];
+	        this.metrics = this.convertValues(source["metrics"], HPAMetricTarget);
 	        this.createdAt = source["createdAt"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class IngressClassDetail {
 	    name: string;

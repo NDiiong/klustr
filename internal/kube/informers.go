@@ -191,15 +191,22 @@ type PodDisruptionBudgetInfo struct {
 	CreatedAt      string `json:"createdAt"`
 }
 
+type HPAMetricTarget struct {
+	Name    string `json:"name"`
+	Current int32  `json:"current"`
+	Target  int32  `json:"target"`
+	Text    string `json:"text"`
+}
+
 type HorizontalPodAutoscalerInfo struct {
-	Name           string `json:"name"`
-	Namespace      string `json:"namespace"`
-	Reference      string `json:"reference"`
-	MinReplicas    int32  `json:"minReplicas"`
-	MaxReplicas    int32  `json:"maxReplicas"`
-	CurrentReplicas int32 `json:"currentReplicas"`
-	Targets        string `json:"targets"`
-	CreatedAt      string `json:"createdAt"`
+	Name            string            `json:"name"`
+	Namespace       string            `json:"namespace"`
+	Reference       string            `json:"reference"`
+	MinReplicas     int32             `json:"minReplicas"`
+	MaxReplicas     int32             `json:"maxReplicas"`
+	CurrentReplicas int32             `json:"currentReplicas"`
+	Metrics         []HPAMetricTarget `json:"metrics"`
+	CreatedAt       string            `json:"createdAt"`
 }
 
 type NetworkPolicyInfo struct {
@@ -1477,7 +1484,7 @@ func (w *contextWatcher) HorizontalPodAutoscalers(namespace string) []Horizontal
 			MinReplicas:     min,
 			MaxReplicas:     h.Spec.MaxReplicas,
 			CurrentReplicas: h.Status.CurrentReplicas,
-			Targets:         hpaTargets(h),
+			Metrics:         hpaMetricTargets(h),
 			CreatedAt:       h.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
@@ -1485,24 +1492,74 @@ func (w *contextWatcher) HorizontalPodAutoscalers(namespace string) []Horizontal
 	return out
 }
 
-func hpaTargets(h *autoscalingv2.HorizontalPodAutoscaler) string {
-	parts := []string{}
-	for _, m := range h.Status.CurrentMetrics {
-		switch m.Type {
+// hpaMetricTargets returns a structured per-metric current/target view.
+// For Resource/Utilization metrics both Current and Target are populated
+// as percentages, so the frontend can render a bar. Other metric kinds
+// fall back to a human-readable Text field with Current == Target == -1.
+func hpaMetricTargets(h *autoscalingv2.HorizontalPodAutoscaler) []HPAMetricTarget {
+	out := make([]HPAMetricTarget, 0, len(h.Spec.Metrics))
+	for _, spec := range h.Spec.Metrics {
+		switch spec.Type {
 		case autoscalingv2.ResourceMetricSourceType:
-			if m.Resource != nil {
-				cur := "?"
-				if m.Resource.Current.AverageUtilization != nil {
-					cur = fmt.Sprintf("%d%%", *m.Resource.Current.AverageUtilization)
-				}
-				parts = append(parts, fmt.Sprintf("%s=%s", m.Resource.Name, cur))
+			if spec.Resource == nil {
+				continue
 			}
+			name := string(spec.Resource.Name)
+			cur := int32(-1)
+			for _, st := range h.Status.CurrentMetrics {
+				if st.Type != autoscalingv2.ResourceMetricSourceType || st.Resource == nil {
+					continue
+				}
+				if string(st.Resource.Name) != name {
+					continue
+				}
+				if st.Resource.Current.AverageUtilization != nil {
+					cur = *st.Resource.Current.AverageUtilization
+				}
+				break
+			}
+			if spec.Resource.Target.Type == autoscalingv2.UtilizationMetricType && spec.Resource.Target.AverageUtilization != nil {
+				out = append(out, HPAMetricTarget{
+					Name:    name,
+					Current: cur,
+					Target:  *spec.Resource.Target.AverageUtilization,
+				})
+				continue
+			}
+			out = append(out, HPAMetricTarget{
+				Name:    name,
+				Current: -1,
+				Target:  -1,
+				Text:    fmt.Sprintf("%s: %s", name, hpaMetricTargetText(spec.Resource.Target)),
+			})
+		default:
+			out = append(out, HPAMetricTarget{
+				Name:    strings.ToLower(string(spec.Type)),
+				Current: -1,
+				Target:  -1,
+				Text:    string(spec.Type),
+			})
 		}
 	}
-	if len(parts) == 0 {
-		return "<unknown>"
+	return out
+}
+
+func hpaMetricTargetText(t autoscalingv2.MetricTarget) string {
+	switch t.Type {
+	case autoscalingv2.UtilizationMetricType:
+		if t.AverageUtilization != nil {
+			return fmt.Sprintf("%d%%", *t.AverageUtilization)
+		}
+	case autoscalingv2.AverageValueMetricType:
+		if t.AverageValue != nil {
+			return t.AverageValue.String()
+		}
+	case autoscalingv2.ValueMetricType:
+		if t.Value != nil {
+			return t.Value.String()
+		}
 	}
-	return strings.Join(parts, ", ")
+	return "?"
 }
 
 func (w *contextWatcher) NetworkPolicies(namespace string) []NetworkPolicyInfo {
