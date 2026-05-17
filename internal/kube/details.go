@@ -250,7 +250,7 @@ type HorizontalPodAutoscalerDetail struct {
 	MaxReplicas     int32             `json:"maxReplicas"`
 	CurrentReplicas int32             `json:"currentReplicas"`
 	DesiredReplicas int32             `json:"desiredReplicas"`
-	Metrics         []string          `json:"metrics"`
+	Metrics         []HPAMetricTarget `json:"metrics"`
 	Conditions      []ConditionDetail `json:"conditions"`
 	Labels          map[string]string `json:"labels"`
 	Annotations     map[string]string `json:"annotations"`
@@ -1010,12 +1010,7 @@ func (w *contextWatcher) HorizontalPodAutoscaler(namespace, name string) (*Horiz
 	if h.Spec.MinReplicas != nil {
 		minR = *h.Spec.MinReplicas
 	}
-	metrics := make([]string, 0, len(h.Spec.Metrics))
-	for _, m := range h.Spec.Metrics {
-		if s := formatHPAMetricSpec(m); s != "" {
-			metrics = append(metrics, s)
-		}
-	}
+	metrics := hpaMetricTargets(h)
 	conds := make([]ConditionDetail, 0, len(h.Status.Conditions))
 	for _, c := range h.Status.Conditions {
 		conds = append(conds, ConditionDetail{

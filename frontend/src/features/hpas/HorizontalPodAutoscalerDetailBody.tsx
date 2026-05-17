@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { api, type HorizontalPodAutoscalerDetail } from '@/lib/api'
+import { api, type HPAMetricTarget, type HorizontalPodAutoscalerDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
@@ -32,9 +32,9 @@ export function HorizontalPodAutoscalerDetailBody({
       </Section>
       {detail.metrics.length > 0 && (
         <Section title="Metrics">
-          <div className="space-y-1 font-mono text-xs">
+          <div className="space-y-2">
             {detail.metrics.map((m, i) => (
-              <div key={i} className="break-all">{m}</div>
+              <MetricBar key={`${m.name}-${i}`} metric={m} />
             ))}
           </div>
         </Section>
@@ -67,4 +67,38 @@ export function HorizontalPodAutoscalerDetailBody({
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>
   )
+}
+
+function MetricBar({ metric }: { metric: HPAMetricTarget }) {
+  if (metric.target <= 0 || metric.current < 0) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded border border-border bg-muted/20 px-3 py-2 text-xs">
+        <span className="font-mono uppercase tracking-wide text-muted-foreground">{metric.name}</span>
+        <span className="font-mono">{metric.text || '—'}</span>
+      </div>
+    )
+  }
+  const fillPct = Math.min(100, Math.max(0, (metric.current / metric.target) * 100))
+  return (
+    <div className="rounded border border-border bg-muted/20 px-3 py-2">
+      <div className="mb-1.5 flex items-center justify-between text-xs">
+        <span className="font-mono uppercase tracking-wide text-muted-foreground">{metric.name}</span>
+        <span className="font-mono tabular-nums">
+          {metric.current}% <span className="text-muted-foreground">/ target {metric.target}%</span>
+        </span>
+      </div>
+      <div className="relative h-2 overflow-hidden rounded-sm bg-muted/40">
+        <div
+          className={`absolute inset-y-0 left-0 ${usageColor(fillPct)}`}
+          style={{ width: fillPct + '%' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function usageColor(pct: number): string {
+  if (pct >= 90) return 'bg-destructive'
+  if (pct >= 70) return 'bg-amber-500'
+  return 'bg-emerald-500'
 }

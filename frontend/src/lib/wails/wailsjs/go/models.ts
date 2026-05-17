@@ -739,7 +739,7 @@ export namespace kube {
 	    maxReplicas: number;
 	    currentReplicas: number;
 	    desiredReplicas: number;
-	    metrics: string[];
+	    metrics: HPAMetricTarget[];
 	    conditions: ConditionDetail[];
 	    labels: Record<string, string>;
 	    annotations: Record<string, string>;
@@ -759,7 +759,7 @@ export namespace kube {
 	        this.maxReplicas = source["maxReplicas"];
 	        this.currentReplicas = source["currentReplicas"];
 	        this.desiredReplicas = source["desiredReplicas"];
-	        this.metrics = source["metrics"];
+	        this.metrics = this.convertValues(source["metrics"], HPAMetricTarget);
 	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
 	        this.labels = source["labels"];
 	        this.annotations = source["annotations"];

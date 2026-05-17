@@ -1562,55 +1562,6 @@ func hpaMetricTargetText(t autoscalingv2.MetricTarget) string {
 	return "?"
 }
 
-// formatHPAMetricSpec produces a single-line human-readable description
-// for an autoscalingv2.MetricSpec, used by the HPA detail view.
-func formatHPAMetricSpec(m autoscalingv2.MetricSpec) string {
-	switch m.Type {
-	case autoscalingv2.ResourceMetricSourceType:
-		if m.Resource == nil {
-			return ""
-		}
-		return fmt.Sprintf("Resource %s %s",
-			m.Resource.Name,
-			formatMetricTargetTyped(m.Resource.Target))
-	case autoscalingv2.ContainerResourceMetricSourceType:
-		if m.ContainerResource == nil {
-			return ""
-		}
-		return fmt.Sprintf("ContainerResource %s on %s %s",
-			m.ContainerResource.Name,
-			m.ContainerResource.Container,
-			formatMetricTargetTyped(m.ContainerResource.Target))
-	case autoscalingv2.PodsMetricSourceType:
-		if m.Pods == nil {
-			return ""
-		}
-		return fmt.Sprintf("Pods %s %s",
-			m.Pods.Metric.Name,
-			formatMetricTargetTyped(m.Pods.Target))
-	case autoscalingv2.ObjectMetricSourceType:
-		if m.Object == nil {
-			return ""
-		}
-		return fmt.Sprintf("Object %s/%s on %s %s",
-			m.Object.DescribedObject.Kind,
-			m.Object.DescribedObject.Name,
-			m.Object.Metric.Name,
-			formatMetricTargetTyped(m.Object.Target))
-	case autoscalingv2.ExternalMetricSourceType:
-		if m.External == nil {
-			return ""
-		}
-		return fmt.Sprintf("External %s %s",
-			m.External.Metric.Name,
-			formatMetricTargetTyped(m.External.Target))
-	}
-	return string(m.Type)
-}
-
-func formatMetricTargetTyped(t autoscalingv2.MetricTarget) string {
-	return fmt.Sprintf("%s=%s", t.Type, hpaMetricTargetText(t))
-}
 
 func (w *contextWatcher) NetworkPolicies(namespace string) []NetworkPolicyInfo {
 	lister := w.factory.Networking().V1().NetworkPolicies().Lister()
