@@ -40,10 +40,11 @@ type Props = {
   kind: ResourceKind
   namespace: string
   name: string
+  canPortForward?: boolean
   children: React.ReactNode
 }
 
-export function RowContextMenu({ kind, namespace, name, children }: Props) {
+export function RowContextMenu({ kind, namespace, name, canPortForward, children }: Props) {
   const openResource = useUIStore((s) => s.openResource)
   const setPendingAction = useUIStore((s) => s.setPendingAction)
 
@@ -82,7 +83,7 @@ export function RowContextMenu({ kind, namespace, name, children }: Props) {
             <span>Exec shell</span>
           </ContextMenuItem>
         )}
-        {isPod && (
+        {isPod && canPortForward && (
           <ContextMenuItem onSelect={() => setPendingAction({ kind: 'portforward', resource })}>
             <Network />
             <span>Port-forward…</span>

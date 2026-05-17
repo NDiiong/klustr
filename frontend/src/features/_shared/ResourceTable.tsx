@@ -333,6 +333,8 @@ export function ResourceTable<T>({
               table.getRowModel().rows.map((row) => {
                 const identity = row.original as RowIdentity
                 const flashing = flashKey !== null && flashKey === identityKey(identity)
+                const canPortForward =
+                  kind === 'Pod' ? (row.original as { hasPorts?: boolean }).hasPorts === true : false
                 const rowEl = (
                   <tr
                     key={row.id}
@@ -362,6 +364,7 @@ export function ResourceTable<T>({
                     kind={kind as ResourceKind}
                     namespace={identity.namespace ?? ''}
                     name={identity.name}
+                    canPortForward={canPortForward}
                   >
                     {rowEl}
                   </RowContextMenu>
