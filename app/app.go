@@ -201,6 +201,10 @@ func (a *App) ScaleResource(contextName, kind, namespace, name string, replicas 
 	return a.clients.ScaleResource(a.ctx, contextName, kind, namespace, name, int32(replicas))
 }
 
+func (a *App) RestartWorkload(contextName, kind, namespace, name string) error {
+	return a.clients.RestartWorkload(a.ctx, contextName, kind, namespace, name)
+}
+
 func (a *App) StartPortForward(contextName, namespace, podName string, localPort, remotePort int) (kube.PortForwardInfo, error) {
 	return a.clients.StartPortForward(contextName, namespace, podName, uint16(localPort), uint16(remotePort))
 }

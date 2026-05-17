@@ -2,7 +2,9 @@ package kube
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -145,6 +147,45 @@ func (m *ClientManager) DeleteResource(ctx context.Context, contextName, kind, n
 		return err
 	}
 	return resourceFor(dyn, gvr, namespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+func (m *ClientManager) RestartWorkload(ctx context.Context, contextName, kind, namespace, name string) error {
+	gvr, err := resourceForKind(kind)
+	if err != nil {
+		return err
+	}
+	switch kind {
+	case "Deployment", "StatefulSet", "DaemonSet":
+	default:
+		return fmt.Errorf("restart not supported for kind %q", kind)
+	}
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return err
+	}
+	patch := map[string]any{
+		"spec": map[string]any{
+			"template": map[string]any{
+				"metadata": map[string]any{
+					"annotations": map[string]any{
+						"kubectl.kubernetes.io/restartedAt": time.Now().UTC().Format(time.RFC3339),
+					},
+				},
+			},
+		},
+	}
+	data, err := json.Marshal(patch)
+	if err != nil {
+		return err
+	}
+	_, err = resourceFor(dyn, gvr, namespace).Patch(
+		ctx,
+		name,
+		types.StrategicMergePatchType,
+		data,
+		metav1.PatchOptions{FieldManager: "klustr"},
+	)
+	return err
 }
 
 func (m *ClientManager) ScaleResource(ctx context.Context, contextName, kind, namespace, name string, replicas int32) error {

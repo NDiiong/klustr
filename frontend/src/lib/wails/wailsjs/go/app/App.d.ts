@@ -146,6 +146,8 @@ export function PodLogTargets(arg1:string,arg2:string,arg3:Record<string, string
 
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
 
+export function RestartWorkload(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function RevealSecretValue(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function SaveTextFile(arg1:string,arg2:string):Promise<string>;
