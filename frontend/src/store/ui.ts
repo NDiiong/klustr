@@ -44,6 +44,13 @@ function readCollapsedNavGroups(): string[] {
   }
 }
 
+const DEFAULT_CONTEXT_KEY = 'klustr-default-context'
+
+function readDefaultContext(): string | null {
+  const v = localStorage.getItem(DEFAULT_CONTEXT_KEY)
+  return v && v.length > 0 ? v : null
+}
+
 export type ResourceView =
   | 'overview'
   | 'workloadsoverview'
@@ -125,12 +132,14 @@ type UIState = {
   lastSelectedResource: SelectedResource | null
   themeId: ThemeId
   collapsedNavGroups: string[]
+  defaultContext: string | null
   setSelectedContext: (name: string | null) => void
   setSelectedNamespace: (name: string | null) => void
   setSelectedView: (view: ResourceView) => void
   setSelectedResource: (resource: SelectedResource | null) => void
   setTheme: (id: ThemeId) => void
   toggleNavGroup: (label: string) => void
+  setDefaultContext: (name: string | null) => void
 }
 
 export const useUIStore = create<UIState>((set) => {
@@ -149,14 +158,17 @@ export const useUIStore = create<UIState>((set) => {
     mql.addEventListener('change', onSystemChange)
   }
 
+  const initialDefaultContext = readDefaultContext()
+
   return {
-    selectedContext: null,
+    selectedContext: initialDefaultContext,
     selectedNamespace: null,
     selectedView: 'overview',
     selectedResource: null,
     lastSelectedResource: null,
     themeId: initialThemeId,
     collapsedNavGroups: readCollapsedNavGroups(),
+    defaultContext: initialDefaultContext,
     setSelectedContext: (name) =>
       set((s) =>
         s.selectedContext === name
@@ -193,5 +205,13 @@ export const useUIStore = create<UIState>((set) => {
         localStorage.setItem(COLLAPSED_NAV_GROUPS_KEY, JSON.stringify(next))
         return { collapsedNavGroups: next }
       }),
+    setDefaultContext: (name) => {
+      if (name && name.length > 0) {
+        localStorage.setItem(DEFAULT_CONTEXT_KEY, name)
+      } else {
+        localStorage.removeItem(DEFAULT_CONTEXT_KEY)
+      }
+      set({ defaultContext: name && name.length > 0 ? name : null })
+    },
   }
 })
