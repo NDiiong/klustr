@@ -14,15 +14,15 @@ export function PortForwardIndicator() {
     },
   })
 
-  if (list.length === 0) return null
+  const active = list.length > 0
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Network className="text-emerald-500" />
+        <Button variant="ghost" size="sm" aria-label="Port-forwards">
+          <Network className={active ? 'text-emerald-500' : 'text-muted-foreground'} />
           <span className="text-xs">
-            {list.length} forward{list.length === 1 ? '' : 's'}
+            {active ? `${list.length} forward${list.length === 1 ? '' : 's'}` : 'No forwards'}
           </span>
         </Button>
       </PopoverTrigger>
@@ -30,6 +30,11 @@ export function PortForwardIndicator() {
         <div className="border-b border-border px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Active port-forwards
         </div>
+        {!active && (
+          <div className="px-3 py-4 text-xs text-muted-foreground">
+            No active port-forwards. Start one from a Pod or Service detail panel.
+          </div>
+        )}
         <ul className="max-h-80 overflow-auto">
           {list.map((pf) => (
             <li key={pf.id} className="flex items-center gap-2 border-b border-border px-3 py-2 text-xs last:border-b-0">
