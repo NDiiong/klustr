@@ -35,6 +35,7 @@ import { CronJobsView } from '@/features/cronjobs/CronJobsView'
 import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
+import { OverviewView } from '@/features/overview/OverviewView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { NamespaceSearchPalette } from '@/features/contexts/NamespaceSearchPalette'
@@ -52,6 +53,10 @@ import { usePortForwards } from '@/store/portForwards'
 type NavItem = { label: string; view?: ResourceView }
 
 const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
+  {
+    label: 'Overview',
+    items: [{ label: 'Cluster', view: 'overview' }],
+  },
   {
     label: 'Workloads',
     items: [
@@ -113,6 +118,8 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
 function MainView() {
   const view = useUIStore((s) => s.selectedView)
   switch (view) {
+    case 'overview':
+      return <OverviewView />
     case 'pods':
       return <PodsView />
     case 'deployments':
