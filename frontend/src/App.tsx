@@ -54,8 +54,13 @@ type NavItem = { label: string; view?: ResourceView }
 
 const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
   {
-    label: 'Overview',
-    items: [{ label: 'Cluster', view: 'overview' }],
+    label: 'Cluster',
+    items: [
+      { label: 'Overview', view: 'overview' },
+      { label: 'Nodes', view: 'nodes' },
+      { label: 'Namespaces', view: 'namespaces' },
+      { label: 'Events', view: 'events' },
+    ],
   },
   {
     label: 'Workloads',
@@ -79,6 +84,11 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'PodDisruptionBudgets', view: 'poddisruptionbudgets' },
       { label: 'ResourceQuotas', view: 'resourcequotas' },
       { label: 'LimitRanges', view: 'limitranges' },
+      { label: 'PriorityClasses', view: 'priorityclasses' },
+      { label: 'RuntimeClasses', view: 'runtimeclasses' },
+      { label: 'Leases', view: 'leases' },
+      { label: 'MutatingWebhooks', view: 'mutatingwebhookconfigurations' },
+      { label: 'ValidatingWebhooks', view: 'validatingwebhookconfigurations' },
     ],
   },
   {
@@ -98,19 +108,6 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
       { label: 'PersistentVolumeClaims', view: 'persistentvolumeclaims' },
       { label: 'PersistentVolumes', view: 'persistentvolumes' },
       { label: 'StorageClasses', view: 'storageclasses' },
-    ],
-  },
-  {
-    label: 'Cluster',
-    items: [
-      { label: 'Nodes', view: 'nodes' },
-      { label: 'Namespaces', view: 'namespaces' },
-      { label: 'PriorityClasses', view: 'priorityclasses' },
-      { label: 'RuntimeClasses', view: 'runtimeclasses' },
-      { label: 'Events', view: 'events' },
-      { label: 'Leases', view: 'leases' },
-      { label: 'MutatingWebhooks', view: 'mutatingwebhookconfigurations' },
-      { label: 'ValidatingWebhooks', view: 'validatingwebhookconfigurations' },
     ],
   },
 ]
