@@ -63,8 +63,9 @@ export function ConnectionsScreen() {
         <ThemePicker />
       </header>
 
-      <main className="flex flex-1 flex-col overflow-hidden">
-        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 overflow-hidden px-6 pt-10 pb-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center px-6 py-10">
+          <div className="flex w-full max-w-5xl flex-col gap-5">
           <div className="flex flex-col items-center gap-1.5 text-center">
             <h1 className="text-lg font-semibold tracking-tight">Choose a context</h1>
             <p className="text-xs text-muted-foreground">
@@ -95,7 +96,7 @@ export function ConnectionsScreen() {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-1">
+          <div>
             {state.kind === 'loading' && (
               <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" />
@@ -135,6 +136,7 @@ export function ConnectionsScreen() {
                 ))}
               </ul>
             )}
+          </div>
           </div>
         </div>
       </main>
