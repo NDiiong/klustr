@@ -121,5 +121,16 @@ jobs:
         with:
           files: artifacts/klustr-*-darwin-*
           generate_release_notes: true
+          append_body: true
+          body: |
+            ## Install (macOS)
+
+            Download `klustr-${{ github.ref_name }}-darwin-arm64.tar.gz`, extract, and move `klustr.app` into `/Applications`. The build is not notarized, so before first launch run:
+
+            ```bash
+            xattr -cr /Applications/klustr.app
+            ```
+
+            That clears the quarantine attribute and silences Gatekeeper.
           draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
