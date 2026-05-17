@@ -75,6 +75,7 @@ import {
   ListStatefulSets,
   PingContext,
   ResizeExec,
+  RestartWorkload,
   ScaleResource,
   SendExecInput,
   StartExec,
@@ -323,6 +324,8 @@ export const api = {
     DeleteResource(ctx, kind, ns, name),
   scaleResource: (ctx: string, kind: string, ns: string, name: string, replicas: number): Promise<void> =>
     ScaleResource(ctx, kind, ns, name, replicas),
+  restartWorkload: (ctx: string, kind: string, ns: string, name: string): Promise<void> =>
+    RestartWorkload(ctx, kind, ns, name),
   startPortForward: (
     ctx: string,
     namespace: string,
