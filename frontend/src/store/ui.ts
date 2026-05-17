@@ -124,12 +124,20 @@ export type SelectedResource = {
   name: string
 }
 
+export type DetailTab = 'overview' | 'logs' | 'exec' | 'events' | 'yaml'
+
+export type PendingAction =
+  | { kind: 'delete'; resource: SelectedResource }
+  | { kind: 'portforward'; resource: SelectedResource }
+
 type UIState = {
   selectedContext: string | null
   selectedNamespace: string | null
   selectedView: ResourceView
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
+  requestedTab: DetailTab | null
+  pendingAction: PendingAction | null
   themeId: ThemeId
   collapsedNavGroups: string[]
   defaultContext: string | null
@@ -137,6 +145,8 @@ type UIState = {
   setSelectedNamespace: (name: string | null) => void
   setSelectedView: (view: ResourceView) => void
   setSelectedResource: (resource: SelectedResource | null) => void
+  openResource: (resource: SelectedResource, tab?: DetailTab) => void
+  setPendingAction: (action: PendingAction | null) => void
   setTheme: (id: ThemeId) => void
   toggleNavGroup: (label: string) => void
   setDefaultContext: (name: string | null) => void
@@ -166,6 +176,8 @@ export const useUIStore = create<UIState>((set) => {
     selectedView: 'overview',
     selectedResource: null,
     lastSelectedResource: null,
+    requestedTab: null,
+    pendingAction: null,
     themeId: initialThemeId,
     collapsedNavGroups: readCollapsedNavGroups(),
     defaultContext: initialDefaultContext,
@@ -182,12 +194,25 @@ export const useUIStore = create<UIState>((set) => {
       ),
     setSelectedNamespace: (name) => set({ selectedNamespace: name }),
     setSelectedView: (view) =>
-      set({ selectedView: view, selectedResource: null, lastSelectedResource: null }),
+      set({
+        selectedView: view,
+        selectedResource: null,
+        lastSelectedResource: null,
+        requestedTab: null,
+      }),
     setSelectedResource: (resource) =>
       set((s) => ({
         selectedResource: resource,
         lastSelectedResource: resource ?? s.selectedResource ?? s.lastSelectedResource,
+        requestedTab: null,
       })),
+    openResource: (resource, tab) =>
+      set({
+        selectedResource: resource,
+        lastSelectedResource: resource,
+        requestedTab: tab ?? null,
+      }),
+    setPendingAction: (action) => set({ pendingAction: action }),
     setTheme: (id) => {
       if (followingSystem) {
         mql.removeEventListener('change', onSystemChange)

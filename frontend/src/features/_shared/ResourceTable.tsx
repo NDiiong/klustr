@@ -12,9 +12,10 @@ import {
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown, Search, X } from 'lucide-react'
 import { onKubeChange } from '@/lib/events'
-import { useUIStore } from '@/store/ui'
+import { useUIStore, type ResourceKind } from '@/store/ui'
 import { useTablePrefs } from '@/store/tablePrefs'
 import { ColumnControls } from './ColumnControls'
+import { RowContextMenu } from './RowContextMenu'
 
 type RowIdentity = { namespace?: string; name?: string }
 
@@ -332,7 +333,7 @@ export function ResourceTable<T>({
               table.getRowModel().rows.map((row) => {
                 const identity = row.original as RowIdentity
                 const flashing = flashKey !== null && flashKey === identityKey(identity)
-                return (
+                const rowEl = (
                   <tr
                     key={row.id}
                     className={[
@@ -353,6 +354,17 @@ export function ResourceTable<T>({
                     ))}
                     <td aria-hidden />
                   </tr>
+                )
+                if (!identity.name) return rowEl
+                return (
+                  <RowContextMenu
+                    key={row.id}
+                    kind={kind as ResourceKind}
+                    namespace={identity.namespace ?? ''}
+                    name={identity.name}
+                  >
+                    {rowEl}
+                  </RowContextMenu>
                 )
               })
             )}

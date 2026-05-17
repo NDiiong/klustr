@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type PodDetail } from '@/lib/api'
-import { useUIStore, type SelectedResource } from '@/store/ui'
+import { useUIStore, type DetailTab, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
 import { CopyButton } from './Copyable'
 import { ErrorBox } from './DetailPrimitives'
@@ -135,10 +135,22 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
   if (resource.kind === 'Pod') {
     return <PodTabs contextName={contextName} namespace={resource.namespace} name={resource.name} />
   }
+  return <NonPodTabs contextName={contextName} resource={resource} />
+}
+
+function NonPodTabs({ contextName, resource }: { contextName: string | null; resource: SelectedResource }) {
   const hasAggregatedLogs = (WORKLOAD_LOG_KINDS as readonly string[]).includes(resource.kind)
   const hasEvents = (EVENT_BEARING_KINDS as readonly string[]).includes(resource.kind)
+  const requestedTab = useUIStore((s) => s.requestedTab)
+  const allowed: DetailTab[] = ['overview']
+  if (hasAggregatedLogs) allowed.push('logs')
+  if (hasEvents) allowed.push('events')
+  allowed.push('yaml')
+  const initialTab: DetailTab =
+    requestedTab && allowed.includes(requestedTab) ? requestedTab : 'overview'
+  const [tab, setTab] = useState<DetailTab>(initialTab)
   return (
-    <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
+    <Tabs value={tab} onValueChange={(v) => setTab(v as DetailTab)} className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         {hasAggregatedLogs && <TabsTrigger value="logs">Logs</TabsTrigger>}
@@ -229,14 +241,15 @@ function PodTabs({
 }) {
   const load = useCallback((ctx: string) => api.getPod(ctx, namespace, name), [namespace, name])
   const { detail, error } = useResourceDetail<PodDetail>(contextName, 'Pod', load)
-  const [tab, setTab] = useState<'overview' | 'logs' | 'exec' | 'events' | 'yaml'>('overview')
+  const requestedTab = useUIStore((s) => s.requestedTab)
+  const [tab, setTab] = useState<DetailTab>(requestedTab ?? 'overview')
 
   useEffect(() => {
-    setTab('overview')
-  }, [namespace, name])
+    setTab(requestedTab ?? 'overview')
+  }, [namespace, name, requestedTab])
 
   return (
-    <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex min-h-0 flex-1 flex-col">
+    <Tabs value={tab} onValueChange={(v) => setTab(v as DetailTab)} className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="logs" disabled={!detail}>Logs</TabsTrigger>
