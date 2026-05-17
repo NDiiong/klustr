@@ -8,8 +8,14 @@ type ConnStatus = 'idle' | 'connecting' | 'connected' | 'error'
 
 export function StatusBar() {
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
   const portForwards = usePortForwards((s) => s.list)
+  const namespaceText =
+    selectedNamespaces.length === 0
+      ? 'all namespaces'
+      : selectedNamespaces.length === 1
+        ? selectedNamespaces[0]
+        : `${selectedNamespaces.length} namespaces`
   const [serverVersion, setServerVersion] = useState<string | null>(null)
   const [status, setStatus] = useState<ConnStatus>('idle')
   const [appVersion, setAppVersion] = useState<string | null>(null)
@@ -74,9 +80,14 @@ export function StatusBar() {
         {selectedContext ?? 'no context'}
       </span>
       {selectedContext && (
-        <span className="inline-flex items-center gap-1.5">
+        <span
+          className="inline-flex items-center gap-1.5"
+          title={
+            selectedNamespaces.length > 1 ? selectedNamespaces.join(', ') : undefined
+          }
+        >
           <Folder className="size-3" />
-          {selectedNamespace ?? 'all namespaces'}
+          {namespaceText}
         </span>
       )}
       {serverVersion && (
