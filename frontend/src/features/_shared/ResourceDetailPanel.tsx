@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type PodDetail } from '@/lib/api'
 import { useUIStore, type DetailTab, type SelectedResource } from '@/store/ui'
@@ -53,6 +55,8 @@ type Props = {
 
 export function ResourceDetailPanel({ contextName, resource }: Props) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
+  const goBackResource = useUIStore((s) => s.goBackResource)
+  const canGoBack = useUIStore((s) => s.resourceNavStack.length > 0)
   const open = resource !== null
 
   return (
@@ -64,6 +68,17 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
     >
       <DialogContent className="flex h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
         <DialogHeader className="flex flex-row items-start justify-between gap-4 border-b border-border px-6 py-4 pr-12">
+          {canGoBack && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={goBackResource}
+              aria-label="Back to previous resource"
+              className="-ml-2 mt-0.5 size-7 shrink-0"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+          )}
           <div className="min-w-0 flex-1 space-y-1">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{resource?.kind}</div>
             <div className="group flex min-w-0 items-center gap-1.5">

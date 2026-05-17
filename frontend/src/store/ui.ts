@@ -137,6 +137,7 @@ type UIState = {
   selectedView: ResourceView
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
+  resourceNavStack: SelectedResource[]
   requestedTab: DetailTab | null
   pendingAction: PendingAction | null
   themeId: ThemeId
@@ -147,10 +148,15 @@ type UIState = {
   setSelectedView: (view: ResourceView) => void
   setSelectedResource: (resource: SelectedResource | null) => void
   openResource: (resource: SelectedResource, tab?: DetailTab) => void
+  goBackResource: () => void
   setPendingAction: (action: PendingAction | null) => void
   setTheme: (id: ThemeId) => void
   toggleNavGroup: (label: string) => void
   setDefaultContext: (name: string | null) => void
+}
+
+function sameResource(a: SelectedResource, b: SelectedResource): boolean {
+  return a.kind === b.kind && a.namespace === b.namespace && a.name === b.name
 }
 
 export const useUIStore = create<UIState>((set) => {
@@ -177,6 +183,7 @@ export const useUIStore = create<UIState>((set) => {
     selectedView: 'overview',
     selectedResource: null,
     lastSelectedResource: null,
+    resourceNavStack: [],
     requestedTab: null,
     pendingAction: null,
     themeId: initialThemeId,
@@ -199,19 +206,36 @@ export const useUIStore = create<UIState>((set) => {
         selectedView: view,
         selectedResource: null,
         lastSelectedResource: null,
+        resourceNavStack: [],
         requestedTab: null,
       }),
     setSelectedResource: (resource) =>
       set((s) => ({
         selectedResource: resource,
         lastSelectedResource: resource ?? s.selectedResource ?? s.lastSelectedResource,
+        resourceNavStack: [],
         requestedTab: null,
       })),
     openResource: (resource, tab) =>
-      set({
+      set((s) => ({
+        resourceNavStack:
+          s.selectedResource && !sameResource(s.selectedResource, resource)
+            ? [...s.resourceNavStack, s.selectedResource]
+            : s.resourceNavStack,
         selectedResource: resource,
         lastSelectedResource: resource,
         requestedTab: tab ?? null,
+      })),
+    goBackResource: () =>
+      set((s) => {
+        if (s.resourceNavStack.length === 0) return s
+        const next = s.resourceNavStack[s.resourceNavStack.length - 1]
+        return {
+          selectedResource: next,
+          lastSelectedResource: next,
+          resourceNavStack: s.resourceNavStack.slice(0, -1),
+          requestedTab: null,
+        }
       }),
     setPendingAction: (action) => set({ pendingAction: action }),
     setTheme: (id) => {
