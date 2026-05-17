@@ -93,7 +93,7 @@ export function RowContextMenu({ kind, namespace, name, canPortForward, children
         {isPod && canPortForward && (
           <ContextMenuItem onSelect={() => setPendingAction({ kind: 'portforward', resource })}>
             <Network />
-            <span>Port-forward…</span>
+            <span>Port-forward</span>
           </ContextMenuItem>
         )}
         {hasEvents && (
@@ -109,7 +109,7 @@ export function RowContextMenu({ kind, namespace, name, canPortForward, children
         {isRestartable && (
           <ContextMenuItem onSelect={() => setPendingAction({ kind: 'restart', resource })}>
             <RotateCcw />
-            <span>Rolling restart…</span>
+            <span>Rolling restart</span>
           </ContextMenuItem>
         )}
         <ContextMenuSeparator />
@@ -129,7 +129,7 @@ export function RowContextMenu({ kind, namespace, name, canPortForward, children
           onSelect={() => setPendingAction({ kind: 'delete', resource })}
         >
           <Trash2 />
-          <span>Delete…</span>
+          <span>Delete</span>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
