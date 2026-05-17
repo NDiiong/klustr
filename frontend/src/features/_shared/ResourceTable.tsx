@@ -268,7 +268,7 @@ export function ResourceTable<T>({
           className="border-collapse text-sm"
           style={{ width: '100%', minWidth: table.getTotalSize(), tableLayout: 'fixed' }}
         >
-          <thead className="sticky top-0 bg-background">
+          <thead className="sticky top-0 z-10 bg-background">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id} className="border-b border-border">
                 {hg.headers.map((h) => {
