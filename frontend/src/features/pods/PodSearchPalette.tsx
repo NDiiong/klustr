@@ -24,16 +24,11 @@ export function PodSearchPalette() {
       setPods([])
       return
     }
-    let cancelled = false
     const reload = () => {
       api
         .listPods(selectedContext, '')
-        .then((list) => {
-          if (!cancelled) setPods(list ?? [])
-        })
-        .catch(() => {
-          if (!cancelled) setPods([])
-        })
+        .then((list) => setPods(list ?? []))
+        .catch(() => setPods([]))
     }
     reload()
     return onKubeChange('Pod', (ctx) => {
