@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -13,9 +14,24 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
-import { useUIStore, type SelectedResource } from '@/store/ui'
+import { useUIStore, type ResourceKind, type SelectedResource } from '@/store/ui'
+
+const CONFIRM_BY_NAME_KINDS: ReadonlySet<ResourceKind> = new Set<ResourceKind>([
+  'Namespace',
+  'Node',
+  'PersistentVolume',
+  'PersistentVolumeClaim',
+  'Deployment',
+  'StatefulSet',
+  'DaemonSet',
+  'ReplicaSet',
+  'ReplicationController',
+  'CronJob',
+  'Job',
+])
 
 type Props = {
   contextName: string | null
@@ -24,6 +40,10 @@ type Props = {
 
 export function DeleteResourceButton({ contextName, resource }: Props) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
+  const [typedName, setTypedName] = useState('')
+
+  const requireName = CONFIRM_BY_NAME_KINDS.has(resource.kind)
+  const nameMatches = typedName === resource.name
 
   const del = useMutation({
     mutationFn: async () => {
@@ -37,7 +57,14 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
   })
 
   return (
-    <AlertDialog>
+    <AlertDialog
+      onOpenChange={(open) => {
+        if (!open) {
+          setTypedName('')
+          del.reset()
+        }
+      }}
+    >
       <Tooltip>
         <TooltipTrigger asChild>
           <AlertDialogTrigger asChild>
@@ -58,9 +85,9 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
             <div className="space-y-2">
               <p>
                 This will issue <code className="font-mono text-xs">DELETE</code> against{' '}
-                <span className="font-mono text-xs">{resource.kind.toLowerCase()}/{resource.name}</span>
+                <span className="font-mono text-xs allow-select">{resource.kind.toLowerCase()}/{resource.name}</span>
                 {resource.namespace ? (
-                  <> in namespace <span className="font-mono text-xs">{resource.namespace}</span></>
+                  <> in namespace <span className="font-mono text-xs allow-select">{resource.namespace}</span></>
                 ) : null}
                 . The cluster's default propagation policy applies.
               </p>
@@ -72,10 +99,34 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {requireName && (
+          <div className="space-y-2">
+            <label htmlFor="delete-confirm-name" className="text-sm">
+              Type <span className="font-mono text-xs allow-select">{resource.name}</span> to confirm:
+            </label>
+            <Input
+              id="delete-confirm-name"
+              autoFocus
+              autoComplete="off"
+              spellCheck={false}
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && nameMatches && !del.isPending) {
+                  e.preventDefault()
+                  del.mutate()
+                }
+              }}
+              disabled={del.isPending}
+              className="font-mono text-sm"
+              placeholder={resource.name}
+            />
+          </div>
+        )}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            disabled={del.isPending}
+            disabled={del.isPending || (requireName && !nameMatches)}
             onClick={(e) => {
               e.preventDefault()
               del.mutate()
