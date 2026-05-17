@@ -1012,7 +1012,9 @@ func (w *contextWatcher) HorizontalPodAutoscaler(namespace, name string) (*Horiz
 	}
 	metrics := make([]string, 0, len(h.Spec.Metrics))
 	for _, m := range h.Spec.Metrics {
-		metrics = append(metrics, fmt.Sprintf("%v", m))
+		if s := formatHPAMetricSpec(m); s != "" {
+			metrics = append(metrics, s)
+		}
 	}
 	conds := make([]ConditionDetail, 0, len(h.Status.Conditions))
 	for _, c := range h.Status.Conditions {
