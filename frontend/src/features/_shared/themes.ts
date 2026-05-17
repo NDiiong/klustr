@@ -337,7 +337,7 @@ export const THEMES: ThemeDefinition[] = [
     mode: 'light',
     cssClass: 'theme-dracula-light',
     xterm: draculaLightXterm,
-    swatch: { background: '#f8f8f2', primary: '#7c3aed', accent: '#e2dff5' },
+    swatch: { background: '#f8f8f2', primary: '#6f42c1', accent: '#ddd6f3' },
   },
   {
     id: 'monokai-light',
@@ -353,7 +353,7 @@ export const THEMES: ThemeDefinition[] = [
     mode: 'light',
     cssClass: 'theme-nord-light',
     xterm: nordLightXterm,
-    swatch: { background: '#eceff4', primary: '#5e81ac', accent: '#d8dee9' },
+    swatch: { background: '#e5e9f0', primary: '#5e81ac', accent: '#c8d0db' },
   },
   {
     id: 'tokyo-night-day',
@@ -409,7 +409,7 @@ export const THEMES: ThemeDefinition[] = [
     mode: 'dark',
     cssClass: 'theme-tokyo-night',
     xterm: tokyoNightXterm,
-    swatch: { background: '#1a1b26', primary: '#7aa2f7', accent: '#2a2e48' },
+    swatch: { background: '#1a1b26', primary: '#7aa2f7', accent: '#323862' },
   },
   {
     id: 'one-dark',
@@ -417,7 +417,7 @@ export const THEMES: ThemeDefinition[] = [
     mode: 'dark',
     cssClass: 'theme-one-dark',
     xterm: oneDarkXterm,
-    swatch: { background: '#282c34', primary: '#61afef', accent: '#353b45' },
+    swatch: { background: '#282c34', primary: '#61afef', accent: '#3e4451' },
   },
 ]
 
