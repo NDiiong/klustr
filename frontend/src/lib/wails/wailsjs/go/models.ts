@@ -142,6 +142,92 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class ContainerEnvFrom {
+	    source: string;
+	    prefix: string;
+	    ref?: EnvVarRef;
+	
+	    static createFrom(source: any = {}) {
+	        return new ContainerEnvFrom(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.source = source["source"];
+	        this.prefix = source["prefix"];
+	        this.ref = this.convertValues(source["ref"], EnvVarRef);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class EnvVarRef {
+	    kind: string;
+	    name: string;
+	    key: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new EnvVarRef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	        this.key = source["key"];
+	    }
+	}
+	export class ContainerEnvVar {
+	    name: string;
+	    value: string;
+	    valueFrom: string;
+	    ref?: EnvVarRef;
+	
+	    static createFrom(source: any = {}) {
+	        return new ContainerEnvVar(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.value = source["value"];
+	        this.valueFrom = source["valueFrom"];
+	        this.ref = this.convertValues(source["ref"], EnvVarRef);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ContainerPort {
 	    name: string;
 	    containerPort: number;
@@ -168,6 +254,8 @@ export namespace kube {
 	    startedAt: string;
 	    lastState: string;
 	    ports: ContainerPort[];
+	    env: ContainerEnvVar[];
+	    envFrom: ContainerEnvFrom[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ContainerDetail(source);
@@ -184,6 +272,8 @@ export namespace kube {
 	        this.startedAt = source["startedAt"];
 	        this.lastState = source["lastState"];
 	        this.ports = this.convertValues(source["ports"], ContainerPort);
+	        this.env = this.convertValues(source["env"], ContainerEnvVar);
+	        this.envFrom = this.convertValues(source["envFrom"], ContainerEnvFrom);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -204,6 +294,8 @@ export namespace kube {
 		    return a;
 		}
 	}
+	
+	
 	
 	export class ContainerSummary {
 	    name: string;
@@ -737,6 +829,7 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	
 	
 	
 	

@@ -57,21 +57,42 @@ type OwnerRef struct {
 }
 
 type ContainerDetail struct {
-	Name         string          `json:"name"`
-	Image        string          `json:"image"`
-	State        string          `json:"state"`
-	StateReason  string          `json:"stateReason"`
-	Ready        bool            `json:"ready"`
-	RestartCount int32           `json:"restartCount"`
-	StartedAt    string          `json:"startedAt"`
-	LastState    string          `json:"lastState"`
-	Ports        []ContainerPort `json:"ports"`
+	Name         string              `json:"name"`
+	Image        string              `json:"image"`
+	State        string              `json:"state"`
+	StateReason  string              `json:"stateReason"`
+	Ready        bool                `json:"ready"`
+	RestartCount int32               `json:"restartCount"`
+	StartedAt    string              `json:"startedAt"`
+	LastState    string              `json:"lastState"`
+	Ports        []ContainerPort     `json:"ports"`
+	Env          []ContainerEnvVar   `json:"env"`
+	EnvFrom      []ContainerEnvFrom  `json:"envFrom"`
 }
 
 type ContainerPort struct {
 	Name          string `json:"name"`
 	ContainerPort int32  `json:"containerPort"`
 	Protocol      string `json:"protocol"`
+}
+
+type ContainerEnvVar struct {
+	Name      string     `json:"name"`
+	Value     string     `json:"value"`
+	ValueFrom string     `json:"valueFrom"`
+	Ref       *EnvVarRef `json:"ref,omitempty"`
+}
+
+type ContainerEnvFrom struct {
+	Source string     `json:"source"`
+	Prefix string     `json:"prefix"`
+	Ref    *EnvVarRef `json:"ref,omitempty"`
+}
+
+type EnvVarRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+	Key  string `json:"key"`
 }
 
 type ConditionDetail struct {
@@ -783,19 +804,20 @@ func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
 		Labels:            p.Labels,
 		Annotations:       p.Annotations,
 		Owners:            owners,
-		InitContainers:    containerDetails(p.Spec.InitContainers, p.Status.InitContainerStatuses),
-		Containers:        containerDetails(p.Spec.Containers, p.Status.ContainerStatuses),
+		InitContainers:    containerDetails(p, p.Spec.InitContainers, p.Status.InitContainerStatuses),
+		Containers:        containerDetails(p, p.Spec.Containers, p.Status.ContainerStatuses),
 		Conditions:        podConditions(p.Status.Conditions),
 	}, nil
 }
 
-func containerDetails(specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
+func containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
 	byName := make(map[string]corev1.ContainerStatus, len(statuses))
 	for _, s := range statuses {
 		byName[s.Name] = s
 	}
 	out := make([]ContainerDetail, 0, len(specs))
-	for _, c := range specs {
+	for i := range specs {
+		c := &specs[i]
 		ports := make([]ContainerPort, 0, len(c.Ports))
 		for _, p := range c.Ports {
 			proto := string(p.Protocol)
@@ -808,7 +830,13 @@ func containerDetails(specs []corev1.Container, statuses []corev1.ContainerStatu
 				Protocol:      proto,
 			})
 		}
-		d := ContainerDetail{Name: c.Name, Image: c.Image, Ports: ports}
+		d := ContainerDetail{
+			Name:    c.Name,
+			Image:   c.Image,
+			Ports:   ports,
+			Env:     envVarsFrom(pod, c, c.Env),
+			EnvFrom: envFromSources(c.EnvFrom),
+		}
 		if s, ok := byName[c.Name]; ok {
 			d.Ready = s.Ready
 			d.RestartCount = s.RestartCount
@@ -838,6 +866,130 @@ func containerDetails(specs []corev1.Container, statuses []corev1.ContainerStatu
 			}
 		}
 		out = append(out, d)
+	}
+	return out
+}
+
+func envVarsFrom(pod *corev1.Pod, container *corev1.Container, env []corev1.EnvVar) []ContainerEnvVar {
+	if len(env) == 0 {
+		return []ContainerEnvVar{}
+	}
+	out := make([]ContainerEnvVar, 0, len(env))
+	for _, e := range env {
+		v := ContainerEnvVar{Name: e.Name}
+		if e.ValueFrom != nil {
+			v.ValueFrom, v.Ref = describeEnvVarSource(e.ValueFrom)
+			if e.ValueFrom.FieldRef != nil {
+				v.Value = resolveFieldRef(pod, e.ValueFrom.FieldRef.FieldPath)
+			} else if e.ValueFrom.ResourceFieldRef != nil {
+				v.Value = resolveResourceFieldRef(container, e.ValueFrom.ResourceFieldRef)
+			}
+		} else {
+			v.Value = e.Value
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+func describeEnvVarSource(src *corev1.EnvVarSource) (string, *EnvVarRef) {
+	switch {
+	case src.ConfigMapKeyRef != nil:
+		return fmt.Sprintf("ConfigMap: %s/%s", src.ConfigMapKeyRef.Name, src.ConfigMapKeyRef.Key),
+			&EnvVarRef{Kind: "ConfigMap", Name: src.ConfigMapKeyRef.Name, Key: src.ConfigMapKeyRef.Key}
+	case src.SecretKeyRef != nil:
+		return fmt.Sprintf("Secret: %s/%s", src.SecretKeyRef.Name, src.SecretKeyRef.Key),
+			&EnvVarRef{Kind: "Secret", Name: src.SecretKeyRef.Name, Key: src.SecretKeyRef.Key}
+	case src.FieldRef != nil:
+		return "field: " + src.FieldRef.FieldPath, nil
+	case src.ResourceFieldRef != nil:
+		return "resource: " + src.ResourceFieldRef.Resource, nil
+	}
+	return "", nil
+}
+
+func resolveFieldRef(pod *corev1.Pod, fieldPath string) string {
+	if pod == nil {
+		return ""
+	}
+	switch fieldPath {
+	case "metadata.name":
+		return pod.Name
+	case "metadata.namespace":
+		return pod.Namespace
+	case "metadata.uid":
+		return string(pod.UID)
+	case "spec.nodeName":
+		return pod.Spec.NodeName
+	case "spec.serviceAccountName":
+		return pod.Spec.ServiceAccountName
+	case "status.hostIP":
+		return pod.Status.HostIP
+	case "status.podIP":
+		return pod.Status.PodIP
+	case "status.phase":
+		return string(pod.Status.Phase)
+	}
+	return ""
+}
+
+func resolveResourceFieldRef(container *corev1.Container, src *corev1.ResourceFieldSelector) string {
+	if container == nil {
+		return ""
+	}
+	get := func(rl corev1.ResourceList, name corev1.ResourceName) (string, bool) {
+		if q, ok := rl[name]; ok {
+			return q.String(), true
+		}
+		return "", false
+	}
+	switch src.Resource {
+	case "limits.cpu":
+		if v, ok := get(container.Resources.Limits, corev1.ResourceCPU); ok {
+			return v
+		}
+	case "limits.memory":
+		if v, ok := get(container.Resources.Limits, corev1.ResourceMemory); ok {
+			return v
+		}
+	case "limits.ephemeral-storage":
+		if v, ok := get(container.Resources.Limits, corev1.ResourceEphemeralStorage); ok {
+			return v
+		}
+	case "requests.cpu":
+		if v, ok := get(container.Resources.Requests, corev1.ResourceCPU); ok {
+			return v
+		}
+	case "requests.memory":
+		if v, ok := get(container.Resources.Requests, corev1.ResourceMemory); ok {
+			return v
+		}
+	case "requests.ephemeral-storage":
+		if v, ok := get(container.Resources.Requests, corev1.ResourceEphemeralStorage); ok {
+			return v
+		}
+	}
+	return ""
+}
+
+func envFromSources(sources []corev1.EnvFromSource) []ContainerEnvFrom {
+	if len(sources) == 0 {
+		return []ContainerEnvFrom{}
+	}
+	out := make([]ContainerEnvFrom, 0, len(sources))
+	for _, s := range sources {
+		entry := ContainerEnvFrom{Prefix: s.Prefix}
+		switch {
+		case s.ConfigMapRef != nil:
+			entry.Source = "ConfigMap: " + s.ConfigMapRef.Name
+			entry.Ref = &EnvVarRef{Kind: "ConfigMap", Name: s.ConfigMapRef.Name}
+		case s.SecretRef != nil:
+			entry.Source = "Secret: " + s.SecretRef.Name
+			entry.Ref = &EnvVarRef{Kind: "Secret", Name: s.SecretRef.Name}
+		default:
+			continue
+		}
+		out = append(out, entry)
 	}
 	return out
 }
