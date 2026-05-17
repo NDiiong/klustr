@@ -10,6 +10,7 @@ import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { MultiPodLogsTab } from './MultiPodLogsTab'
 import { EventsTab } from './EventsTab'
 import { DeleteResourceButton } from './DeleteResourceButton'
+import { RestartWorkloadButton, isRestartable } from './RestartWorkloadButton'
 import { ScaleResourceButton, isScalable } from './ScaleResourceButton'
 import { PortForwardButton } from '@/features/portforward/PortForwardButton'
 import type { ResourceKind } from '@/store/ui'
@@ -91,6 +92,9 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
             <div className="flex shrink-0 items-center gap-2 pt-1">
               {resource.kind === 'Pod' && (
                 <PortForwardButton contextName={contextName} resource={resource} />
+              )}
+              {isRestartable(resource.kind) && (
+                <RestartWorkloadButton contextName={contextName} resource={resource} />
               )}
               {isScalable(resource.kind) && (
                 <ScaleResourceButton contextName={contextName} resource={resource} />

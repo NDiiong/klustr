@@ -1,4 +1,4 @@
-import { Copy, FileCode2, FileText, Network, ScanEye, ScrollText, Terminal, Trash2 } from 'lucide-react'
+import { Copy, FileCode2, FileText, Network, RotateCcw, ScanEye, ScrollText, Terminal, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   ContextMenu,
@@ -13,6 +13,12 @@ const POD_KINDS: ReadonlySet<ResourceKind> = new Set<ResourceKind>(['Pod'])
 
 const WORKLOAD_LOG_KINDS: ReadonlySet<ResourceKind> = new Set<ResourceKind>([
   'Pod',
+  'Deployment',
+  'StatefulSet',
+  'DaemonSet',
+])
+
+const RESTARTABLE_KINDS: ReadonlySet<ResourceKind> = new Set<ResourceKind>([
   'Deployment',
   'StatefulSet',
   'DaemonSet',
@@ -52,6 +58,7 @@ export function RowContextMenu({ kind, namespace, name, canPortForward, children
   const isPod = POD_KINDS.has(kind)
   const hasLogs = WORKLOAD_LOG_KINDS.has(kind)
   const hasEvents = EVENT_BEARING_KINDS.has(kind)
+  const isRestartable = RESTARTABLE_KINDS.has(kind)
 
   const open = (tab?: DetailTab) => openResource(resource, tab)
 
@@ -99,6 +106,12 @@ export function RowContextMenu({ kind, namespace, name, canPortForward, children
           <FileCode2 />
           <span>Edit YAML</span>
         </ContextMenuItem>
+        {isRestartable && (
+          <ContextMenuItem onSelect={() => setPendingAction({ kind: 'restart', resource })}>
+            <RotateCcw />
+            <span>Rolling restart…</span>
+          </ContextMenuItem>
+        )}
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => copy(name, 'name')}>
           <Copy />

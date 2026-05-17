@@ -129,6 +129,7 @@ export type DetailTab = 'overview' | 'logs' | 'exec' | 'events' | 'yaml'
 export type PendingAction =
   | { kind: 'delete'; resource: SelectedResource }
   | { kind: 'portforward'; resource: SelectedResource }
+  | { kind: 'restart'; resource: SelectedResource }
 
 type UIState = {
   selectedContext: string | null

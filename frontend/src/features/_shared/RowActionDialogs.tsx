@@ -1,4 +1,5 @@
 import { DeleteResourceDialog } from './DeleteResourceButton'
+import { RestartWorkloadDialog } from './RestartWorkloadButton'
 import { PortForwardDialog } from '@/features/portforward/PortForwardButton'
 import { useUIStore } from '@/store/ui'
 
@@ -10,6 +11,9 @@ export function RowActionDialogs() {
   if (!pendingAction) return null
 
   const close = () => setPendingAction(null)
+  const onOpenChange = (o: boolean) => {
+    if (!o) close()
+  }
 
   if (pendingAction.kind === 'delete') {
     return (
@@ -17,9 +21,18 @@ export function RowActionDialogs() {
         contextName={contextName}
         resource={pendingAction.resource}
         open
-        onOpenChange={(o) => {
-          if (!o) close()
-        }}
+        onOpenChange={onOpenChange}
+      />
+    )
+  }
+
+  if (pendingAction.kind === 'restart') {
+    return (
+      <RestartWorkloadDialog
+        contextName={contextName}
+        resource={pendingAction.resource}
+        open
+        onOpenChange={onOpenChange}
       />
     )
   }
@@ -29,9 +42,7 @@ export function RowActionDialogs() {
       contextName={contextName}
       resource={pendingAction.resource}
       open
-      onOpenChange={(o) => {
-        if (!o) close()
-      }}
+      onOpenChange={onOpenChange}
     />
   )
 }
