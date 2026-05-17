@@ -1,0 +1,40 @@
+import { describe, expect, it } from 'vitest'
+import { namespaceLabel, namespaceQuery } from './namespaceFilter'
+
+describe('namespaceQuery', () => {
+  it('treats empty selection as all namespaces', () => {
+    const q = namespaceQuery([])
+    expect(q.apiNamespace).toBe('')
+    expect(q.matches('anything')).toBe(true)
+  })
+
+  it('passes a single namespace through to the API and gates matches', () => {
+    const q = namespaceQuery(['kube-system'])
+    expect(q.apiNamespace).toBe('kube-system')
+    expect(q.matches('kube-system')).toBe(true)
+    expect(q.matches('default')).toBe(false)
+  })
+
+  it('falls back to all-namespaces API call when multiple are selected', () => {
+    const q = namespaceQuery(['a', 'b', 'c'])
+    expect(q.apiNamespace).toBe('')
+    expect(q.matches('a')).toBe(true)
+    expect(q.matches('c')).toBe(true)
+    expect(q.matches('z')).toBe(false)
+  })
+})
+
+describe('namespaceLabel', () => {
+  it('returns "All namespaces" when nothing is selected', () => {
+    expect(namespaceLabel([])).toBe('All namespaces')
+  })
+
+  it('returns the single namespace name', () => {
+    expect(namespaceLabel(['default'])).toBe('default')
+  })
+
+  it('summarizes multi-selection by count', () => {
+    expect(namespaceLabel(['a', 'b'])).toBe('2 namespaces')
+    expect(namespaceLabel(['a', 'b', 'c', 'd'])).toBe('4 namespaces')
+  })
+})
