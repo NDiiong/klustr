@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Sliders } from 'lucide-react'
+import { Loader2, Minus, Plus, Sliders } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -17,6 +17,8 @@ import { api } from '@/lib/api'
 import type { ResourceKind, SelectedResource } from '@/store/ui'
 
 const SCALABLE_KINDS: ResourceKind[] = ['Deployment', 'StatefulSet']
+const MIN_REPLICAS = 0
+const MAX_REPLICAS = 1000
 
 export function isScalable(kind: ResourceKind): boolean {
   return (SCALABLE_KINDS as readonly string[]).includes(kind)
@@ -25,12 +27,25 @@ export function isScalable(kind: ResourceKind): boolean {
 type Props = {
   contextName: string | null
   resource: SelectedResource
-  currentReplicas?: number
 }
 
-export function ScaleResourceButton({ contextName, resource, currentReplicas }: Props) {
+export function ScaleResourceButton({ contextName, resource }: Props) {
   const [open, setOpen] = useState(false)
-  const [replicas, setReplicas] = useState<number>(currentReplicas ?? 1)
+  const [replicas, setReplicas] = useState<number>(0)
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open || !contextName) return
+    setLoading(true)
+    setLoadError(null)
+    const fetcher =
+      resource.kind === 'Deployment' ? api.getDeployment : api.getStatefulSet
+    fetcher(contextName, resource.namespace, resource.name)
+      .then((d) => setReplicas(d.replicas ?? 0))
+      .catch((err) => setLoadError(String(err)))
+      .finally(() => setLoading(false))
+  }, [open, contextName, resource.kind, resource.namespace, resource.name])
 
   const scale = useMutation({
     mutationFn: async () => {
@@ -43,15 +58,15 @@ export function ScaleResourceButton({ contextName, resource, currentReplicas }: 
     },
   })
 
+  const clamp = (n: number) => Math.min(MAX_REPLICAS, Math.max(MIN_REPLICAS, n))
+  const bump = (delta: number) => setReplicas((r) => clamp(r + delta))
+
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
         setOpen(o)
-        if (o) {
-          setReplicas(currentReplicas ?? 1)
-          scale.reset()
-        }
+        if (o) scale.reset()
       }}
     >
       <Tooltip>
@@ -77,6 +92,11 @@ export function ScaleResourceButton({ contextName, resource, currentReplicas }: 
                 </span>{' '}
                 in <span className="font-mono text-xs">{resource.namespace}</span>.
               </p>
+              {loadError && (
+                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
+                  Failed to read current replicas: {loadError}
+                </p>
+              )}
               {scale.error && (
                 <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
                   {String(scale.error)}
@@ -86,21 +106,64 @@ export function ScaleResourceButton({ contextName, resource, currentReplicas }: 
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3">
-          <label className="text-sm text-muted-foreground">Replicas</label>
-          <input
-            type="number"
-            min={0}
-            max={1000}
-            value={replicas}
-            onChange={(e) => setReplicas(Math.max(0, Number.parseInt(e.target.value, 10) || 0))}
-            className="w-24 rounded border border-border bg-background px-2 py-1 text-sm"
-          />
+          <label htmlFor="scale-replicas-input" className="text-sm text-muted-foreground">
+            Replicas
+          </label>
+          <div className="flex items-center rounded-md border border-border bg-background">
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Decrement replicas"
+              onClick={() => bump(-1)}
+              disabled={loading || replicas <= MIN_REPLICAS}
+              className="rounded-r-none"
+            >
+              <Minus />
+            </Button>
+            <input
+              id="scale-replicas-input"
+              type="number"
+              min={MIN_REPLICAS}
+              max={MAX_REPLICAS}
+              value={loading ? '' : replicas}
+              disabled={loading}
+              onChange={(e) =>
+                setReplicas(clamp(Number.parseInt(e.target.value, 10) || 0))
+              }
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  bump(1)
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  bump(-1)
+                }
+              }}
+              className="h-7 w-16 bg-transparent text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              aria-label="Increment replicas"
+              onClick={() => bump(1)}
+              disabled={loading || replicas >= MAX_REPLICAS}
+              className="rounded-l-none"
+            >
+              <Plus />
+            </Button>
+          </div>
+          {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={scale.isPending}>
             Cancel
           </Button>
-          <Button onClick={() => scale.mutate()} disabled={scale.isPending}>
+          <Button
+            onClick={() => scale.mutate()}
+            disabled={scale.isPending || loading || loadError !== null}
+          >
             {scale.isPending ? 'Scaling…' : 'Apply'}
           </Button>
         </DialogFooter>
