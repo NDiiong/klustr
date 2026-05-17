@@ -3,12 +3,13 @@ import { RefreshCw } from 'lucide-react'
 import { api, type EventInfo } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { formatAge } from '@/lib/time'
+import { namespaceQuery } from '@/lib/namespaceFilter'
 import { ErrorBox, Th, Td } from '@/features/_shared/DetailPrimitives'
 import { useUIStore } from '@/store/ui'
 
 export function EventsView() {
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const [events, setEvents] = useState<EventInfo[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -19,14 +20,15 @@ export function EventsView() {
     setLoading(true)
     setError(null)
     try {
-      const list = await api.listEvents(selectedContext, selectedNamespace ?? '', '', '')
-      setEvents(list)
+      const { apiNamespace, matches } = namespaceQuery(selectedNamespaces)
+      const list = await api.listEvents(selectedContext, apiNamespace, '', '')
+      setEvents(selectedNamespaces.length > 1 ? list.filter((e) => matches(e.namespace)) : list)
     } catch (err) {
       setError(String(err))
     } finally {
       setLoading(false)
     }
-  }, [selectedContext, selectedNamespace])
+  }, [selectedContext, selectedNamespaces])
 
   useEffect(() => {
     refresh()
@@ -45,7 +47,11 @@ export function EventsView() {
       <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
         <span>
           {loading ? 'Loading…' : `${events.length} event${events.length === 1 ? '' : 's'}`}
-          {selectedNamespace ? ` in ${selectedNamespace}` : ' across all namespaces'}
+          {selectedNamespaces.length === 0
+            ? ' across all namespaces'
+            : selectedNamespaces.length === 1
+              ? ` in ${selectedNamespaces[0]}`
+              : ` in ${selectedNamespaces.length} namespaces`}
         </span>
         <Button
           size="sm"

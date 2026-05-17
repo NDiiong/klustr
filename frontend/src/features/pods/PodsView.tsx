@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { api, type PodInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
+import { namespaceQuery } from '@/lib/namespaceFilter'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { useResources } from '@/store/resources'
 import { useUIStore } from '@/store/ui'
@@ -72,9 +73,9 @@ export function PodsView() {
   const setPods = useResources((s) => s.setPods)
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
   const metricsAvailable = useMetrics((s) => s.available)
-  usePodMetricsPoll(selectedContext, selectedNamespace ?? '')
+  usePodMetricsPoll(selectedContext, namespaceQuery(selectedNamespaces).apiNamespace)
 
   const columns = useMemo(
     () => [

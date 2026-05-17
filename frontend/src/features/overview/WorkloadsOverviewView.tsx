@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   api,
   type CronJobInfo,
@@ -13,6 +13,7 @@ import {
 } from '@/lib/api'
 import { onKubeChange } from '@/lib/events'
 import { formatAge } from '@/lib/time'
+import { namespaceQuery } from '@/lib/namespaceFilter'
 import { useUIStore, type ResourceView } from '@/store/ui'
 
 const POLL_INTERVAL_MS = 30_000
@@ -27,8 +28,13 @@ type WorkloadHealth = {
 
 export function WorkloadsOverviewView() {
   const contextName = useUIStore((s) => s.selectedContext)
-  const namespace = useUIStore((s) => s.selectedNamespace) ?? ''
+  const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
   const setSelectedView = useUIStore((s) => s.setSelectedView)
+  const { apiNamespace, matches } = useMemo(
+    () => namespaceQuery(selectedNamespaces),
+    [selectedNamespaces],
+  )
+  const multi = selectedNamespaces.length > 1
 
   const [pods, setPods] = useState<PodInfo[]>([])
   const [deployments, setDeployments] = useState<DeploymentInfo[]>([])
@@ -59,29 +65,32 @@ export function WorkloadsOverviewView() {
     }
     let cancelled = false
 
+    const filterByNs = <T extends { namespace: string }>(list: T[]): T[] =>
+      multi ? list.filter((r) => matches(r.namespace)) : list
+
     const pull = () => {
       Promise.all([
-        api.listPods(contextName, namespace),
-        api.listDeployments(contextName, namespace),
-        api.listStatefulSets(contextName, namespace),
-        api.listDaemonSets(contextName, namespace),
-        api.listReplicaSets(contextName, namespace),
-        api.listReplicationControllers(contextName, namespace),
-        api.listJobs(contextName, namespace),
-        api.listCronJobs(contextName, namespace),
-        api.listEvents(contextName, namespace, '', ''),
+        api.listPods(contextName, apiNamespace),
+        api.listDeployments(contextName, apiNamespace),
+        api.listStatefulSets(contextName, apiNamespace),
+        api.listDaemonSets(contextName, apiNamespace),
+        api.listReplicaSets(contextName, apiNamespace),
+        api.listReplicationControllers(contextName, apiNamespace),
+        api.listJobs(contextName, apiNamespace),
+        api.listCronJobs(contextName, apiNamespace),
+        api.listEvents(contextName, apiNamespace, '', ''),
       ])
         .then(([p, d, s, ds, rs, rc, j, cj, e]) => {
           if (cancelled) return
-          setPods(p ?? [])
-          setDeployments(d ?? [])
-          setStatefulSets(s ?? [])
-          setDaemonSets(ds ?? [])
-          setReplicaSets(rs ?? [])
-          setReplicationControllers(rc ?? [])
-          setJobs(j ?? [])
-          setCronJobs(cj ?? [])
-          setEvents((e ?? []).slice(0, EVENTS_LIMIT))
+          setPods(filterByNs(p ?? []))
+          setDeployments(filterByNs(d ?? []))
+          setStatefulSets(filterByNs(s ?? []))
+          setDaemonSets(filterByNs(ds ?? []))
+          setReplicaSets(filterByNs(rs ?? []))
+          setReplicationControllers(filterByNs(rc ?? []))
+          setJobs(filterByNs(j ?? []))
+          setCronJobs(filterByNs(cj ?? []))
+          setEvents(filterByNs(e ?? []).slice(0, EVENTS_LIMIT))
           setError(null)
           setLastUpdatedAt(Date.now())
         })
@@ -127,7 +136,7 @@ export function WorkloadsOverviewView() {
       }
       unsubs.forEach((u) => u())
     }
-  }, [contextName, namespace])
+  }, [contextName, apiNamespace, matches, multi])
 
   if (!contextName) {
     return (
@@ -198,7 +207,11 @@ export function WorkloadsOverviewView() {
           <span className="text-xs text-muted-foreground">
             {contextName}
             {' · '}
-            {namespace ? namespace : 'all namespaces'}
+            {selectedNamespaces.length === 0
+              ? 'all namespaces'
+              : selectedNamespaces.length === 1
+                ? selectedNamespaces[0]
+                : `${selectedNamespaces.length} namespaces`}
           </span>
         </div>
         <UpdatedAgo at={lastUpdatedAt} />
