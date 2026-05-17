@@ -1052,39 +1052,94 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 	if err != nil {
 		return []PodInfo{}
 	}
+	return podInfosFrom(pods)
+}
+
+// PodsOnNode returns pods scheduled on the given node, across all namespaces.
+func (w *contextWatcher) PodsOnNode(nodeName string) []PodInfo {
+	if nodeName == "" {
+		return []PodInfo{}
+	}
+	all, err := w.factory.Core().V1().Pods().Lister().List(labels.Everything())
+	if err != nil {
+		return []PodInfo{}
+	}
+	matched := make([]*corev1.Pod, 0, len(all))
+	for _, p := range all {
+		if p.Spec.NodeName == nodeName {
+			matched = append(matched, p)
+		}
+	}
+	return podInfosFrom(matched)
+}
+
+// PodsForOwner dispatches by kind: for Node it returns pods scheduled on
+// that node, for workload kinds it looks up the workload's selector via the
+// local lister and returns matching pods.
+func (w *contextWatcher) PodsForOwner(kind, namespace, name string) ([]PodInfo, error) {
+	switch kind {
+	case "Node":
+		return w.PodsOnNode(name), nil
+	case "Deployment":
+		d, err := w.factory.Apps().V1().Deployments().Lister().Deployments(namespace).Get(name)
+		if err != nil {
+			return nil, err
+		}
+		return w.PodsForSelector(namespace, d.Spec.Selector), nil
+	case "StatefulSet":
+		s, err := w.factory.Apps().V1().StatefulSets().Lister().StatefulSets(namespace).Get(name)
+		if err != nil {
+			return nil, err
+		}
+		return w.PodsForSelector(namespace, s.Spec.Selector), nil
+	case "DaemonSet":
+		d, err := w.factory.Apps().V1().DaemonSets().Lister().DaemonSets(namespace).Get(name)
+		if err != nil {
+			return nil, err
+		}
+		return w.PodsForSelector(namespace, d.Spec.Selector), nil
+	case "ReplicaSet":
+		r, err := w.factory.Apps().V1().ReplicaSets().Lister().ReplicaSets(namespace).Get(name)
+		if err != nil {
+			return nil, err
+		}
+		return w.PodsForSelector(namespace, r.Spec.Selector), nil
+	default:
+		return nil, fmt.Errorf("PodsForOwner: unsupported kind %q", kind)
+	}
+}
+
+// PodsForSelector returns pods in the given namespace matching the selector.
+// An empty selector returns no pods (a nil/empty selector would otherwise
+// match every pod in the namespace, which is never what the caller wants).
+func (w *contextWatcher) PodsForSelector(namespace string, sel *metav1.LabelSelector) []PodInfo {
+	if sel == nil || (len(sel.MatchLabels) == 0 && len(sel.MatchExpressions) == 0) {
+		return []PodInfo{}
+	}
+	selector, err := metav1.LabelSelectorAsSelector(sel)
+	if err != nil {
+		return []PodInfo{}
+	}
+	lister := w.factory.Core().V1().Pods().Lister()
+	var (
+		pods []*corev1.Pod
+		listErr error
+	)
+	if namespace == "" {
+		pods, listErr = lister.List(selector)
+	} else {
+		pods, listErr = lister.Pods(namespace).List(selector)
+	}
+	if listErr != nil {
+		return []PodInfo{}
+	}
+	return podInfosFrom(pods)
+}
+
+func podInfosFrom(pods []*corev1.Pod) []PodInfo {
 	out := make([]PodInfo, 0, len(pods))
 	for _, p := range pods {
-		ready, total := 0, len(p.Spec.Containers)
-		var restarts int32
-		for _, cs := range p.Status.ContainerStatuses {
-			if cs.Ready {
-				ready++
-			}
-			restarts += cs.RestartCount
-		}
-		cpuReq, cpuLim, memReq, memLim := podResourceTotals(p)
-		hasPorts := false
-		for _, c := range p.Spec.Containers {
-			if len(c.Ports) > 0 {
-				hasPorts = true
-				break
-			}
-		}
-		out = append(out, PodInfo{
-			Name:         p.Name,
-			Namespace:    p.Namespace,
-			Status:       derivePodStatus(p),
-			Ready:        fmt.Sprintf("%d/%d", ready, total),
-			Restarts:     restarts,
-			Node:         p.Spec.NodeName,
-			PodIP:        p.Status.PodIP,
-			CreatedAt:    p.CreationTimestamp.UTC().Format(time.RFC3339),
-			CPURequestMC: cpuReq,
-			CPULimitMC:   cpuLim,
-			MemRequestB:  memReq,
-			MemLimitB:    memLim,
-			HasPorts:     hasPorts,
-		})
+		out = append(out, podInfoFrom(p))
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace != out[j].Namespace {
@@ -1093,6 +1148,40 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 		return out[i].Name < out[j].Name
 	})
 	return out
+}
+
+func podInfoFrom(p *corev1.Pod) PodInfo {
+	ready, total := 0, len(p.Spec.Containers)
+	var restarts int32
+	for _, cs := range p.Status.ContainerStatuses {
+		if cs.Ready {
+			ready++
+		}
+		restarts += cs.RestartCount
+	}
+	cpuReq, cpuLim, memReq, memLim := podResourceTotals(p)
+	hasPorts := false
+	for _, c := range p.Spec.Containers {
+		if len(c.Ports) > 0 {
+			hasPorts = true
+			break
+		}
+	}
+	return PodInfo{
+		Name:         p.Name,
+		Namespace:    p.Namespace,
+		Status:       derivePodStatus(p),
+		Ready:        fmt.Sprintf("%d/%d", ready, total),
+		Restarts:     restarts,
+		Node:         p.Spec.NodeName,
+		PodIP:        p.Status.PodIP,
+		CreatedAt:    p.CreationTimestamp.UTC().Format(time.RFC3339),
+		CPURequestMC: cpuReq,
+		CPULimitMC:   cpuLim,
+		MemRequestB:  memReq,
+		MemLimitB:    memLim,
+		HasPorts:     hasPorts,
+	}
 }
 
 func (w *contextWatcher) Deployments(namespace string) []DeploymentInfo {

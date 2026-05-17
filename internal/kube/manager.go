@@ -181,6 +181,14 @@ func (m *ClientManager) Pods(contextName, namespace string) []PodInfo {
 	return w.Pods(namespace)
 }
 
+func (m *ClientManager) PodsForOwner(contextName, kind, namespace, name string) ([]PodInfo, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.PodsForOwner(kind, namespace, name)
+}
+
 func (m *ClientManager) PodLogTargets(contextName, namespace string, selector map[string]string) []PodLogTarget {
 	m.mu.Lock()
 	w, ok := m.watchers[contextName]
