@@ -458,6 +458,14 @@ func (m *ClientManager) Secret(contextName, namespace, name string) (*SecretDeta
 	return w.Secret(namespace, name)
 }
 
+func (m *ClientManager) SecretValue(contextName, namespace, name, key string) (string, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return "", fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.SecretValue(namespace, name, key)
+}
+
 func (m *ClientManager) Ingress(contextName, namespace, name string) (*IngressDetail, error) {
 	w, ok := m.watcher(contextName)
 	if !ok {

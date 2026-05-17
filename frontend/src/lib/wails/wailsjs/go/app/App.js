@@ -282,6 +282,10 @@ export function ResizeExec(arg1, arg2, arg3) {
   return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
 }
 
+export function RevealSecretValue(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['RevealSecretValue'](arg1, arg2, arg3, arg4);
+}
+
 export function SaveTextFile(arg1, arg2) {
   return window['go']['app']['App']['SaveTextFile'](arg1, arg2);
 }

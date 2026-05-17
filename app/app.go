@@ -169,6 +169,10 @@ func (a *App) GetSecret(contextName, namespace, name string) (*kube.SecretDetail
 	return a.clients.Secret(contextName, namespace, name)
 }
 
+func (a *App) RevealSecretValue(contextName, namespace, name, key string) (string, error) {
+	return a.clients.SecretValue(contextName, namespace, name, key)
+}
+
 func (a *App) GetIngress(contextName, namespace, name string) (*kube.IngressDetail, error) {
 	return a.clients.Ingress(contextName, namespace, name)
 }

@@ -37,6 +37,7 @@ import {
   GetPod,
   GetResourceYAML,
   GetSecret,
+  RevealSecretValue,
   GetService,
   GetStatefulSet,
   ListConfigMaps,
@@ -300,6 +301,8 @@ export const api = {
     GetConfigMap(ctx, ns, name),
   getSecret: (ctx: string, ns: string, name: string): Promise<SecretDetail> =>
     GetSecret(ctx, ns, name),
+  revealSecretValue: (ctx: string, ns: string, name: string, key: string): Promise<string> =>
+    RevealSecretValue(ctx, ns, name, key),
   getIngress: (ctx: string, ns: string, name: string): Promise<IngressDetail> =>
     GetIngress(ctx, ns, name),
   getNode: (ctx: string, name: string): Promise<NodeDetail> => GetNode(ctx, name),

@@ -1453,6 +1453,21 @@ func (w *contextWatcher) Secret(namespace, name string) (*SecretDetail, error) {
 	}, nil
 }
 
+// SecretValue returns the decoded UTF-8 value for a single key of a
+// Secret. Values are only fetched when the user explicitly asks the UI
+// to reveal them — never as part of a list or detail load.
+func (w *contextWatcher) SecretValue(namespace, name, key string) (string, error) {
+	s, err := w.factory.Core().V1().Secrets().Lister().Secrets(namespace).Get(name)
+	if err != nil {
+		return "", err
+	}
+	v, ok := s.Data[key]
+	if !ok {
+		return "", fmt.Errorf("secret %s/%s has no key %q", namespace, name, key)
+	}
+	return string(v), nil
+}
+
 func (w *contextWatcher) Ingress(namespace, name string) (*IngressDetail, error) {
 	ing, err := w.factory.Networking().V1().Ingresses().Lister().Ingresses(namespace).Get(name)
 	if err != nil {
