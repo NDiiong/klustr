@@ -286,6 +286,10 @@ export function PodLogTargets(arg1, arg2, arg3) {
   return window['go']['app']['App']['PodLogTargets'](arg1, arg2, arg3);
 }
 
+export function PodsForOwner(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['PodsForOwner'](arg1, arg2, arg3, arg4);
+}
+
 export function ResizeExec(arg1, arg2, arg3) {
   return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
 }

@@ -90,6 +90,10 @@ func (a *App) ListPods(name, namespace string) []kube.PodInfo {
 	return a.clients.Pods(name, namespace)
 }
 
+func (a *App) PodsForOwner(contextName, kind, namespace, name string) ([]kube.PodInfo, error) {
+	return a.clients.PodsForOwner(contextName, kind, namespace, name)
+}
+
 func (a *App) PodLogTargets(name, namespace string, selector map[string]string) []kube.PodLogTarget {
 	return a.clients.PodLogTargets(name, namespace, selector)
 }

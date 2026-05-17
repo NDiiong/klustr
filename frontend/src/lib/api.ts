@@ -70,6 +70,7 @@ import {
   ListNamespaces,
   ListNodes,
   ListPods,
+  PodsForOwner,
   ListSecrets,
   ListServices,
   ListStatefulSets,
@@ -187,6 +188,12 @@ export const api = {
   stopWatch: (name: string): Promise<void> => StopWatch(name),
   listNamespaces: (name: string): Promise<NamespaceInfo[]> => ListNamespaces(name),
   listPods: (name: string, namespace: string): Promise<PodInfo[]> => ListPods(name, namespace),
+  podsForOwner: (
+    contextName: string,
+    kind: string,
+    namespace: string,
+    name: string,
+  ): Promise<PodInfo[]> => PodsForOwner(contextName, kind, namespace, name),
   listDeployments: (name: string, namespace: string): Promise<DeploymentInfo[]> =>
     ListDeployments(name, namespace),
   listServices: (name: string, namespace: string): Promise<ServiceInfo[]> =>

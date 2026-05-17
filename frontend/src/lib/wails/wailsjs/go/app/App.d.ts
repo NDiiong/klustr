@@ -144,6 +144,8 @@ export function PingContext(arg1:string):Promise<kube.ServerVersion>;
 
 export function PodLogTargets(arg1:string,arg2:string,arg3:Record<string, string>):Promise<Array<kube.PodLogTarget>>;
 
+export function PodsForOwner(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<kube.PodInfo>>;
+
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
 
 export function RestartWorkload(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
