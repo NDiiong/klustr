@@ -11,7 +11,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,12 +32,14 @@ const CONFIRM_BY_NAME_KINDS: ReadonlySet<ResourceKind> = new Set<ResourceKind>([
   'Job',
 ])
 
-type Props = {
+type DialogProps = {
   contextName: string | null
   resource: SelectedResource
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function DeleteResourceButton({ contextName, resource }: Props) {
+export function DeleteResourceDialog({ contextName, resource, open, onOpenChange }: DialogProps) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const [typedName, setTypedName] = useState('')
 
@@ -52,32 +53,24 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
     },
     onSuccess: () => {
       toast.success(`Deleted ${resource.kind.toLowerCase()}/${resource.name}`)
-      setSelectedResource(null)
+      onOpenChange(false)
+      if (useUIStore.getState().selectedResource?.name === resource.name) {
+        setSelectedResource(null)
+      }
     },
   })
 
   return (
     <AlertDialog
-      onOpenChange={(open) => {
-        if (!open) {
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) {
           setTypedName('')
           del.reset()
         }
+        onOpenChange(next)
       }}
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <AlertDialogTrigger asChild>
-            <Button size="xs" variant="outline" className="text-destructive hover:text-destructive">
-              <Trash2 />
-              Delete
-            </Button>
-          </AlertDialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>
-          Delete this {resource.kind.toLowerCase()} from the cluster — not reversible
-        </TooltipContent>
-      </Tooltip>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {resource.kind}?</AlertDialogTitle>
@@ -138,5 +131,40 @@ export function DeleteResourceButton({ contextName, resource }: Props) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  )
+}
+
+type ButtonProps = {
+  contextName: string | null
+  resource: SelectedResource
+}
+
+export function DeleteResourceButton({ contextName, resource }: ButtonProps) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="xs"
+            variant="outline"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setOpen(true)}
+          >
+            <Trash2 />
+            Delete
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Delete this {resource.kind.toLowerCase()} from the cluster — not reversible
+        </TooltipContent>
+      </Tooltip>
+      <DeleteResourceDialog
+        contextName={contextName}
+        resource={resource}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
   )
 }

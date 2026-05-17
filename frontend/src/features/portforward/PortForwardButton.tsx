@@ -9,18 +9,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type ContainerPort, type PodDetail } from '@/lib/api'
 import { usePortForwards } from '@/store/portForwards'
 import type { SelectedResource } from '@/store/ui'
-
-type Props = {
-  contextName: string | null
-  resource: SelectedResource
-}
 
 type PortOption = ContainerPort & { containerName: string }
 
@@ -38,9 +32,15 @@ function suggestLocalPort(remote: number, used: Set<number>): number {
   return 0
 }
 
-export function PortForwardButton({ contextName, resource }: Props) {
+type DialogProps = {
+  contextName: string | null
+  resource: SelectedResource
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function PortForwardDialog({ contextName, resource, open, onOpenChange }: DialogProps) {
   const activeForwards = usePortForwards((s) => s.list)
-  const [open, setOpen] = useState(false)
   const [remotePort, setRemotePort] = useState<number>(80)
   const [localPort, setLocalPort] = useState<number>(0)
   const [localPortTouched, setLocalPortTouched] = useState(false)
@@ -92,34 +92,23 @@ export function PortForwardButton({ contextName, resource }: Props) {
     },
     onSuccess: (info) => {
       toast.success(`Forwarding localhost:${info.localPort} → ${resource.name}:${info.remotePort}`)
-      setOpen(false)
+      onOpenChange(false)
     },
   })
 
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => {
-        setOpen(o)
-        if (o) {
+      onOpenChange={(next) => {
+        if (next) {
           start.reset()
           setLocalPortTouched(false)
         } else {
           setDetail(null)
         }
+        onOpenChange(next)
       }}
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button size="xs" variant="outline">
-              <Network />
-              Forward
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Forward a container port to your machine</TooltipContent>
-      </Tooltip>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Port-forward</DialogTitle>
@@ -195,7 +184,7 @@ export function PortForwardButton({ contextName, resource }: Props) {
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={start.isPending}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={start.isPending}>
             Cancel
           </Button>
           <Button onClick={() => start.mutate()} disabled={start.isPending}>
@@ -204,5 +193,33 @@ export function PortForwardButton({ contextName, resource }: Props) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+type ButtonProps = {
+  contextName: string | null
+  resource: SelectedResource
+}
+
+export function PortForwardButton({ contextName, resource }: ButtonProps) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button size="xs" variant="outline" onClick={() => setOpen(true)}>
+            <Network />
+            Forward
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Forward a container port to your machine</TooltipContent>
+      </Tooltip>
+      <PortForwardDialog
+        contextName={contextName}
+        resource={resource}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
   )
 }
