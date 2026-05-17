@@ -3,6 +3,7 @@ import { api, type DaemonSetDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section } from '@/features/_shared/DetailPrimitives'
 import { ContainersTable } from '@/features/_shared/containerSummary'
+import { RelatedPods } from '@/features/_shared/RelatedPods'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function DaemonSetDetailBody({
@@ -40,6 +41,7 @@ export function DaemonSetDetailBody({
         </div>
       </div>
       <ContainersTable title="Containers" containers={detail.containers} />
+      <RelatedPods contextName={contextName} kind="DaemonSet" namespace={namespace} name={name} />
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>

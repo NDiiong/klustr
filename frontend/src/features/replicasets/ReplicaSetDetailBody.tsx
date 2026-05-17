@@ -3,6 +3,7 @@ import { api, type ReplicaSetDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { ContainersTable } from '@/features/_shared/containerSummary'
+import { RelatedPods } from '@/features/_shared/RelatedPods'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function ReplicaSetDetailBody({
@@ -62,6 +63,7 @@ export function ReplicaSetDetailBody({
           </div>
         </Section>
       )}
+      <RelatedPods contextName={contextName} kind="ReplicaSet" namespace={namespace} name={name} />
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>

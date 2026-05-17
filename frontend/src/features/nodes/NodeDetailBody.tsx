@@ -3,6 +3,7 @@ import { api, type NodeDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { Copyable } from '@/features/_shared/Copyable'
+import { RelatedPods } from '@/features/_shared/RelatedPods'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function NodeDetailBody({
@@ -110,6 +111,7 @@ export function NodeDetailBody({
           </div>
         </Section>
       )}
+      <RelatedPods contextName={contextName} kind="Node" namespace="" name={detail.name} />
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>

@@ -1,0 +1,120 @@
+import { useCallback, useEffect, useState } from 'react'
+import { api, type PodInfo } from '@/lib/api'
+import { onKubeChange } from '@/lib/events'
+import { formatAge } from '@/lib/time'
+import { useUIStore } from '@/store/ui'
+import { ErrorBox, Section, Td, Th } from './DetailPrimitives'
+
+type Props = {
+  contextName: string | null
+  kind: 'Node' | 'Deployment' | 'StatefulSet' | 'DaemonSet' | 'ReplicaSet'
+  namespace: string
+  name: string
+  title?: string
+}
+
+const HEALTHY = new Set(['Running'])
+const TERMINAL = new Set(['Completed', 'Succeeded'])
+const PROGRESSING = new Set(['Pending', 'ContainerCreating', 'PodInitializing', 'Terminating'])
+const FAILURE = new Set([
+  'CrashLoopBackOff',
+  'ImagePullBackOff',
+  'ErrImagePull',
+  'CreateContainerConfigError',
+  'CreateContainerError',
+  'InvalidImageName',
+  'Error',
+  'OOMKilled',
+  'Failed',
+  'Evicted',
+  'DeadlineExceeded',
+])
+
+function statusClass(status: string): string {
+  if (HEALTHY.has(status)) return 'text-emerald-600 dark:text-emerald-400'
+  if (TERMINAL.has(status)) return 'text-muted-foreground'
+  if (PROGRESSING.has(status) || status.startsWith('Init:')) return 'text-amber-600 dark:text-amber-400'
+  if (FAILURE.has(status) || status.startsWith('Signal:') || status.startsWith('ExitCode:')) {
+    return 'text-destructive'
+  }
+  return 'text-foreground'
+}
+
+export function RelatedPods({ contextName, kind, namespace, name, title }: Props) {
+  const [pods, setPods] = useState<PodInfo[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const openResource = useUIStore((s) => s.openResource)
+
+  const refresh = useCallback(async () => {
+    if (!contextName) {
+      setPods([])
+      return
+    }
+    try {
+      const list = await api.podsForOwner(contextName, kind, namespace, name)
+      setPods(list ?? [])
+      setError(null)
+    } catch (err) {
+      setError(String(err))
+    }
+  }, [contextName, kind, namespace, name])
+
+  useEffect(() => {
+    refresh()
+    if (!contextName) return
+    return onKubeChange('Pod', (ctx) => {
+      if (ctx === contextName) refresh()
+    })
+  }, [refresh, contextName])
+
+  const showNamespace = kind === 'Node'
+  const showNode = kind !== 'Node'
+  const heading = title ?? 'Pods'
+
+  return (
+    <Section title={`${heading} (${pods.length})`}>
+      {error && <ErrorBox>{error}</ErrorBox>}
+      {!error && pods.length === 0 && (
+        <div className="py-3 text-xs text-muted-foreground">No pods match this resource.</div>
+      )}
+      {pods.length > 0 && (
+        <div className="overflow-hidden rounded border border-border">
+          <table className="w-full text-xs">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                {showNamespace && <Th>Namespace</Th>}
+                <Th>Name</Th>
+                <Th>Ready</Th>
+                <Th>Status</Th>
+                <Th>Restarts</Th>
+                {showNode && <Th>Node</Th>}
+                <Th>Age</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {pods.map((p) => (
+                <tr
+                  key={`${p.namespace}/${p.name}`}
+                  className="cursor-pointer border-t border-border align-top hover:bg-muted/40"
+                  onClick={() =>
+                    openResource({ kind: 'Pod', namespace: p.namespace, name: p.name })
+                  }
+                >
+                  {showNamespace && <Td className="text-muted-foreground">{p.namespace}</Td>}
+                  <Td className="font-mono">{p.name}</Td>
+                  <Td>{p.ready}</Td>
+                  <Td className={statusClass(p.status)}>{p.status}</Td>
+                  <Td>{p.restarts}</Td>
+                  {showNode && <Td className="text-muted-foreground">{p.node || '—'}</Td>}
+                  <Td className="whitespace-nowrap text-muted-foreground">
+                    {formatAge(p.createdAt)}
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Section>
+  )
+}

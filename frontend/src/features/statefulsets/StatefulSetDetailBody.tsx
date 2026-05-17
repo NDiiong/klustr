@@ -3,6 +3,7 @@ import { api, type StatefulSetDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section } from '@/features/_shared/DetailPrimitives'
 import { ContainersTable } from '@/features/_shared/containerSummary'
+import { RelatedPods } from '@/features/_shared/RelatedPods'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
 export function StatefulSetDetailBody({
@@ -34,6 +35,7 @@ export function StatefulSetDetailBody({
         <MaybeSection title="Selector" items={detail.selector} render={() => <Chips items={detail.selector} />} />
       </div>
       <ContainersTable title="Containers" containers={detail.containers} />
+      <RelatedPods contextName={contextName} kind="StatefulSet" namespace={namespace} name={name} />
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>
