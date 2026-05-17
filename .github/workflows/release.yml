@@ -123,14 +123,23 @@ jobs:
           generate_release_notes: true
           append_body: true
           body: |
-            ## Install (macOS)
+            ## Install (macOS Apple Silicon)
 
-            Download `klustr-${{ github.ref_name }}-darwin-arm64.tar.gz`, extract, and move `klustr.app` into `/Applications`. The build is not notarized, so before first launch run:
+            The build is not notarized yet — run these in your terminal:
 
             ```bash
-            xattr -cr /Applications/klustr.app
-            ```
+            # Download
+            curl -LO https://github.com/SametKUM/klustr/releases/download/${{ github.ref_name }}/klustr-${{ github.ref_name }}-darwin-arm64.tar.gz
 
-            That clears the quarantine attribute and silences Gatekeeper.
+            # Extract and move into /Applications
+            tar -xzf klustr-${{ github.ref_name }}-darwin-arm64.tar.gz
+            mv klustr.app /Applications/
+
+            # Clear the quarantine attribute so Gatekeeper lets it run
+            xattr -cr /Applications/klustr.app
+
+            # Launch
+            open /Applications/klustr.app
+            ```
           draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
