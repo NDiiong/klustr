@@ -3,6 +3,7 @@ import { api, type ReplicaSetDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { ContainersTable } from '@/features/_shared/containerSummary'
+import { OwnerLink } from '@/features/_shared/OwnerLink'
 import { RelatedPods } from '@/features/_shared/RelatedPods'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 
@@ -32,7 +33,9 @@ export function ReplicaSetDetailBody({
         {detail.owners.length > 0 && (
           <Section title="Controlled By">
             {detail.owners.map((o, i) => (
-              <Field key={i} label={o.kind}>{o.name}</Field>
+              <Field key={i} label={o.kind}>
+                <OwnerLink owner={o} namespace={detail.namespace} />
+              </Field>
             ))}
           </Section>
         )}

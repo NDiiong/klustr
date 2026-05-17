@@ -4,6 +4,7 @@ import { onKubeChange } from '@/lib/events'
 import { formatAge } from '@/lib/time'
 import { useUIStore } from '@/store/ui'
 import { ErrorBox, Section, Td, Th } from './DetailPrimitives'
+import { NodeLink } from './NodeLink'
 
 type Props = {
   contextName: string | null
@@ -105,7 +106,11 @@ export function RelatedPods({ contextName, kind, namespace, name, title }: Props
                   <Td>{p.ready}</Td>
                   <Td className={statusClass(p.status)}>{p.status}</Td>
                   <Td>{p.restarts}</Td>
-                  {showNode && <Td className="text-muted-foreground">{p.node || '—'}</Td>}
+                  {showNode && (
+                    <Td className="text-muted-foreground">
+                      {p.node ? <NodeLink name={p.node} /> : '—'}
+                    </Td>
+                  )}
                   <Td className="whitespace-nowrap text-muted-foreground">
                     {formatAge(p.createdAt)}
                   </Td>

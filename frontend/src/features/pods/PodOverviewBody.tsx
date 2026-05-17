@@ -6,6 +6,8 @@ import { api, type ContainerDetail, type EnvVarRef, type PodDetail } from '@/lib
 import { formatAge } from '@/lib/time'
 import { Chips, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { Copyable } from '@/features/_shared/Copyable'
+import { NodeLink } from '@/features/_shared/NodeLink'
+import { OwnerLink } from '@/features/_shared/OwnerLink'
 
 export function PodOverviewBody({
   contextName,
@@ -28,7 +30,15 @@ export function PodOverviewBody({
         <Section title="Networking">
           <Field label="Pod IP" mono>{detail.podIP ? <Copyable value={detail.podIP} /> : '—'}</Field>
           <Field label="Host IP" mono>{detail.hostIP ? <Copyable value={detail.hostIP} /> : '—'}</Field>
-          <Field label="Node">{detail.node ? <Copyable value={detail.node} /> : '—'}</Field>
+          <Field label="Node">
+            {detail.node ? (
+              <Copyable value={detail.node}>
+                <NodeLink name={detail.node} />
+              </Copyable>
+            ) : (
+              '—'
+            )}
+          </Field>
           <Field label="Service Account">{detail.serviceAccount || 'default'}</Field>
           {detail.priorityClassName && <Field label="Priority Class">{detail.priorityClassName}</Field>}
         </Section>
@@ -36,7 +46,9 @@ export function PodOverviewBody({
         {detail.owners.length > 0 && (
           <Section title="Controlled By">
             {detail.owners.map((o, i) => (
-              <Field key={i} label={o.kind}>{o.name}</Field>
+              <Field key={i} label={o.kind}>
+                <OwnerLink owner={o} namespace={detail.namespace} />
+              </Field>
             ))}
           </Section>
         )}
