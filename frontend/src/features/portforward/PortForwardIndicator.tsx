@@ -1,8 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
-import { Network, X } from 'lucide-react'
+import { ExternalLink, Network, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { api } from '@/lib/api'
+import { BrowserOpenURL } from '@/lib/wails/wailsjs/runtime/runtime'
 import { usePortForwards } from '@/store/portForwards'
 
 export function PortForwardIndicator() {
@@ -32,14 +33,22 @@ export function PortForwardIndicator() {
         <ul className="max-h-80 overflow-auto">
           {list.map((pf) => (
             <li key={pf.id} className="flex items-center gap-2 border-b border-border px-3 py-2 text-xs last:border-b-0">
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-mono">
-                  localhost:{pf.localPort} → {pf.podName}:{pf.remotePort}
-                </div>
-                <div className="text-[10px] text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => BrowserOpenURL(`http://localhost:${pf.localPort}`)}
+                title={`Open http://localhost:${pf.localPort} in browser`}
+                className="group flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left hover:text-primary"
+              >
+                <span className="flex items-center gap-1 truncate font-mono">
+                  <span className="truncate">
+                    localhost:{pf.localPort} → {pf.podName}:{pf.remotePort}
+                  </span>
+                  <ExternalLink className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+                <span className="text-[10px] text-muted-foreground">
                   {pf.namespace} · {pf.context}
-                </div>
-              </div>
+                </span>
+              </button>
               <Button
                 size="icon-xs"
                 variant="ghost"
