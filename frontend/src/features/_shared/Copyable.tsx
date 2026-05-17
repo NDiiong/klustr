@@ -2,13 +2,19 @@ import { useState, type ReactNode } from 'react'
 import { Check, Copy } from 'lucide-react'
 import { toast } from 'sonner'
 
-type Props = {
+type CopyButtonProps = {
   value: string
-  children?: ReactNode
+  ariaLabel?: string
   className?: string
+  iconClassName?: string
 }
 
-export function Copyable({ value, children, className }: Props) {
+export function CopyButton({
+  value,
+  ariaLabel = 'Copy value',
+  className,
+  iconClassName = 'size-3',
+}: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
 
   const onCopy = async (e: React.MouseEvent) => {
@@ -25,16 +31,40 @@ export function Copyable({ value, children, className }: Props) {
   }
 
   return (
+    <button
+      type="button"
+      onClick={onCopy}
+      aria-label={ariaLabel}
+      className={[
+        'rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {copied ? (
+        <Check className={`${iconClassName} text-emerald-500`} />
+      ) : (
+        <Copy className={iconClassName} />
+      )}
+    </button>
+  )
+}
+
+type Props = {
+  value: string
+  children?: ReactNode
+  className?: string
+}
+
+export function Copyable({ value, children, className }: Props) {
+  return (
     <span className={['group inline-flex items-center gap-1', className].filter(Boolean).join(' ')}>
       <span>{children ?? value}</span>
-      <button
-        type="button"
-        onClick={onCopy}
-        aria-label="Copy value"
-        className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100"
-      >
-        {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
-      </button>
+      <CopyButton
+        value={value}
+        className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+      />
     </span>
   )
 }
