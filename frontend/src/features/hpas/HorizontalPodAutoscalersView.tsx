@@ -3,6 +3,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { api, type HorizontalPodAutoscalerInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
+import { HPATargetBars } from './HPATargetBars'
 import { useResources } from '@/store/resources'
 import { useUIStore } from '@/store/ui'
 
@@ -18,7 +19,11 @@ export function HorizontalPodAutoscalersView() {
       columnHelper.accessor('namespace', { header: 'Namespace' }),
       columnHelper.accessor('name', { header: 'Name' }),
       columnHelper.accessor('reference', { header: 'Reference' }),
-      columnHelper.accessor('targets', { header: 'Targets' }),
+      columnHelper.accessor('metrics', {
+        header: 'Targets',
+        cell: (info) => <HPATargetBars metrics={info.getValue() ?? []} />,
+        enableSorting: false,
+      }),
       columnHelper.accessor('minReplicas', { header: 'Min' }),
       columnHelper.accessor('maxReplicas', { header: 'Max' }),
       columnHelper.accessor('currentReplicas', { header: 'Replicas' }),
