@@ -1,7 +1,7 @@
 # Comprehensive Klustr fixture for OrbStack (or any local k8s).
 # Apply:  kubectl apply -f hack/dev-fixtures.yaml
-# Clean:  kubectl delete ns klustr-demo klustr-demo-staging
-#         kubectl delete priorityclass klustr-demo-low
+# Clean:  kubectl delete ns klustr-demo klustr-demo-staging klustr-demo-edge
+#         kubectl delete priorityclass klustr-demo-low klustr-demo-high
 #         kubectl delete runtimeclass  klustr-demo-runc
 #         kubectl delete ingressclass  klustr-demo
 #         kubectl delete validatingwebhookconfiguration klustr-demo-noop
@@ -9,6 +9,8 @@
 #
 # Each resource kind shown in the Klustr sidebar gets at least one
 # representative object so the UI can be exercised end-to-end.
+# The "Edge cases & failure modes" block at the bottom covers
+# CrashLoopBackOff / ImagePullBackOff / Pending / init / probes / etc.
 
 # ----------------------------------------------------------------------
 # Cluster scope
@@ -34,6 +36,14 @@ metadata:
 value: 100
 globalDefault: false
 description: "Low-priority class used by Klustr fixtures."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: klustr-demo-high
+value: 100000
+globalDefault: false
+description: "High-priority class used by Klustr fixtures."
 ---
 apiVersion: node.k8s.io/v1
 kind: RuntimeClass
@@ -658,3 +668,486 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
+
+# ======================================================================
+# Edge cases & failure modes
+# ----------------------------------------------------------------------
+# A dedicated namespace so the misbehaving objects below don't pollute
+# the main demo views. Every UI status that the resource tables can
+# render (CrashLoopBackOff, ImagePullBackOff, Pending/Unschedulable,
+# Init, OOMKilled, Failed Job, Suspended CronJob, stuck rollout, ...)
+# has at least one example here.
+# ======================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: klustr-demo-edge
+  labels:
+    klustr.dev/fixture: "true"
+
+# ----------------------------------------------------------------------
+# Secret variants — every well-known type so the Secrets list renders
+# something other than "Opaque" everywhere.
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tls-cert
+  namespace: klustr-demo-edge
+type: kubernetes.io/tls
+stringData:
+  # Self-signed CN=klustr.local, valid 100 years. Generated once and
+  # checked in; nothing connects to this so rotation is irrelevant.
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIBkTCCATegAwIBAgIUbVm7sZ7y5sxmGRQbOsRtaA7q/eEwCgYIKoZIzj0EAwIw
+    GDEWMBQGA1UEAwwNa2x1c3RyLmxvY2FsMCAXDTI1MDEwMTAwMDAwMFoYDzIxMjUw
+    MTAxMDAwMDAwWjAYMRYwFAYDVQQDDA1rbHVzdHIubG9jYWwwWTATBgcqhkjOPQIB
+    BggqhkjOPQMBBwNCAATdummytlsplaceholderkeyrandombase64encoded1234
+    aGV5dGhpc2lzbm90YXJlYWxjZXJ0aWZpY2F0ZUlhbWp1c3RhcGxhY2Vob2xkZXIx
+    ozIwMDAdBgNVHQ4EFgQUdummyowner1234567890wAfBgNVHSMEGDAWgBRdummyow
+    bmVyMTIzNDU2Nzg5MDAKBggqhkjOPQQDAgNIADBFAiEA1234567890abcdefghij
+    klmnopqrstuvwxyz0987654321QIgZYXWVUTSRQPONMLKJIHGFEDCBA0987654321
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEILdummyECprivkeyplaceholdervalueoooooooooooooooooooooooo
+    oAoGCCqGSM49AwEHoUQDQgAE3dummytlsplaceholderkeyrandombase64encod
+    ed1234567890abcdefghijklmnopqrstuvwxyz0987654321QwBaSeNoTrEaL==
+    -----END EC PRIVATE KEY-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: docker-creds
+  namespace: klustr-demo-edge
+type: kubernetes.io/dockerconfigjson
+stringData:
+  # {"auths":{"registry.klustr.local":{"username":"demo","password":"demo","auth":"ZGVtbzpkZW1v"}}}
+  .dockerconfigjson: |
+    {"auths":{"registry.klustr.local":{"username":"demo","password":"demo","auth":"ZGVtbzpkZW1v"}}}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: basic-auth
+  namespace: klustr-demo-edge
+type: kubernetes.io/basic-auth
+stringData:
+  username: demo
+  password: demo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh-key
+  namespace: klustr-demo-edge
+type: kubernetes.io/ssh-auth
+stringData:
+  ssh-privatekey: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    dummyplaceholdervaluenotarealkey0000000000000000000000000000000
+    -----END OPENSSH PRIVATE KEY-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sa-token-style
+  namespace: klustr-demo-edge
+  annotations:
+    kubernetes.io/service-account.name: default
+type: kubernetes.io/service-account-token
+stringData:
+  token: not-a-real-jwt
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: binary-config
+  namespace: klustr-demo-edge
+binaryData:
+  blob.bin: aGVsbG8gZnJvbSBiaW5hcnlEYXRhIGZpZWxk
+data:
+  text.txt: |
+    Mixed ConfigMap: this entry is plain text, while blob.bin lives in
+    the binaryData field. Useful for exercising both code paths in the
+    YAML detail view.
+
+# ----------------------------------------------------------------------
+# Pod failure scenarios
+# ----------------------------------------------------------------------
+---
+# Image that doesn't exist → ErrImagePull / ImagePullBackOff.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: image-pull-backoff
+  namespace: klustr-demo-edge
+  labels:
+    scenario: image-pull-backoff
+spec:
+  containers:
+    - name: nope
+      image: klustr.invalid/does-not-exist:nope
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+---
+# Exits 1 immediately → CrashLoopBackOff after a few restarts.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop
+  namespace: klustr-demo-edge
+  labels:
+    scenario: crashloop
+spec:
+  containers:
+    - name: bad
+      image: busybox:1.37
+      command: ["sh", "-c", "echo starting; sleep 2; echo crashing; exit 1"]
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+---
+# nodeSelector that no node matches → permanently Pending.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pending-unschedulable
+  namespace: klustr-demo-edge
+  labels:
+    scenario: pending
+spec:
+  nodeSelector:
+    klustr.dev/imaginary-zone: never
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+---
+# Allocates more memory than its limit → OOMKilled, then restarts.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oom-killed
+  namespace: klustr-demo-edge
+  labels:
+    scenario: oom-killed
+spec:
+  restartPolicy: Always
+  containers:
+    - name: hog
+      image: polinux/stress:latest
+      command: ["stress"]
+      args:
+        - "--vm"
+        - "1"
+        - "--vm-bytes"
+        - "200M"
+        - "--vm-hang"
+        - "0"
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }
+        limits:   { cpu: 100m, memory: 32Mi }
+---
+# Two init containers + main container → exercises Init / PodInitializing
+# states while the inits run, then a healthy Running pod afterwards.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-init
+  namespace: klustr-demo-edge
+  labels:
+    scenario: init
+spec:
+  initContainers:
+    - name: wait-a-bit
+      image: busybox:1.37
+      command: ["sh", "-c", "echo init step 1; sleep 8; echo init step 1 done"]
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+    - name: prep-config
+      image: busybox:1.37
+      command: ["sh", "-c", "echo init step 2; sleep 4; echo writing /shared/ready; mkdir -p /shared; date > /shared/ready"]
+      volumeMounts:
+        - name: shared
+          mountPath: /shared
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "echo main starting; cat /shared/ready; while true; do echo tick $(date -u +%T); sleep 15; done"]
+      volumeMounts:
+        - name: shared
+          mountPath: /shared
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+  volumes:
+    - name: shared
+      emptyDir: {}
+---
+# Liveness + readiness + startup probes + multi-container (sidecar style)
+# exercises the container picker and the probe columns.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: with-probes
+  namespace: klustr-demo-edge
+  labels:
+    scenario: probes
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      ports:
+        - name: http
+          containerPort: 80
+      startupProbe:
+        httpGet:
+          path: /
+          port: 80
+        failureThreshold: 30
+        periodSeconds: 2
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /
+          port: 80
+        periodSeconds: 10
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }
+        limits:   { cpu: 100m, memory: 64Mi }
+    - name: sidecar-logger
+      image: busybox:1.37
+      command: ["sh", "-c", "while true; do echo sidecar still here at $(date -u +%T); sleep 7; done"]
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+---
+# Pod with a projected volume (configMap + secret + downwardAPI) — gives
+# the YAML view something denser than a single mount.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: projected-volume
+  namespace: klustr-demo-edge
+  labels:
+    scenario: projected
+spec:
+  containers:
+    - name: app
+      image: busybox:1.37
+      command: ["sh", "-c", "ls -la /mnt/all; sleep 3600"]
+      volumeMounts:
+        - name: all
+          mountPath: /mnt/all
+      resources:
+        requests: { cpu: 5m, memory: 8Mi }
+        limits:   { cpu: 50m, memory: 32Mi }
+  volumes:
+    - name: all
+      projected:
+        sources:
+          - configMap:
+              name: binary-config
+          - secret:
+              name: basic-auth
+          - downwardAPI:
+              items:
+                - path: pod-name
+                  fieldRef:
+                    fieldPath: metadata.name
+                - path: pod-namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
+
+# ----------------------------------------------------------------------
+# Stuck Deployment — image will never pull, so the rollout stalls.
+# Surfaces `Progressing=False / ProgressDeadlineExceeded` after ~10 min.
+# ----------------------------------------------------------------------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stuck-rollout
+  namespace: klustr-demo-edge
+  labels:
+    app: stuck-rollout
+spec:
+  replicas: 2
+  progressDeadlineSeconds: 60
+  selector:
+    matchLabels:
+      app: stuck-rollout
+  template:
+    metadata:
+      labels:
+        app: stuck-rollout
+    spec:
+      containers:
+        - name: bad
+          image: klustr.invalid/never-pulls:0.0.1
+          resources:
+            requests: { cpu: 5m, memory: 8Mi }
+            limits:   { cpu: 50m, memory: 32Mi }
+
+# ----------------------------------------------------------------------
+# Job that always fails (backoffLimit reached) + a suspended CronJob.
+# ----------------------------------------------------------------------
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: always-fails
+  namespace: klustr-demo-edge
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: always-fails
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: failer
+          image: busybox:1.37
+          command: ["sh", "-c", "echo failing; sleep 1; exit 42"]
+          resources:
+            requests: { cpu: 5m, memory: 8Mi }
+            limits:   { cpu: 50m, memory: 32Mi }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: suspended
+  namespace: klustr-demo-edge
+spec:
+  schedule: "0 0 * * *"
+  suspend: true
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: noop
+              image: busybox:1.37
+              command: ["sh", "-c", "echo this never runs while suspended"]
+              resources:
+                requests: { cpu: 5m, memory: 8Mi }
+                limits:   { cpu: 50m, memory: 32Mi }
+
+# ----------------------------------------------------------------------
+# Service variants — NodePort and ExternalName so the Service list
+# isn't all ClusterIP/LoadBalancer.
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeport-demo
+  namespace: klustr-demo-edge
+spec:
+  type: NodePort
+  selector:
+    scenario: probes
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 31080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: externalname-demo
+  namespace: klustr-demo-edge
+spec:
+  type: ExternalName
+  externalName: example.com
+
+# ----------------------------------------------------------------------
+# HPA targeting the stuck rollout — stays in "unable to fetch metrics"
+# so the HPA list shows a non-Ready row alongside the healthy `web` HPA.
+# ----------------------------------------------------------------------
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stuck-rollout
+  namespace: klustr-demo-edge
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: stuck-rollout
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+# ----------------------------------------------------------------------
+# Deny-all NetworkPolicy — pairs with the allow-same-ns policy in the
+# main namespace so the NetworkPolicy view has both shapes.
+# ----------------------------------------------------------------------
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: klustr-demo-edge
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+
+# ----------------------------------------------------------------------
+# PVC that stays Pending because the storage class doesn't exist —
+# gives the Storage views something other than green.
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pending-pvc
+  namespace: klustr-demo-edge
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: klustr-imaginary-sc
+  resources:
+    requests:
+      storage: 1Gi
+
+# ----------------------------------------------------------------------
+# Manually-managed PV — the Storage view otherwise only shows
+# dynamically provisioned local-path volumes.
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: klustr-demo-static
+spec:
+  capacity:
+    storage: 64Mi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /tmp/klustr-demo-static
