@@ -109,7 +109,7 @@ export function PortForwardDialog({ contextName, resource, open, onOpenChange }:
         onOpenChange(next)
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Port-forward</DialogTitle>
           <DialogDescription asChild>
