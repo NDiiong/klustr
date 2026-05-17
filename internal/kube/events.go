@@ -24,6 +24,35 @@ type EventInfo struct {
 	ObjectName string    `json:"objectName"`
 }
 
+func (m *ClientManager) ListClusterWarningEvents(ctx context.Context, contextName string, limit int) ([]EventInfo, error) {
+	cs, err := m.Clientset(contextName)
+	if err != nil {
+		return nil, err
+	}
+	if limit <= 0 {
+		limit = 50
+	}
+
+	opts := metav1.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector("type", "Warning").String(),
+		Limit:         int64(limit),
+	}
+	list, err := cs.CoreV1().Events("").List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]EventInfo, 0, len(list.Items))
+	for i := range list.Items {
+		out = append(out, eventInfoFrom(&list.Items[i]))
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].LastSeen.After(out[j].LastSeen) })
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
+}
+
 func (m *ClientManager) ListEvents(ctx context.Context, contextName, namespace, kind, name string) ([]EventInfo, error) {
 	cs, err := m.Clientset(contextName)
 	if err != nil {

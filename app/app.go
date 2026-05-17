@@ -407,6 +407,14 @@ func (a *App) ListEvents(contextName, namespace, kind, name string) ([]kube.Even
 	return a.clients.ListEvents(a.ctx, contextName, namespace, kind, name)
 }
 
+func (a *App) ListClusterWarningEvents(contextName string, limit int) ([]kube.EventInfo, error) {
+	return a.clients.ListClusterWarningEvents(a.ctx, contextName, limit)
+}
+
+func (a *App) GetClusterOverview(contextName string) (*kube.ClusterOverview, error) {
+	return a.clients.GetClusterOverview(a.ctx, contextName)
+}
+
 func (a *App) ListPodMetrics(contextName, namespace string) ([]kube.PodMetrics, error) {
 	return a.clients.ListPodMetrics(a.ctx, contextName, namespace)
 }

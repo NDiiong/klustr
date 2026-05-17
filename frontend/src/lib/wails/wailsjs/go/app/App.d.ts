@@ -6,6 +6,8 @@ export function ApplyResourceYAML(arg1:string,arg2:string):Promise<void>;
 
 export function DeleteResource(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
+export function GetClusterOverview(arg1:string):Promise<kube.ClusterOverview>;
+
 export function GetConfigMap(arg1:string,arg2:string,arg3:string):Promise<kube.ConfigMapDetail>;
 
 export function GetCronJob(arg1:string,arg2:string,arg3:string):Promise<kube.CronJobDetail>;
@@ -67,6 +69,8 @@ export function GetStatefulSet(arg1:string,arg2:string,arg3:string):Promise<kube
 export function GetStorageClass(arg1:string,arg2:string):Promise<kube.StorageClassDetail>;
 
 export function GetValidatingWebhookConfiguration(arg1:string,arg2:string):Promise<kube.WebhookConfigurationDetail>;
+
+export function ListClusterWarningEvents(arg1:string,arg2:number):Promise<Array<kube.EventInfo>>;
 
 export function ListConfigMaps(arg1:string,arg2:string):Promise<Array<kube.ConfigMapInfo>>;
 

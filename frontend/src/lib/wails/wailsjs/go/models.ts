@@ -1,5 +1,85 @@
 export namespace kube {
 	
+	export class ClusterPods {
+	    usage: number;
+	    allocatable: number;
+	    capacity: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ClusterPods(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.usage = source["usage"];
+	        this.allocatable = source["allocatable"];
+	        this.capacity = source["capacity"];
+	    }
+	}
+	export class ClusterResource {
+	    usage: number;
+	    requests: number;
+	    limits: number;
+	    allocatable: number;
+	    capacity: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ClusterResource(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.usage = source["usage"];
+	        this.requests = source["requests"];
+	        this.limits = source["limits"];
+	        this.allocatable = source["allocatable"];
+	        this.capacity = source["capacity"];
+	    }
+	}
+	export class ClusterOverview {
+	    cpu: ClusterResource;
+	    memory: ClusterResource;
+	    pods: ClusterPods;
+	    nodeCount: number;
+	    namespaceCount: number;
+	    metricsAvailable: boolean;
+	    metricsError?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ClusterOverview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.cpu = this.convertValues(source["cpu"], ClusterResource);
+	        this.memory = this.convertValues(source["memory"], ClusterResource);
+	        this.pods = this.convertValues(source["pods"], ClusterPods);
+	        this.nodeCount = source["nodeCount"];
+	        this.namespaceCount = source["namespaceCount"];
+	        this.metricsAvailable = source["metricsAvailable"];
+	        this.metricsError = source["metricsError"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
 	export class ConditionDetail {
 	    type: string;
 	    status: string;

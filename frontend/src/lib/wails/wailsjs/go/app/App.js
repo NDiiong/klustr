@@ -10,6 +10,10 @@ export function DeleteResource(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['DeleteResource'](arg1, arg2, arg3, arg4);
 }
 
+export function GetClusterOverview(arg1) {
+  return window['go']['app']['App']['GetClusterOverview'](arg1);
+}
+
 export function GetConfigMap(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetConfigMap'](arg1, arg2, arg3);
 }
@@ -132,6 +136,10 @@ export function GetStorageClass(arg1, arg2) {
 
 export function GetValidatingWebhookConfiguration(arg1, arg2) {
   return window['go']['app']['App']['GetValidatingWebhookConfiguration'](arg1, arg2);
+}
+
+export function ListClusterWarningEvents(arg1, arg2) {
+  return window['go']['app']['App']['ListClusterWarningEvents'](arg1, arg2);
 }
 
 export function ListConfigMaps(arg1, arg2) {
