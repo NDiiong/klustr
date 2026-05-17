@@ -133,7 +133,7 @@ export type PendingAction =
 
 type UIState = {
   selectedContext: string | null
-  selectedNamespace: string | null
+  selectedNamespaces: string[]
   selectedView: ResourceView
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
@@ -144,7 +144,9 @@ type UIState = {
   collapsedNavGroups: string[]
   defaultContext: string | null
   setSelectedContext: (name: string | null) => void
-  setSelectedNamespace: (name: string | null) => void
+  setSelectedNamespaces: (names: string[]) => void
+  toggleSelectedNamespace: (name: string) => void
+  clearSelectedNamespaces: () => void
   setSelectedView: (view: ResourceView) => void
   setSelectedResource: (resource: SelectedResource | null) => void
   openResource: (resource: SelectedResource, tab?: DetailTab) => void
@@ -157,6 +159,10 @@ type UIState = {
 
 function sameResource(a: SelectedResource, b: SelectedResource): boolean {
   return a.kind === b.kind && a.namespace === b.namespace && a.name === b.name
+}
+
+function dedupeSorted(names: readonly string[]): string[] {
+  return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b))
 }
 
 export const useUIStore = create<UIState>((set) => {
@@ -179,7 +185,7 @@ export const useUIStore = create<UIState>((set) => {
 
   return {
     selectedContext: initialDefaultContext,
-    selectedNamespace: null,
+    selectedNamespaces: [],
     selectedView: 'overview',
     selectedResource: null,
     lastSelectedResource: null,
@@ -195,12 +201,22 @@ export const useUIStore = create<UIState>((set) => {
           ? s
           : {
               selectedContext: name,
-              selectedNamespace: null,
+              selectedNamespaces: [],
               selectedResource: null,
               lastSelectedResource: null,
             },
       ),
-    setSelectedNamespace: (name) => set({ selectedNamespace: name }),
+    setSelectedNamespaces: (names) =>
+      set({ selectedNamespaces: dedupeSorted(names) }),
+    toggleSelectedNamespace: (name) =>
+      set((s) => {
+        const has = s.selectedNamespaces.includes(name)
+        const next = has
+          ? s.selectedNamespaces.filter((n) => n !== name)
+          : dedupeSorted([...s.selectedNamespaces, name])
+        return { selectedNamespaces: next }
+      }),
+    clearSelectedNamespaces: () => set({ selectedNamespaces: [] }),
     setSelectedView: (view) =>
       set({
         selectedView: view,
