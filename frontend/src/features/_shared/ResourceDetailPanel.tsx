@@ -113,17 +113,36 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
 
 const WORKLOAD_LOG_KINDS: ResourceKind[] = ['Deployment', 'StatefulSet', 'DaemonSet']
 
+const EVENT_BEARING_KINDS: ResourceKind[] = [
+  'Pod',
+  'Deployment',
+  'StatefulSet',
+  'DaemonSet',
+  'ReplicaSet',
+  'ReplicationController',
+  'Job',
+  'CronJob',
+  'HorizontalPodAutoscaler',
+  'PodDisruptionBudget',
+  'PersistentVolumeClaim',
+  'PersistentVolume',
+  'Node',
+  'Service',
+  'Ingress',
+]
+
 function DetailContent({ contextName, resource }: { contextName: string | null; resource: SelectedResource }) {
   if (resource.kind === 'Pod') {
     return <PodTabs contextName={contextName} namespace={resource.namespace} name={resource.name} />
   }
   const hasAggregatedLogs = (WORKLOAD_LOG_KINDS as readonly string[]).includes(resource.kind)
+  const hasEvents = (EVENT_BEARING_KINDS as readonly string[]).includes(resource.kind)
   return (
     <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         {hasAggregatedLogs && <TabsTrigger value="logs">Logs</TabsTrigger>}
-        <TabsTrigger value="events">Events</TabsTrigger>
+        {hasEvents && <TabsTrigger value="events">Events</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
@@ -134,14 +153,16 @@ function DetailContent({ contextName, resource }: { contextName: string | null; 
           <WorkloadLogs contextName={contextName} resource={resource} />
         </TabsContent>
       )}
-      <TabsContent value="events" className="min-h-0 flex-1 p-0">
-        <EventsTab
-          contextName={contextName}
-          namespace={resource.namespace}
-          kind={resource.kind}
-          name={resource.name}
-        />
-      </TabsContent>
+      {hasEvents && (
+        <TabsContent value="events" className="min-h-0 flex-1 p-0">
+          <EventsTab
+            contextName={contextName}
+            namespace={resource.namespace}
+            kind={resource.kind}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
       <TabsContent value="yaml" className="min-h-0 flex-1 p-0">
         <ResourceYAMLTab
           contextName={contextName}
