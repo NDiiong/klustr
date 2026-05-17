@@ -46,6 +46,7 @@ function readCollapsedNavGroups(): string[] {
 
 export type ResourceView =
   | 'overview'
+  | 'workloadsoverview'
   | 'pods'
   | 'deployments'
   | 'services'

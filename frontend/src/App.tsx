@@ -36,6 +36,7 @@ import { IngressesView } from '@/features/ingresses/IngressesView'
 import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { OverviewView } from '@/features/overview/OverviewView'
+import { WorkloadsOverviewView } from '@/features/overview/WorkloadsOverviewView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
 import { NamespaceSearchPalette } from '@/features/contexts/NamespaceSearchPalette'
@@ -65,6 +66,7 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
   {
     label: 'Workloads',
     items: [
+      { label: 'Overview', view: 'workloadsoverview' },
       { label: 'Pods', view: 'pods' },
       { label: 'Deployments', view: 'deployments' },
       { label: 'StatefulSets', view: 'statefulsets' },
@@ -117,6 +119,8 @@ function MainView() {
   switch (view) {
     case 'overview':
       return <OverviewView />
+    case 'workloadsoverview':
+      return <WorkloadsOverviewView />
     case 'pods':
       return <PodsView />
     case 'deployments':
