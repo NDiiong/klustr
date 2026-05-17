@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { ThemePicker } from '@/features/_shared/ThemePicker'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
+import { ConnectionsScreen } from '@/features/contexts/ConnectionsScreen'
 import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
 import { PodsView } from '@/features/pods/PodsView'
 import { DeploymentsView } from '@/features/deployments/DeploymentsView'
@@ -245,6 +246,15 @@ function App() {
       resetResources()
     }
   }, [selectedContext, resetResources])
+
+  if (!selectedContext) {
+    return (
+      <TooltipProvider delayDuration={250}>
+        <ConnectionsScreen />
+        <Toaster position="bottom-right" />
+      </TooltipProvider>
+    )
+  }
 
   return (
     <TooltipProvider delayDuration={250}>
