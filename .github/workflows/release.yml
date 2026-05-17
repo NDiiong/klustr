@@ -24,10 +24,6 @@ jobs:
             label: macOS (Apple Silicon)
             platform: darwin/arm64
             suffix: darwin-arm64.tar.gz
-          - os: macos-13
-            label: macOS (Intel)
-            platform: darwin/amd64
-            suffix: darwin-amd64.tar.gz
           - os: windows-latest
             label: Windows (amd64)
             platform: windows/amd64
