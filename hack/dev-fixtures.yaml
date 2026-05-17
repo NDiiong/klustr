@@ -1,3 +1,18 @@
+# Comprehensive Klustr fixture for OrbStack (or any local k8s).
+# Apply:  kubectl apply -f hack/dev-fixtures.yaml
+# Clean:  kubectl delete ns klustr-demo klustr-demo-staging
+#         kubectl delete priorityclass klustr-demo-low
+#         kubectl delete runtimeclass  klustr-demo-runc
+#         kubectl delete ingressclass  klustr-demo
+#         kubectl delete validatingwebhookconfiguration klustr-demo-noop
+#         kubectl delete mutatingwebhookconfiguration   klustr-demo-noop
+#
+# Each resource kind shown in the Klustr sidebar gets at least one
+# representative object so the UI can be exercised end-to-end.
+
+# ----------------------------------------------------------------------
+# Cluster scope
+# ----------------------------------------------------------------------
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -12,6 +27,103 @@ metadata:
   labels:
     klustr.dev/fixture: "true"
 ---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: klustr-demo-low
+value: 100
+globalDefault: false
+description: "Low-priority class used by Klustr fixtures."
+---
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: klustr-demo-runc
+handler: runc
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: klustr-demo
+spec:
+  controller: klustr.dev/dummy-controller
+---
+# Failure policy Ignore + namespaceSelector keeps these admission hooks
+# safe even though no server is listening on the endpoint they call.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: klustr-demo-noop
+webhooks:
+  - name: noop-validate.klustr.dev
+    sideEffects: None
+    admissionReviewVersions: ["v1"]
+    failurePolicy: Ignore
+    timeoutSeconds: 2
+    namespaceSelector:
+      matchLabels:
+        klustr.dev/fixture: "true"
+    rules:
+      - operations: [CREATE]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: [configmaps]
+    clientConfig:
+      url: "https://127.0.0.1:65535/validate"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: klustr-demo-noop
+webhooks:
+  - name: noop-mutate.klustr.dev
+    sideEffects: None
+    admissionReviewVersions: ["v1"]
+    failurePolicy: Ignore
+    timeoutSeconds: 2
+    namespaceSelector:
+      matchLabels:
+        klustr.dev/fixture: "true"
+    rules:
+      - operations: [CREATE]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: [configmaps]
+    clientConfig:
+      url: "https://127.0.0.1:65535/mutate"
+
+# ----------------------------------------------------------------------
+# klustr-demo: Config
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: limits
+  namespace: klustr-demo
+spec:
+  hard:
+    pods: "50"
+    requests.cpu: "4"
+    requests.memory: 4Gi
+    limits.cpu: "8"
+    limits.memory: 8Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: defaults
+  namespace: klustr-demo
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 200m
+        memory: 256Mi
+      defaultRequest:
+        cpu: 10m
+        memory: 16Mi
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,6 +134,38 @@ data:
   log_level: "info"
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trio-nginx-html
+  namespace: klustr-demo
+data:
+  index.html: |
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>trio · nginx</title>
+        <style>
+          body { font-family: ui-sans-serif, system-ui; max-width: 640px; margin: 4rem auto; padding: 0 1rem; color: #111; }
+          h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+          .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #075985; font-size: 0.8rem; }
+          a { color: #2563eb; }
+          code { background: #f1f5f9; padding: 1px 4px; border-radius: 4px; }
+        </style>
+      </head>
+      <body>
+        <span class="pill">container 1 of 3</span>
+        <h1>nginx :80</h1>
+        <p>Static landing page served by nginx inside the <code>trio</code> Pod.</p>
+        <p>Sibling containers:</p>
+        <ul>
+          <li><a href="http://localhost:8000">whoami :8000</a> — request introspection</li>
+          <li><a href="http://localhost:5678">http-echo :5678</a> — static text echo</li>
+        </ul>
+      </body>
+    </html>
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: app-secrets
@@ -30,6 +174,133 @@ type: Opaque
 stringData:
   api_token: "not-a-real-token"
   db_password: "hunter2"
+
+# ----------------------------------------------------------------------
+# klustr-demo: Storage
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scratch
+  namespace: klustr-demo
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 50Mi
+
+# ----------------------------------------------------------------------
+# klustr-demo: Network
+# ----------------------------------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: klustr-demo
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache
+  namespace: klustr-demo
+spec:
+  clusterIP: None
+  selector:
+    app: cache
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+# Selectorless Service backed by a manual Endpoints object — gives
+# the Endpoints view something distinct from the auto-generated ones.
+apiVersion: v1
+kind: Service
+metadata:
+  name: external
+  namespace: klustr-demo
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external
+  namespace: klustr-demo
+subsets:
+  - addresses:
+      - ip: 192.0.2.10
+      - ip: 192.0.2.11
+    ports:
+      - port: 80
+        name: http
+---
+# LoadBalancer for the trio Pod so all three container ports show
+# up under EndpointSlices and the Service can be reached from the host.
+apiVersion: v1
+kind: Service
+metadata:
+  name: trio
+  namespace: klustr-demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: trio
+  ports:
+    - name: web
+      port: 80
+      targetPort: 80
+    - name: whoami
+      port: 8000
+      targetPort: 8000
+    - name: echo
+      port: 5678
+      targetPort: 5678
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: klustr-demo
+spec:
+  rules:
+    - host: web.klustr.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: same-ns
+  namespace: klustr-demo
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: klustr-demo
+
+# ----------------------------------------------------------------------
+# klustr-demo: Workloads
+# ----------------------------------------------------------------------
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,18 +331,6 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: web
-  namespace: klustr-demo
-spec:
-  selector:
-    app: web
-  ports:
-    - port: 80
-      targetPort: 80
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -131,18 +390,169 @@ spec:
               cpu: 100m
               memory: 96Mi
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
-  name: cache
+  name: agent
   namespace: klustr-demo
 spec:
-  clusterIP: None
   selector:
-    app: cache
-  ports:
-    - port: 6379
-      targetPort: 6379
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.37
+          command: ["sh", "-c", "while true; do echo agent on $(hostname) at $(date -u +%T); sleep 30; done"]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+---
+# Standalone ReplicaSet (i.e. not owned by a Deployment).
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: pinned
+  namespace: klustr-demo
+  labels:
+    app: pinned
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pinned
+  template:
+    metadata:
+      labels:
+        app: pinned
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: legacy
+  namespace: klustr-demo
+spec:
+  replicas: 1
+  selector:
+    app: legacy
+  template:
+    metadata:
+      labels:
+        app: legacy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+# Three-container Pod — useful for testing the container picker in
+# Logs / Exec tabs and the multi-port LoadBalancer Service above.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trio
+  namespace: klustr-demo
+  labels:
+    app: trio
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      ports:
+        - name: web
+          containerPort: 80
+      volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+    - name: whoami
+      image: traefik/whoami:latest
+      args: ["--port", "8000"]
+      ports:
+        - name: whoami
+          containerPort: 8000
+      resources:
+        requests:
+          cpu: 5m
+          memory: 16Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
+    - name: echo
+      image: hashicorp/http-echo:latest
+      args:
+        - "-listen=:5678"
+        - "-text=Hello from container 3 — http-echo on :5678"
+      ports:
+        - name: echo
+          containerPort: 5678
+      resources:
+        requests:
+          cpu: 5m
+          memory: 8Mi
+        limits:
+          cpu: 50m
+          memory: 32Mi
+  volumes:
+    - name: html
+      configMap:
+        name: trio-nginx-html
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: oneshot
+  namespace: klustr-demo
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: oneshot
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: busybox:1.37
+          command: ["sh", "-c", "echo running oneshot job; sleep 5; echo done"]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 8Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -151,6 +561,8 @@ metadata:
   namespace: klustr-demo
 spec:
   schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
@@ -167,6 +579,55 @@ spec:
                 limits:
                   cpu: 50m
                   memory: 32Mi
+
+# ----------------------------------------------------------------------
+# klustr-demo: Coordination, autoscaling, policy
+# ----------------------------------------------------------------------
+---
+apiVersion: coordination.k8s.io/v1
+kind: Lease
+metadata:
+  name: sample-lease
+  namespace: klustr-demo
+spec:
+  holderIdentity: klustr-demo-holder
+  leaseDurationSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+  namespace: klustr-demo
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web
+  namespace: klustr-demo
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: web
+
+# ----------------------------------------------------------------------
+# klustr-demo-staging: a second namespace so namespace switching has
+# something to compare against.
+# ----------------------------------------------------------------------
 ---
 apiVersion: apps/v1
 kind: Deployment
