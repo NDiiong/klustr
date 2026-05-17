@@ -11,7 +11,8 @@ import { PodResourceBars } from './PodResourceBars'
 
 const columnHelper = createColumnHelper<PodInfo>()
 
-const HEALTHY_STATUS = new Set(['Running', 'Completed'])
+const HEALTHY_STATUS = new Set(['Running'])
+const TERMINAL_STATUS = new Set(['Completed', 'Succeeded'])
 const PROGRESSING_STATUS = new Set([
   'Pending',
   'ContainerCreating',
@@ -56,7 +57,7 @@ function RestartBadge({ value }: { value: number }) {
 
 function statusClass(status: string): string {
   if (HEALTHY_STATUS.has(status)) return 'text-emerald-600 dark:text-emerald-400'
-  if (status === 'Succeeded') return 'text-muted-foreground'
+  if (TERMINAL_STATUS.has(status)) return 'text-muted-foreground'
   if (PROGRESSING_STATUS.has(status) || status.startsWith('Init:')) {
     return 'text-amber-600 dark:text-amber-400'
   }
