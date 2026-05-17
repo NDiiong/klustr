@@ -37,6 +37,7 @@ import { NodesView } from '@/features/nodes/NodesView'
 import { NamespacesView } from '@/features/namespaces/NamespacesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { CommandPalette } from '@/features/_shared/CommandPalette'
+import { NamespaceSearchPalette } from '@/features/contexts/NamespaceSearchPalette'
 import { StatusBar } from '@/features/_shared/StatusBar'
 import { PodSearchPalette } from '@/features/pods/PodSearchPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
@@ -311,6 +312,7 @@ function App() {
 
       <ResourceDetailPanel contextName={selectedContext} resource={selectedResource} />
       <CommandPalette />
+      <NamespaceSearchPalette />
       <PodSearchPalette />
       <Toaster position="bottom-right" />
     </div>
