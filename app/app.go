@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"runtime/debug"
 
 	"klustr/internal/kube"
 
@@ -11,6 +12,8 @@ import (
 )
 
 const eventKubeChange = "kube:change"
+
+var Version = "dev"
 
 type App struct {
 	ctx     context.Context
@@ -21,6 +24,36 @@ func New() *App {
 	return &App{
 		clients: kube.NewClientManager(),
 	}
+}
+
+func (a *App) Version() string {
+	if Version != "dev" {
+		return Version
+	}
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "dev"
+	}
+	var revision string
+	var modified bool
+	for _, s := range info.Settings {
+		switch s.Key {
+		case "vcs.revision":
+			revision = s.Value
+		case "vcs.modified":
+			modified = s.Value == "true"
+		}
+	}
+	if revision == "" {
+		return "dev"
+	}
+	if len(revision) > 7 {
+		revision = revision[:7]
+	}
+	if modified {
+		revision += "-dirty"
+	}
+	return "dev-" + revision
 }
 
 func (a *App) Startup(ctx context.Context) {

@@ -341,3 +341,7 @@ export function StopPortForward(arg1) {
 export function StopWatch(arg1) {
   return window['go']['app']['App']['StopWatch'](arg1);
 }
+
+export function Version() {
+  return window['go']['app']['App']['Version']();
+}

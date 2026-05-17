@@ -171,3 +171,5 @@ export function StopPodLogs(arg1:string):Promise<void>;
 export function StopPortForward(arg1:string):Promise<void>;
 
 export function StopWatch(arg1:string):Promise<void>;
+
+export function Version():Promise<string>;

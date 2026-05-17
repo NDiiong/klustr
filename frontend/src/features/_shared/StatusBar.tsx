@@ -12,6 +12,22 @@ export function StatusBar() {
   const portForwards = usePortForwards((s) => s.list)
   const [serverVersion, setServerVersion] = useState<string | null>(null)
   const [status, setStatus] = useState<ConnStatus>('idle')
+  const [appVersion, setAppVersion] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    api
+      .version()
+      .then((v) => {
+        if (!cancelled) setAppVersion(v)
+      })
+      .catch(() => {
+        /* ignore */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!selectedContext) {
@@ -80,6 +96,7 @@ export function StatusBar() {
       >
         Press <kbd className="rounded border border-border bg-muted px-1 py-px text-[9px] text-foreground">?</kbd> for shortcuts
       </span>
+      {appVersion && <span className="font-mono">Klustr {appVersion}</span>}
     </footer>
   )
 }

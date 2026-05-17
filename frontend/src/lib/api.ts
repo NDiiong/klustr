@@ -84,6 +84,7 @@ import {
   StopExec,
   StopPodLogs,
   StopWatch,
+  Version,
 } from '@/lib/wails/wailsjs/go/app/App'
 import { kube } from '@/lib/wails/wailsjs/go/models'
 
@@ -354,4 +355,5 @@ export const api = {
     GetClusterOverview(contextName),
   listClusterWarningEvents: (contextName: string, limit: number): Promise<EventInfo[]> =>
     ListClusterWarningEvents(contextName, limit),
+  version: (): Promise<string> => Version(),
 }
