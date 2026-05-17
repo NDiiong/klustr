@@ -12,6 +12,7 @@ import {
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown, Search, X } from 'lucide-react'
 import { onKubeChange } from '@/lib/events'
+import { namespaceQuery } from '@/lib/namespaceFilter'
 import { useUIStore, type ResourceKind } from '@/store/ui'
 import { useTablePrefs } from '@/store/tablePrefs'
 import { ColumnControls } from './ColumnControls'
@@ -92,10 +93,16 @@ export function ResourceTable<T>({
   onRowClick,
 }: ResourceTableProps<T>) {
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const selectedNamespace = useUIStore((s) => s.selectedNamespace)
+  const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
   const selectedResource = useUIStore((s) => s.selectedResource)
   const lastSelectedResource = useUIStore((s) => s.lastSelectedResource)
-  const namespaceArg = scope === 'namespaced' ? selectedNamespace : null
+  const query = useMemo(
+    () =>
+      scope === 'namespaced'
+        ? namespaceQuery(selectedNamespaces)
+        : { apiNamespace: '', matches: () => true },
+    [scope, selectedNamespaces],
+  )
   const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
   const prefs = useTablePrefs((s) => s.byKind[kind])
@@ -142,8 +149,14 @@ export function ResourceTable<T>({
     }
     let cancelled = false
     const reload = () => {
-      fetch(selectedContext, namespaceArg ?? '').then((list) => {
-        if (!cancelled) setData(list ?? [])
+      fetch(selectedContext, query.apiNamespace).then((list) => {
+        if (cancelled) return
+        const raw = list ?? []
+        if (scope === 'namespaced' && selectedNamespaces.length > 1) {
+          setData(raw.filter((row) => query.matches((row as RowIdentity).namespace ?? '')))
+        } else {
+          setData(raw)
+        }
       })
     }
     reload()
@@ -154,7 +167,7 @@ export function ResourceTable<T>({
       cancelled = true
       unsub()
     }
-  }, [selectedContext, namespaceArg, kind, fetch, setData])
+  }, [selectedContext, query, scope, selectedNamespaces.length, kind, fetch, setData])
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 10_000)
@@ -223,9 +236,11 @@ export function ResourceTable<T>({
     : `${total} ${total === 1 ? noun.singular : noun.plural}`
   const scopeLabel =
     scope === 'namespaced'
-      ? namespaceArg
-        ? ` in ${namespaceArg}`
-        : ' across all namespaces'
+      ? selectedNamespaces.length === 0
+        ? ' across all namespaces'
+        : selectedNamespaces.length === 1
+          ? ` in ${selectedNamespaces[0]}`
+          : ` in ${selectedNamespaces.length} namespaces`
       : ''
 
   return (
@@ -326,7 +341,7 @@ export function ResourceTable<T>({
                 >
                   {filter
                     ? `No ${noun.plural} matching "${filter}".`
-                    : `No ${noun.plural}${scope === 'namespaced' && namespaceArg ? ` in ${namespaceArg}` : ''}.`}
+                    : `No ${noun.plural}${scope === 'namespaced' && selectedNamespaces.length > 0 ? scopeLabel : ''}.`}
                 </td>
               </tr>
             ) : (
