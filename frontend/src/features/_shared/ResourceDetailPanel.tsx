@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api, type PodDetail } from '@/lib/api'
 import { useUIStore, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
+import { CopyButton } from './Copyable'
 import { ErrorBox } from './DetailPrimitives'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { MultiPodLogsTab } from './MultiPodLogsTab'
@@ -64,9 +65,26 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
         <DialogHeader className="flex flex-row items-start justify-between gap-4 border-b border-border px-6 py-4 pr-12">
           <div className="min-w-0 flex-1 space-y-1">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">{resource?.kind}</div>
-            <DialogTitle className="truncate text-base">{resource?.name}</DialogTitle>
+            <div className="group flex min-w-0 items-center gap-1.5">
+              <DialogTitle className="truncate text-base">{resource?.name}</DialogTitle>
+              {resource?.name && (
+                <CopyButton
+                  value={resource.name}
+                  ariaLabel="Copy name"
+                  className="shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                />
+              )}
+            </div>
             {resource?.namespace && (
-              <div className="text-xs text-muted-foreground">{resource.namespace}</div>
+              <div className="group flex min-w-0 items-center gap-1.5">
+                <div className="truncate text-xs text-muted-foreground">{resource.namespace}</div>
+                <CopyButton
+                  value={resource.namespace}
+                  ariaLabel="Copy namespace"
+                  iconClassName="size-2.5"
+                  className="shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                />
+              </div>
             )}
           </div>
           {resource && (
