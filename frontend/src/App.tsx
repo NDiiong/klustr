@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useEffect } from 'react'
+import { ThemePicker } from '@/features/_shared/ThemePicker'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
 import { NamespaceSelector } from '@/features/contexts/NamespaceSelector'
@@ -109,16 +108,6 @@ const RESOURCE_GROUPS: Array<{ label: string; items: NavItem[] }> = [
   },
 ]
 
-type Theme = 'light' | 'dark'
-
-const THEME_KEY = 'klustr-theme'
-
-function getInitialTheme(): Theme {
-  const saved = localStorage.getItem(THEME_KEY)
-  if (saved === 'dark' || saved === 'light') return saved
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
 function MainView() {
   const view = useUIStore((s) => s.selectedView)
   switch (view) {
@@ -205,7 +194,6 @@ function isEditableTarget(t: EventTarget | null): boolean {
 }
 
 function App() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const selectedContext = useUIStore((s) => s.selectedContext)
   const selectedView = useUIStore((s) => s.selectedView)
   const setSelectedView = useUIStore((s) => s.setSelectedView)
@@ -228,11 +216,6 @@ function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [selectedView, setSelectedView])
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem(THEME_KEY, theme)
-  }, [theme])
 
   useEffect(() => {
     const reload = () => {
@@ -262,14 +245,7 @@ function App() {
         </div>
         <div className="flex items-center gap-1">
           <PortForwardIndicator />
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-          >
-            {theme === 'dark' ? <Sun /> : <Moon />}
-          </Button>
+          <ThemePicker />
         </div>
       </header>
 

@@ -7,9 +7,9 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodLogTarget } from '@/lib/api'
-import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { highlightLogContent } from '@/features/_shared/logHighlight'
+import { useUIStore } from '@/store/ui'
 
 const TAIL_LINES = 50
 const COLORS = [
@@ -46,7 +46,7 @@ type Session = {
 }
 
 export function MultiPodLogsTab({ contextName, namespace, selector, title }: Props) {
-  const themeMode = useThemeMode()
+  const themeId = useUIStore((s) => s.themeId)
   const selectorKey = useMemo(
     () =>
       Object.entries(selector)
@@ -113,7 +113,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
         '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       fontSize: 12,
       scrollback: 20_000,
-      theme: xtermThemeFor(themeMode),
+      theme: xtermThemeFor(themeId),
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -147,8 +147,8 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
   }, [])
 
   useEffect(() => {
-    if (termRef.current) termRef.current.options.theme = xtermThemeFor(themeMode)
-  }, [themeMode])
+    if (termRef.current) termRef.current.options.theme = xtermThemeFor(themeId)
+  }, [themeId])
 
   useEffect(() => {
     if (!contextName || !selectorKey) {

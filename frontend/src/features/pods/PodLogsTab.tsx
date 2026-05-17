@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
-import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { highlightLogContent } from '@/features/_shared/logHighlight'
 import { useUIStore } from '@/store/ui'
@@ -20,7 +19,7 @@ type Props = {
 
 export function PodLogsTab({ detail }: Props) {
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const themeMode = useThemeMode()
+  const themeId = useUIStore((s) => s.themeId)
   const containerNames = useMemo(
     () => [...detail.initContainers.map((c) => c.name), ...detail.containers.map((c) => c.name)],
     [detail.initContainers, detail.containers],
@@ -81,7 +80,7 @@ export function PodLogsTab({ detail }: Props) {
         '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       fontSize: 12,
       scrollback: 10_000,
-      theme: xtermThemeFor(themeMode),
+      theme: xtermThemeFor(themeId),
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -111,15 +110,15 @@ export function PodLogsTab({ detail }: Props) {
       termRef.current = null
       fitRef.current = null
     }
-    // intentionally not depending on themeMode: see effect below for live updates
+    // intentionally not depending on themeId: see effect below for live updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (termRef.current) {
-      termRef.current.options.theme = xtermThemeFor(themeMode)
+      termRef.current.options.theme = xtermThemeFor(themeId)
     }
-  }, [themeMode])
+  }, [themeId])
 
   useEffect(() => {
     if (!selectedContext || !container) return

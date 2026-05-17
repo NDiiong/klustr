@@ -4,7 +4,6 @@ import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
-import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { useUIStore } from '@/store/ui'
 
@@ -16,7 +15,7 @@ type Props = {
 
 export function PodExecTab({ detail }: Props) {
   const selectedContext = useUIStore((s) => s.selectedContext)
-  const themeMode = useThemeMode()
+  const themeId = useUIStore((s) => s.themeId)
   const containerNames = useMemo(
     () => detail.containers.map((c) => c.name),
     [detail.containers],
@@ -42,7 +41,7 @@ export function PodExecTab({ detail }: Props) {
         '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
       fontSize: 12,
       scrollback: 5_000,
-      theme: xtermThemeFor(themeMode),
+      theme: xtermThemeFor(themeId),
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -82,9 +81,9 @@ export function PodExecTab({ detail }: Props) {
 
   useEffect(() => {
     if (termRef.current) {
-      termRef.current.options.theme = xtermThemeFor(themeMode)
+      termRef.current.options.theme = xtermThemeFor(themeId)
     }
-  }, [themeMode])
+  }, [themeId])
 
   useEffect(() => {
     const term = termRef.current
