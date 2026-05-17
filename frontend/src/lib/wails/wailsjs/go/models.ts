@@ -1951,6 +1951,7 @@ export namespace kube {
 	    cpuLimitMC: number;
 	    memRequestB: number;
 	    memLimitB: number;
+	    hasPorts: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new PodInfo(source);
@@ -1970,6 +1971,7 @@ export namespace kube {
 	        this.cpuLimitMC = source["cpuLimitMC"];
 	        this.memRequestB = source["memRequestB"];
 	        this.memLimitB = source["memLimitB"];
+	        this.hasPorts = source["hasPorts"];
 	    }
 	}
 	export class PodLogTarget {

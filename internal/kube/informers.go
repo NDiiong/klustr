@@ -44,6 +44,7 @@ type PodInfo struct {
 	CPULimitMC   int64  `json:"cpuLimitMC"`
 	MemRequestB  int64  `json:"memRequestB"`
 	MemLimitB    int64  `json:"memLimitB"`
+	HasPorts     bool   `json:"hasPorts"`
 }
 
 type PodLogTarget struct {
@@ -1062,6 +1063,13 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 			restarts += cs.RestartCount
 		}
 		cpuReq, cpuLim, memReq, memLim := podResourceTotals(p)
+		hasPorts := false
+		for _, c := range p.Spec.Containers {
+			if len(c.Ports) > 0 {
+				hasPorts = true
+				break
+			}
+		}
 		out = append(out, PodInfo{
 			Name:         p.Name,
 			Namespace:    p.Namespace,
@@ -1075,6 +1083,7 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 			CPULimitMC:   cpuLim,
 			MemRequestB:  memReq,
 			MemLimitB:    memLim,
+			HasPorts:     hasPorts,
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
