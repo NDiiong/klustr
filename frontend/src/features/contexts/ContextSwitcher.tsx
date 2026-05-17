@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ export function ContextSwitcher() {
 
   const selected = useUIStore((s) => s.selectedContext)
   const setSelected = useUIStore((s) => s.setSelectedContext)
+  const autoConnectContext = useUIStore((s) => s.defaultContext)
 
   useEffect(() => {
     let cancelled = false
@@ -63,6 +64,7 @@ export function ContextSwitcher() {
           contexts.map((c) => {
             const isSelected = selected === c.name
             const isDefault = c.name === defaultContext
+            const isAutoConnect = c.name === autoConnectContext
             return (
               <DropdownMenuItem
                 key={c.name}
@@ -74,7 +76,12 @@ export function ContextSwitcher() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 truncate text-sm">
                       <span className="truncate">{c.name}</span>
-                      {isDefault && (
+                      {isAutoConnect && (
+                        <span className="rounded bg-muted px-1 py-px text-[10px] uppercase tracking-wide text-muted-foreground">
+                          auto
+                        </span>
+                      )}
+                      {isDefault && !isAutoConnect && (
                         <span className="rounded bg-muted px-1 py-px text-[10px] uppercase tracking-wide text-muted-foreground">
                           default
                         </span>
@@ -87,6 +94,11 @@ export function ContextSwitcher() {
             )
           })
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => setSelected(null)}>
+          <LogOut className="size-3.5" />
+          <span className="text-sm">Disconnect</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
