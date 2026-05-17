@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { ChevronRight } from 'lucide-react'
 import { ThemePicker } from '@/features/_shared/ThemePicker'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ConnectionStatus } from '@/features/contexts/ConnectionStatus'
@@ -198,6 +199,8 @@ function App() {
   const selectedView = useUIStore((s) => s.selectedView)
   const setSelectedView = useUIStore((s) => s.setSelectedView)
   const selectedResource = useUIStore((s) => s.selectedResource)
+  const collapsedNavGroups = useUIStore((s) => s.collapsedNavGroups)
+  const toggleNavGroup = useUIStore((s) => s.toggleNavGroup)
   const resetResources = useResources((s) => s.reset)
   const setPortForwards = usePortForwards((s) => s.setList)
 
@@ -251,38 +254,51 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-56 shrink-0 overflow-y-auto border-r border-border bg-sidebar text-sidebar-foreground">
-          <nav className="flex flex-col gap-4 p-3">
-            {RESOURCE_GROUPS.map((group) => (
-              <div key={group.label}>
-                <div className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {group.label}
+          <nav className="flex flex-col gap-3 p-3">
+            {RESOURCE_GROUPS.map((group) => {
+              const collapsed = collapsedNavGroups.includes(group.label)
+              return (
+                <div key={group.label}>
+                  <button
+                    type="button"
+                    onClick={() => toggleNavGroup(group.label)}
+                    aria-expanded={!collapsed}
+                    className="flex w-full items-center gap-1 px-2 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-sidebar-foreground"
+                  >
+                    <ChevronRight
+                      className={`size-3 shrink-0 transition-transform ${collapsed ? '' : 'rotate-90'}`}
+                    />
+                    <span>{group.label}</span>
+                  </button>
+                  {!collapsed && (
+                    <ul className="flex flex-col">
+                      {group.items.map((item) => {
+                        const active = item.view !== undefined && item.view === selectedView
+                        const enabled = item.view !== undefined
+                        return (
+                          <li
+                            key={item.label}
+                            aria-disabled={!enabled}
+                            className={[
+                              'rounded px-2 py-1 text-sm',
+                              enabled
+                                ? 'cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                                : 'cursor-default text-muted-foreground/60',
+                              active ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
+                            ].join(' ')}
+                            onClick={() => {
+                              if (item.view) setSelectedView(item.view)
+                            }}
+                          >
+                            {item.label}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
                 </div>
-                <ul className="flex flex-col">
-                  {group.items.map((item) => {
-                    const active = item.view !== undefined && item.view === selectedView
-                    const enabled = item.view !== undefined
-                    return (
-                      <li
-                        key={item.label}
-                        aria-disabled={!enabled}
-                        className={[
-                          'rounded px-2 py-1 text-sm',
-                          enabled
-                            ? 'cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                            : 'cursor-default text-muted-foreground/60',
-                          active ? 'bg-sidebar-accent text-sidebar-accent-foreground' : '',
-                        ].join(' ')}
-                        onClick={() => {
-                          if (item.view) setSelectedView(item.view)
-                        }}
-                      >
-                        {item.label}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            ))}
+              )
+            })}
           </nav>
         </aside>
 

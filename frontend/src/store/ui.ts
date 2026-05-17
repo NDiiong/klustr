@@ -31,6 +31,19 @@ function applyThemeClasses(theme: ThemeDefinition) {
   }
 }
 
+const COLLAPSED_NAV_GROUPS_KEY = 'klustr-collapsed-nav-groups'
+
+function readCollapsedNavGroups(): string[] {
+  try {
+    const raw = localStorage.getItem(COLLAPSED_NAV_GROUPS_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
+  } catch {
+    return []
+  }
+}
+
 export type ResourceView =
   | 'overview'
   | 'pods'
@@ -110,11 +123,13 @@ type UIState = {
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
   themeId: ThemeId
+  collapsedNavGroups: string[]
   setSelectedContext: (name: string | null) => void
   setSelectedNamespace: (name: string | null) => void
   setSelectedView: (view: ResourceView) => void
   setSelectedResource: (resource: SelectedResource | null) => void
   setTheme: (id: ThemeId) => void
+  toggleNavGroup: (label: string) => void
 }
 
 export const useUIStore = create<UIState>((set) => {
@@ -140,6 +155,7 @@ export const useUIStore = create<UIState>((set) => {
     selectedResource: null,
     lastSelectedResource: null,
     themeId: initialThemeId,
+    collapsedNavGroups: readCollapsedNavGroups(),
     setSelectedContext: (name) =>
       set((s) =>
         s.selectedContext === name
@@ -168,5 +184,13 @@ export const useUIStore = create<UIState>((set) => {
       localStorage.setItem(THEME_STORAGE_KEY, id)
       set({ themeId: id })
     },
+    toggleNavGroup: (label) =>
+      set((s) => {
+        const next = s.collapsedNavGroups.includes(label)
+          ? s.collapsedNavGroups.filter((g) => g !== label)
+          : [...s.collapsedNavGroups, label]
+        localStorage.setItem(COLLAPSED_NAV_GROUPS_KEY, JSON.stringify(next))
+        return { collapsedNavGroups: next }
+      }),
   }
 })
