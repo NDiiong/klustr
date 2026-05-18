@@ -1,0 +1,63 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        if: matrix.language == 'go'
+        with:
+          go-version: "1.26"
+          check-latest: true
+
+      - name: Install Wails build deps
+        if: matrix.language == 'go'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Stub embedded frontend assets
+        if: matrix.language == 'go'
+        run: |
+          mkdir -p frontend/dist
+          touch frontend/dist/.gitkeep
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-and-quality
+          config: |
+            paths-ignore:
+              - frontend/src/lib/wails/**
+              - frontend/dist/**
+              - frontend/node_modules/**
+              - build/**
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
