@@ -20,6 +20,8 @@ export function FetchMetricsServerManifest():Promise<string>;
 
 export function GetAPIService(arg1:string,arg2:string):Promise<kube.APIServiceDetail>;
 
+export function GetArgoApplicationOperationState(arg1:string,arg2:string,arg3:string):Promise<kube.ArgoOperationState>;
+
 export function GetCSIDriver(arg1:string,arg2:string):Promise<kube.CSIDriverDetail>;
 
 export function GetCSINode(arg1:string,arg2:string):Promise<kube.CSINodeDetail>;
@@ -322,7 +324,7 @@ export function StopPortForward(arg1:string):Promise<void>;
 
 export function StopWatch(arg1:string):Promise<void>;
 
-export function SyncArgoApplication(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean):Promise<void>;
+export function SyncArgoApplication(arg1:string,arg2:string,arg3:string,arg4:kube.ArgoSyncOptions):Promise<void>;
 
 export function UninstallHelmRelease(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 

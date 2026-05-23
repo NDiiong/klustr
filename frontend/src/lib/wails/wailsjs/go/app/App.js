@@ -38,6 +38,10 @@ export function GetAPIService(arg1, arg2) {
   return window['go']['app']['App']['GetAPIService'](arg1, arg2);
 }
 
+export function GetArgoApplicationOperationState(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetArgoApplicationOperationState'](arg1, arg2, arg3);
+}
+
 export function GetCSIDriver(arg1, arg2) {
   return window['go']['app']['App']['GetCSIDriver'](arg1, arg2);
 }
@@ -642,8 +646,8 @@ export function StopWatch(arg1) {
   return window['go']['app']['App']['StopWatch'](arg1);
 }
 
-export function SyncArgoApplication(arg1, arg2, arg3, arg4, arg5) {
-  return window['go']['app']['App']['SyncArgoApplication'](arg1, arg2, arg3, arg4, arg5);
+export function SyncArgoApplication(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['SyncArgoApplication'](arg1, arg2, arg3, arg4);
 }
 
 export function UninstallHelmRelease(arg1, arg2, arg3, arg4) {

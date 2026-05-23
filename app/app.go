@@ -672,8 +672,8 @@ func (a *App) GetCustomResourceYAML(contextName, group, version, resource, names
 	return kube.MarshalCustomResourceYAML(obj)
 }
 
-func (a *App) SyncArgoApplication(contextName, namespace, name, revision string, prune bool) error {
-	return a.clients.SyncArgoApplication(a.ctx, contextName, namespace, name, revision, prune)
+func (a *App) SyncArgoApplication(contextName, namespace, name string, opts kube.ArgoSyncOptions) error {
+	return a.clients.SyncArgoApplication(a.ctx, contextName, namespace, name, opts)
 }
 
 func (a *App) RefreshArgoApplication(contextName, namespace, name, mode string) error {
@@ -694,6 +694,10 @@ func (a *App) ListArgoApplicationHistory(contextName, namespace, name string) ([
 
 func (a *App) RollbackArgoApplication(contextName, namespace, name string, id int64, prune bool) error {
 	return a.clients.RollbackArgoApplication(a.ctx, contextName, namespace, name, id, prune)
+}
+
+func (a *App) GetArgoApplicationOperationState(contextName, namespace, name string) (kube.ArgoOperationState, error) {
+	return a.clients.GetArgoApplicationOperationState(a.ctx, contextName, namespace, name)
 }
 
 func (a *App) ListArgoApplicationResources(contextName, namespace, name string) ([]kube.ArgoApplicationResource, error) {

@@ -202,6 +202,142 @@ export namespace kube {
 	        this.message = source["message"];
 	    }
 	}
+	export class ArgoSyncResultResource {
+	    group: string;
+	    version: string;
+	    kind: string;
+	    namespace: string;
+	    name: string;
+	    status: string;
+	    message: string;
+	    hookPhase: string;
+	    hookType: string;
+	    syncPhase: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoSyncResultResource(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.group = source["group"];
+	        this.version = source["version"];
+	        this.kind = source["kind"];
+	        this.namespace = source["namespace"];
+	        this.name = source["name"];
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.hookPhase = source["hookPhase"];
+	        this.hookType = source["hookType"];
+	        this.syncPhase = source["syncPhase"];
+	    }
+	}
+	export class ArgoOperationState {
+	    phase: string;
+	    message: string;
+	    startedAt: string;
+	    finishedAt: string;
+	    revision: string;
+	    dryRun: boolean;
+	    resources: ArgoSyncResultResource[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoOperationState(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.phase = source["phase"];
+	        this.message = source["message"];
+	        this.startedAt = source["startedAt"];
+	        this.finishedAt = source["finishedAt"];
+	        this.revision = source["revision"];
+	        this.dryRun = source["dryRun"];
+	        this.resources = this.convertValues(source["resources"], ArgoSyncResultResource);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ArgoSyncResourceSelector {
+	    group: string;
+	    kind: string;
+	    name: string;
+	    namespace: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoSyncResourceSelector(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.group = source["group"];
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	    }
+	}
+	export class ArgoSyncOptions {
+	    revision: string;
+	    dryRun: boolean;
+	    prune: boolean;
+	    force: boolean;
+	    replace: boolean;
+	    serverSideApply: boolean;
+	    strategy: string;
+	    resources: ArgoSyncResourceSelector[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoSyncOptions(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.revision = source["revision"];
+	        this.dryRun = source["dryRun"];
+	        this.prune = source["prune"];
+	        this.force = source["force"];
+	        this.replace = source["replace"];
+	        this.serverSideApply = source["serverSideApply"];
+	        this.strategy = source["strategy"];
+	        this.resources = this.convertValues(source["resources"], ArgoSyncResourceSelector);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
 	export class BackendRefDetail {
 	    group: string;
 	    kind: string;
