@@ -1038,32 +1038,13 @@ function CardTagBadges({
   )
 }
 
-function PickCheckbox({ checked }: { checked: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={[
-        'inline-flex size-4 shrink-0 items-center justify-center rounded-[3px] border transition-colors',
-        checked
-          ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-muted-foreground/40 bg-transparent',
-      ].join(' ')}
-    >
-      {checked && (
-        <svg
-          viewBox="0 0 12 12"
-          className="size-3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="2.5 6.5 5 9 9.5 3.5" />
-        </svg>
-      )}
-    </span>
-  )
+function hostnameOf(server: string | undefined): string | null {
+  if (!server) return null
+  try {
+    return new URL(server).hostname
+  } catch {
+    return null
+  }
 }
 
 function ContextCard({
@@ -1093,6 +1074,9 @@ function ContextCard({
     .map((id) => resolveTagMeta(id, customTags))
     .filter((m): m is ContextTagMeta => m !== null)
   const primaryTagMeta = tagMetas[0] ?? null
+  const cluster = context.cluster && context.cluster !== context.name ? context.cluster : null
+  const host = !cluster ? hostnameOf(context.server) : null
+  const secondary = cluster ?? host
   return (
     <li>
       <div
@@ -1108,7 +1092,7 @@ function ContextCard({
           }
         }}
         className={[
-          'group relative flex w-full cursor-pointer items-start gap-2.5 rounded-lg border bg-card px-3 py-2 text-left transition-colors',
+          'group relative flex w-full cursor-pointer items-start gap-3 rounded-lg border bg-card p-3 text-left transition-colors',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           isPicked
             ? 'border-primary bg-accent'
@@ -1123,23 +1107,57 @@ function ContextCard({
             aria-hidden
           />
         )}
-        <button
-          type="button"
-          aria-label={isPicked ? `Unselect ${context.name}` : `Add ${context.name} to selection`}
-          aria-pressed={isPicked}
-          onClick={(e) => {
-            e.stopPropagation()
-            onTogglePick()
-          }}
-          onKeyDown={(e) => e.stopPropagation()}
-          className="-m-1 inline-flex shrink-0 items-center justify-center rounded p-1 hover:bg-muted/60"
-        >
-          <PickCheckbox checked={isPicked} />
-        </button>
-        <ProviderIcon context={context} className="mt-0.5 size-5 shrink-0" />
+        <div className="relative shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex size-11 items-center justify-center rounded-lg border border-border/70 bg-background/60 transition-colors group-hover:bg-background">
+                <ProviderIcon context={context} className="size-6" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="start" className="max-w-[20rem] text-xs">
+              <div className="font-medium">{meta.label}</div>
+              {context.server && (
+                <div className="break-all font-mono text-[10px] text-muted-foreground">
+                  {context.server}
+                </div>
+              )}
+            </TooltipContent>
+          </Tooltip>
+          <button
+            type="button"
+            aria-label={isPicked ? `Unselect ${context.name}` : `Add ${context.name} to selection`}
+            aria-pressed={isPicked}
+            onClick={(e) => {
+              e.stopPropagation()
+              onTogglePick()
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            className={[
+              'absolute -bottom-1 -right-1 inline-flex size-4 items-center justify-center rounded-[4px] border bg-background shadow-sm transition-opacity',
+              'focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring',
+              isPicked
+                ? 'border-primary bg-primary text-primary-foreground opacity-100'
+                : 'border-border text-muted-foreground opacity-0 hover:bg-muted group-hover:opacity-100',
+            ].join(' ')}
+          >
+            {isPicked && (
+              <svg
+                viewBox="0 0 12 12"
+                className="size-2.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="2.5 6.5 5 9 9.5 3.5" />
+              </svg>
+            )}
+          </button>
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 pr-7">
-            <span className="truncate text-sm font-medium">{context.name}</span>
+            <span className="truncate text-sm font-semibold leading-tight">{context.name}</span>
             {isDefault && (
               <span
                 className="inline-flex shrink-0 items-center gap-0.5 rounded border border-amber-500/40 bg-amber-500/10 px-1 py-px text-[9px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400"
@@ -1150,13 +1168,14 @@ function ContextCard({
               </span>
             )}
           </div>
-          <div className="truncate pr-7 text-xs text-muted-foreground">
-            {context.server || context.cluster || meta.label}
+          <div className="truncate text-xs text-muted-foreground">
+            <span className={meta.className}>{meta.label}</span>
+            {secondary && <span className="text-muted-foreground/80"> · {secondary}</span>}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <CardTagBadges contextName={context.name} tagMetas={tagMetas} />
             {shortcut && (
-              <span className="ml-auto inline-flex items-center gap-0.5 rounded border border-border/70 bg-background/60 px-1 py-px text-[9px] font-mono text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="ml-auto inline-flex items-center gap-0.5 rounded border border-border/70 bg-background/60 px-1 py-px font-mono text-[9px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                 <Command className="size-2.5" />
                 {shortcut.replace(/^⌘|^Ctrl/, '')}
               </span>
