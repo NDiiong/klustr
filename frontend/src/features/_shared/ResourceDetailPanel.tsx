@@ -26,6 +26,7 @@ import {
   DeleteArgoApplicationButton,
   isArgoApplication,
 } from '@/features/argocd/DeleteArgoApplicationButton'
+import { SyncArgoApplicationButton } from '@/features/argocd/SyncArgoApplicationButton'
 import { PodExecTab } from '@/features/pods/PodExecTab'
 import { DeploymentDetailBody } from '@/features/deployments/DeploymentDetailBody'
 import { StatefulSetDetailBody } from '@/features/statefulsets/StatefulSetDetailBody'
@@ -147,6 +148,9 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
               )}
               {isScalable(resource.kind) && (
                 <ScaleResourceButton contextName={contextName} resource={resource} />
+              )}
+              {isArgoApplication(resource) && (
+                <SyncArgoApplicationButton contextName={contextName} resource={resource} />
               )}
               {isArgoApplication(resource) ? (
                 <DeleteArgoApplicationButton contextName={contextName} resource={resource} />

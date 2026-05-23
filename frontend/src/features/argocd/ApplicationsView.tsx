@@ -13,6 +13,7 @@ import { useCRDStore } from '@/store/crds'
 import { useIsAggregated, useUIStore } from '@/store/ui'
 import { HealthPill, SyncPill } from './ApplicationResourcesTab'
 import { SuspendResumeArgoApplicationButton } from './SuspendResumeArgoApplicationButton'
+import { SyncArgoApplicationDialog } from './SyncArgoApplicationDialog'
 
 const ARGO_GROUP = 'argoproj.io'
 const ARGO_RESOURCE = 'applications'
@@ -32,6 +33,7 @@ export function ApplicationsView() {
   const [rows, setRows] = useState<ArgoApplicationInfo[]>(EMPTY)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [syncTarget, setSyncTarget] = useState<ArgoApplicationInfo | null>(null)
 
   useEffect(() => {
     if (!selectedContext || !crd) {
@@ -54,18 +56,7 @@ export function ApplicationsView() {
     }
   }, [selectedContext, crd])
 
-  const onSync = useCallback(
-    async (row: ArgoApplicationInfo) => {
-      if (!selectedContext) return
-      try {
-        await api.syncArgoApplication(selectedContext, row.namespace, row.name, '', true)
-        toast.success(`Syncing ${row.namespace}/${row.name}`)
-      } catch (e) {
-        toast.error(`Sync failed: ${e instanceof Error ? e.message : String(e)}`)
-      }
-    },
-    [selectedContext],
-  )
+  const onSync = useCallback((row: ArgoApplicationInfo) => setSyncTarget(row), [])
 
   const onRefresh = useCallback(
     async (row: ArgoApplicationInfo) => {
@@ -240,16 +231,27 @@ export function ApplicationsView() {
   }
 
   return (
-    <ResourceTable
-      kind={`cr:${ARGO_GROUP}/${ARGO_RESOURCE}`}
-      noun={{ singular: 'application', plural: 'applications' }}
-      scope="namespaced"
-      data={data}
-      setData={setData}
-      fetch={fetch}
-      columns={columns}
-      onRowClick={onRowClick}
-    />
+    <>
+      <ResourceTable
+        kind={`cr:${ARGO_GROUP}/${ARGO_RESOURCE}`}
+        noun={{ singular: 'application', plural: 'applications' }}
+        scope="namespaced"
+        data={data}
+        setData={setData}
+        fetch={fetch}
+        columns={columns}
+        onRowClick={onRowClick}
+      />
+      <SyncArgoApplicationDialog
+        contextName={selectedContext}
+        namespace={syncTarget?.namespace ?? ''}
+        name={syncTarget?.name ?? ''}
+        open={syncTarget !== null}
+        onOpenChange={(o) => {
+          if (!o) setSyncTarget(null)
+        }}
+      />
+    </>
   )
 }
 

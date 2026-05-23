@@ -13,6 +13,7 @@ import {
   SetArgoApplicationAutomation,
   ListArgoApplicationHistory,
   RollbackArgoApplication,
+  GetArgoApplicationOperationState,
   ListArgoApplicationResources,
   ListArgoApplications,
   GetHelmRelease,
@@ -304,6 +305,11 @@ export type ArgoApplicationResource = kube.ArgoApplicationResource
 export type ArgoApplicationInfo = kube.ArgoApplicationInfo
 export type ArgoApplicationHistoryEntry = kube.ArgoApplicationHistoryEntry
 export type ArgoCascadeMode = 'foreground' | 'background' | 'non-cascading'
+export type ArgoSyncOptions = kube.ArgoSyncOptions
+export type ArgoSyncResourceSelector = kube.ArgoSyncResourceSelector
+export type ArgoSyncStrategy = 'hook' | 'apply'
+export type ArgoOperationState = kube.ArgoOperationState
+export type ArgoSyncResultResource = kube.ArgoSyncResultResource
 export type WorkloadRevision = kube.WorkloadRevision
 export type GatewayInfo = kube.GatewayInfo
 export type GatewayDetail = kube.GatewayDetail
@@ -677,9 +683,8 @@ export const api = {
     contextName: string,
     namespace: string,
     name: string,
-    revision: string,
-    prune: boolean,
-  ): Promise<void> => SyncArgoApplication(contextName, namespace, name, revision, prune),
+    opts: ArgoSyncOptions,
+  ): Promise<void> => SyncArgoApplication(contextName, namespace, name, opts),
   refreshArgoApplication: (
     contextName: string,
     namespace: string,
@@ -711,6 +716,12 @@ export const api = {
     id: number,
     prune: boolean,
   ): Promise<void> => RollbackArgoApplication(contextName, namespace, name, id, prune),
+  getArgoApplicationOperationState: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<ArgoOperationState> =>
+    GetArgoApplicationOperationState(contextName, namespace, name),
   listArgoApplicationResources: (
     contextName: string,
     namespace: string,
