@@ -9,6 +9,7 @@ import {
   GetCustomResourceYAML,
   SyncArgoApplication,
   RefreshArgoApplication,
+  DeleteArgoApplication,
   ListArgoApplicationResources,
   ListArgoApplications,
   GetHelmRelease,
@@ -298,6 +299,7 @@ export type HelmInstallOptions = kube.HelmInstallOptions
 export type HelmDryRunResult = kube.HelmDryRunResult
 export type ArgoApplicationResource = kube.ArgoApplicationResource
 export type ArgoApplicationInfo = kube.ArgoApplicationInfo
+export type ArgoCascadeMode = 'foreground' | 'background' | 'non-cascading'
 export type WorkloadRevision = kube.WorkloadRevision
 export type GatewayInfo = kube.GatewayInfo
 export type GatewayDetail = kube.GatewayDetail
@@ -680,6 +682,12 @@ export const api = {
     name: string,
     mode: string,
   ): Promise<void> => RefreshArgoApplication(contextName, namespace, name, mode),
+  deleteArgoApplication: (
+    contextName: string,
+    namespace: string,
+    name: string,
+    cascade: ArgoCascadeMode,
+  ): Promise<void> => DeleteArgoApplication(contextName, namespace, name, cascade),
   listArgoApplicationResources: (
     contextName: string,
     namespace: string,

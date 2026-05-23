@@ -1,5 +1,9 @@
 import { DeleteResourceDialog } from './DeleteResourceButton'
 import { RestartWorkloadDialog } from './RestartWorkloadButton'
+import {
+  DeleteArgoApplicationDialog,
+  isArgoApplication,
+} from '@/features/argocd/DeleteArgoApplicationButton'
 import { PortForwardDialog } from '@/features/portforward/PortForwardButton'
 import { useUIStore } from '@/store/ui'
 
@@ -18,6 +22,16 @@ export function RowActionDialogs() {
   }
 
   if (pendingAction.kind === 'delete') {
+    if (isArgoApplication(pendingAction.resource)) {
+      return (
+        <DeleteArgoApplicationDialog
+          contextName={contextName}
+          resource={pendingAction.resource}
+          open
+          onOpenChange={onOpenChange}
+        />
+      )
+    }
     return (
       <DeleteResourceDialog
         contextName={contextName}

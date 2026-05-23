@@ -21,6 +21,10 @@ import type { ResourceKind } from '@/store/ui'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { ApplicationResourcesTab } from '@/features/argocd/ApplicationResourcesTab'
+import {
+  DeleteArgoApplicationButton,
+  isArgoApplication,
+} from '@/features/argocd/DeleteArgoApplicationButton'
 import { PodExecTab } from '@/features/pods/PodExecTab'
 import { DeploymentDetailBody } from '@/features/deployments/DeploymentDetailBody'
 import { StatefulSetDetailBody } from '@/features/statefulsets/StatefulSetDetailBody'
@@ -143,7 +147,11 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
               {isScalable(resource.kind) && (
                 <ScaleResourceButton contextName={contextName} resource={resource} />
               )}
-              <DeleteResourceButton contextName={contextName} resource={resource} />
+              {isArgoApplication(resource) ? (
+                <DeleteArgoApplicationButton contextName={contextName} resource={resource} />
+              ) : (
+                <DeleteResourceButton contextName={contextName} resource={resource} />
+              )}
             </div>
           )}
         </DialogHeader>
