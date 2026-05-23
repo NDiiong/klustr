@@ -53,6 +53,7 @@ export function HelmInstallDialog({
   const [atomic, setAtomic] = useState(false)
   const [resetValues, setResetValues] = useState(false)
   const [dryRunResult, setDryRunResult] = useState<HelmDryRunResult | null>(null)
+  const [ambiguous, setAmbiguous] = useState<{ chart: string; repos: string[] } | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -62,6 +63,7 @@ export function HelmInstallDialog({
     setChartVersion(initialVersion)
     setValues(initialValues)
     setDryRunResult(null)
+    setAmbiguous(null)
   }, [open, initialName, initialNamespace, initialChartRef, initialVersion, initialValues])
 
   const opts: HelmInstallOptions = useMemo(
@@ -92,7 +94,14 @@ export function HelmInstallDialog({
       setDryRunResult(r)
       toast.success('Dry-run rendered')
     },
-    onError: (e) => toast.error(`Dry-run failed: ${String(e)}`),
+    onError: (e) => {
+      const amb = parseAmbiguousRepos(e)
+      if (amb) {
+        setAmbiguous(amb)
+        return
+      }
+      toast.error(`Dry-run failed: ${String(e)}`)
+    },
   })
 
   const apply = useMutation({
@@ -106,7 +115,14 @@ export function HelmInstallDialog({
       onOpenChange(false)
       onSuccess?.()
     },
-    onError: (e) => toast.error(`${mode === 'install' ? 'Install' : 'Upgrade'} failed: ${String(e)}`),
+    onError: (e) => {
+      const amb = parseAmbiguousRepos(e)
+      if (amb) {
+        setAmbiguous(amb)
+        return
+      }
+      toast.error(`${mode === 'install' ? 'Install' : 'Upgrade'} failed: ${String(e)}`)
+    },
   })
 
   const formInvalid = !name.trim() || !chartRef.trim() || !namespace.trim()
@@ -159,10 +175,35 @@ export function HelmInstallDialog({
                 autoCorrect="off"
                 autoCapitalize="off"
                 value={chartRef}
-                onChange={(e) => setChartRef(e.target.value)}
+                onChange={(e) => {
+                  setChartRef(e.target.value)
+                  setAmbiguous(null)
+                }}
                 placeholder="e.g. bitnami/redis or ./mychart"
                 className="w-full rounded border border-border bg-background px-2 py-1 font-mono"
               />
+              {ambiguous && (
+                <div className="mt-1 rounded border border-amber-500/40 bg-amber-500/5 p-2 text-[11px] text-foreground">
+                  <p className="mb-1 text-muted-foreground">
+                    “{ambiguous.chart}” is in multiple repos. Pick one:
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {ambiguous.repos.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          setChartRef(`${r}/${ambiguous.chart}`)
+                          setAmbiguous(null)
+                        }}
+                        className="rounded border border-border bg-background px-2 py-0.5 font-mono hover:bg-muted"
+                      >
+                        {r}/{ambiguous.chart}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Field>
             <Field label="Chart version (optional)">
               <input
@@ -308,6 +349,19 @@ export function HelmInstallDialog({
       </DialogContent>
     </Dialog>
   )
+}
+
+const ambiguousRepoPattern = /chart "([^"]+)" is provided by multiple repos \(([^)]+)\)/
+
+function parseAmbiguousRepos(err: unknown): { chart: string; repos: string[] } | null {
+  const m = ambiguousRepoPattern.exec(String(err))
+  if (!m) return null
+  const repos = m[2]
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+  if (repos.length === 0) return null
+  return { chart: m[1], repos }
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
