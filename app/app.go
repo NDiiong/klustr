@@ -680,6 +680,10 @@ func (a *App) RefreshArgoApplication(contextName, namespace, name, mode string) 
 	return a.clients.RefreshArgoApplication(a.ctx, contextName, namespace, name, mode)
 }
 
+func (a *App) DeleteArgoApplication(contextName, namespace, name, cascade string) error {
+	return a.clients.DeleteArgoApplication(a.ctx, contextName, namespace, name, cascade)
+}
+
 func (a *App) ListArgoApplicationResources(contextName, namespace, name string) ([]kube.ArgoApplicationResource, error) {
 	return a.clients.ListArgoApplicationResources(a.ctx, contextName, namespace, name)
 }

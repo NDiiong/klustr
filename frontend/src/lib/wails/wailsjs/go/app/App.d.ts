@@ -8,6 +8,8 @@ export function ApplyResourceYAML(arg1:string,arg2:string):Promise<void>;
 
 export function ApproveCertificateSigningRequest(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function DeleteArgoApplication(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function DeleteResource(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
 export function DenyCertificateSigningRequest(arg1:string,arg2:string,arg3:string):Promise<void>;
