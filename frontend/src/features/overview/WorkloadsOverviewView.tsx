@@ -413,6 +413,7 @@ function filterEvents(events: TaggedEvent[], query: string): TaggedEvent[] {
 }
 
 function EventsTable({ events, showContext }: { events: TaggedEvent[]; showContext: boolean }) {
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   if (events.length === 0) {
     return (
       <div className="mx-6 mb-6 rounded-lg border border-border bg-card px-3 py-4 text-center text-xs text-muted-foreground">
@@ -437,32 +438,46 @@ function EventsTable({ events, showContext }: { events: TaggedEvent[]; showConte
           </tr>
         </thead>
         <tbody>
-          {events.map((e, i) => (
-            <tr
-              key={`${e.contextName}/${e.namespace}/${e.name}/${i}`}
-              className="border-b border-border/50 last:border-0 hover:bg-muted/40"
-            >
-              {showContext && (
-                <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
-                  {e.contextName}
+          {events.map((e, i) => {
+            const clickable = Boolean(e.objectKind && e.objectName)
+            return (
+              <tr
+                key={`${e.contextName}/${e.namespace}/${e.name}/${i}`}
+                className={`border-b border-border/50 last:border-0 hover:bg-muted/40 ${clickable ? 'cursor-pointer' : ''}`}
+                onClick={
+                  clickable
+                    ? () =>
+                        setSelectedResource({
+                          kind: e.objectKind,
+                          namespace: e.namespace,
+                          name: e.objectName,
+                          context: e.contextName,
+                        })
+                    : undefined
+                }
+              >
+                {showContext && (
+                  <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
+                    {e.contextName}
+                  </td>
+                )}
+                <td className={`px-3 py-2 align-top font-medium ${e.type === 'Warning' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {e.type}
                 </td>
-              )}
-              <td className={`px-3 py-2 align-top font-medium ${e.type === 'Warning' ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {e.type}
-              </td>
-              <td className="px-3 py-2 align-top text-muted-foreground">{e.source}</td>
-              <td className="px-3 py-2 align-top text-muted-foreground">{e.namespace}</td>
-              <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
-                {e.objectKind}: {e.objectName}
-              </td>
-              <td className="px-3 py-2 align-top text-foreground">{e.message}</td>
-              <td className="px-3 py-2 align-top text-muted-foreground">{e.reason}</td>
-              <td className="px-3 py-2 align-top text-muted-foreground">{e.count}</td>
-              <td className="px-3 py-2 align-top text-muted-foreground">
-                {formatAge(e.lastSeen)}
-              </td>
-            </tr>
-          ))}
+                <td className="px-3 py-2 align-top text-muted-foreground">{e.source}</td>
+                <td className="px-3 py-2 align-top text-muted-foreground">{e.namespace}</td>
+                <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
+                  {e.objectKind}: {e.objectName}
+                </td>
+                <td className="px-3 py-2 align-top text-foreground">{e.message}</td>
+                <td className="px-3 py-2 align-top text-muted-foreground">{e.reason}</td>
+                <td className="px-3 py-2 align-top text-muted-foreground">{e.count}</td>
+                <td className="px-3 py-2 align-top text-muted-foreground">
+                  {formatAge(e.lastSeen)}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

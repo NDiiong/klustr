@@ -18,7 +18,7 @@ import {
 } from '@/lib/api'
 import { onKubeChange } from '@/lib/events'
 import { formatAge } from '@/lib/time'
-import { useActiveContexts, useIsAggregated } from '@/store/ui'
+import { useActiveContexts, useIsAggregated, useUIStore } from '@/store/ui'
 
 const POLL_INTERVAL_MS = 15_000
 const WARNING_LIMIT = 50
@@ -289,7 +289,7 @@ function ClusterSection({
         <PodsCard pods={overview?.pods ?? null} />
       </div>
 
-      <WarningsSection warnings={warnings} error={warningsError} />
+      <WarningsSection warnings={warnings} error={warningsError} contextName={contextName} />
       <MetricsServerInstaller
         open={installerOpen}
         onOpenChange={setInstallerOpen}
@@ -477,7 +477,16 @@ function usageColor(pct: number): string {
   return 'stroke-emerald-500'
 }
 
-function WarningsSection({ warnings, error }: { warnings: EventInfo[]; error: string | null }) {
+function WarningsSection({
+  warnings,
+  error,
+  contextName,
+}: {
+  warnings: EventInfo[]
+  error: string | null
+  contextName: string
+}) {
+  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   return (
     <div className="flex flex-col px-6 pb-6">
       <div className="mb-2 flex items-center gap-2 text-xs">
@@ -502,25 +511,39 @@ function WarningsSection({ warnings, error }: { warnings: EventInfo[]; error: st
               </tr>
             </thead>
             <tbody>
-              {warnings.map((w, i) => (
-                <tr
-                  key={`${w.namespace}/${w.name}/${i}`}
-                  className="border-b border-border/50 last:border-0 hover:bg-muted/40"
-                >
-                  <td className="px-3 py-2 align-top text-foreground">{w.message}</td>
-                  <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
-                    {w.objectKind}/{w.objectName}
-                    {w.namespace && (
-                      <span className="ml-1 opacity-60">· {w.namespace}</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 align-top text-muted-foreground">{w.reason}</td>
-                  <td className="px-3 py-2 align-top text-muted-foreground">{w.count}</td>
-                  <td className="px-3 py-2 align-top text-muted-foreground">
-                    {formatAge(w.lastSeen)}
-                  </td>
-                </tr>
-              ))}
+              {warnings.map((w, i) => {
+                const clickable = Boolean(w.objectKind && w.objectName)
+                return (
+                  <tr
+                    key={`${w.namespace}/${w.name}/${i}`}
+                    className={`border-b border-border/50 last:border-0 hover:bg-muted/40 ${clickable ? 'cursor-pointer' : ''}`}
+                    onClick={
+                      clickable
+                        ? () =>
+                            setSelectedResource({
+                              kind: w.objectKind,
+                              namespace: w.namespace,
+                              name: w.objectName,
+                              context: contextName,
+                            })
+                        : undefined
+                    }
+                  >
+                    <td className="px-3 py-2 align-top text-foreground">{w.message}</td>
+                    <td className="px-3 py-2 align-top font-mono text-[11px] text-muted-foreground">
+                      {w.objectKind}/{w.objectName}
+                      {w.namespace && (
+                        <span className="ml-1 opacity-60">· {w.namespace}</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 align-top text-muted-foreground">{w.reason}</td>
+                    <td className="px-3 py-2 align-top text-muted-foreground">{w.count}</td>
+                    <td className="px-3 py-2 align-top text-muted-foreground">
+                      {formatAge(w.lastSeen)}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
