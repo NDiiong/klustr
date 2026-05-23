@@ -51,7 +51,7 @@ export function SuspendResumeArgoApplicationButton({
       <Button
         size="sm"
         variant="outline"
-        className="h-7 px-2 text-xs"
+        className="h-7 w-[5.5rem] px-2 text-xs"
         disabled={mutation.isPending}
         onClick={(e) => {
           e.stopPropagation()
