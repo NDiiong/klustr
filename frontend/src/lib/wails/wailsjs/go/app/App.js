@@ -270,6 +270,10 @@ export function ListAccessibleKinds(arg1) {
   return window['go']['app']['App']['ListAccessibleKinds'](arg1);
 }
 
+export function ListArgoApplicationHistory(arg1, arg2, arg3) {
+  return window['go']['app']['App']['ListArgoApplicationHistory'](arg1, arg2, arg3);
+}
+
 export function ListArgoApplicationResources(arg1, arg2, arg3) {
   return window['go']['app']['App']['ListArgoApplicationResources'](arg1, arg2, arg3);
 }
@@ -566,6 +570,10 @@ export function RevealSecretValue(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['RevealSecretValue'](arg1, arg2, arg3, arg4);
 }
 
+export function RollbackArgoApplication(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['RollbackArgoApplication'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function RollbackDaemonSet(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['RollbackDaemonSet'](arg1, arg2, arg3, arg4);
 }
@@ -596,6 +604,10 @@ export function SearchHelmCharts(arg1) {
 
 export function SendExecInput(arg1, arg2) {
   return window['go']['app']['App']['SendExecInput'](arg1, arg2);
+}
+
+export function SetArgoApplicationAutomation(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['SetArgoApplicationAutomation'](arg1, arg2, arg3, arg4);
 }
 
 export function StartExec(arg1, arg2, arg3, arg4, arg5) {

@@ -684,6 +684,18 @@ func (a *App) DeleteArgoApplication(contextName, namespace, name, cascade string
 	return a.clients.DeleteArgoApplication(a.ctx, contextName, namespace, name, cascade)
 }
 
+func (a *App) SetArgoApplicationAutomation(contextName, namespace, name string, enabled bool) error {
+	return a.clients.SetArgoApplicationAutomation(a.ctx, contextName, namespace, name, enabled)
+}
+
+func (a *App) ListArgoApplicationHistory(contextName, namespace, name string) ([]kube.ArgoApplicationHistoryEntry, error) {
+	return a.clients.ListArgoApplicationHistory(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) RollbackArgoApplication(contextName, namespace, name string, id int64, prune bool) error {
+	return a.clients.RollbackArgoApplication(a.ctx, contextName, namespace, name, id, prune)
+}
+
 func (a *App) ListArgoApplicationResources(contextName, namespace, name string) ([]kube.ArgoApplicationResource, error) {
 	return a.clients.ListArgoApplicationResources(a.ctx, contextName, namespace, name)
 }

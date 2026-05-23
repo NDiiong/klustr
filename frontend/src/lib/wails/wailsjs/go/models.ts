@@ -112,6 +112,34 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	    }
 	}
+	export class ArgoApplicationHistoryEntry {
+	    id: number;
+	    revision: string;
+	    deployedAt: string;
+	    deployStartedAt: string;
+	    repoURL: string;
+	    path: string;
+	    targetRevision: string;
+	    initiatedBy: string;
+	    automated: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoApplicationHistoryEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.revision = source["revision"];
+	        this.deployedAt = source["deployedAt"];
+	        this.deployStartedAt = source["deployStartedAt"];
+	        this.repoURL = source["repoURL"];
+	        this.path = source["path"];
+	        this.targetRevision = source["targetRevision"];
+	        this.initiatedBy = source["initiatedBy"];
+	        this.automated = source["automated"];
+	    }
+	}
 	export class ArgoApplicationInfo {
 	    name: string;
 	    namespace: string;

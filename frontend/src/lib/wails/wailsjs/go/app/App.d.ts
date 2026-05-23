@@ -136,6 +136,8 @@ export function ListAccessSubjects(arg1:string):Promise<Array<kube.AccessSubject
 
 export function ListAccessibleKinds(arg1:string):Promise<Array<string>>;
 
+export function ListArgoApplicationHistory(arg1:string,arg2:string,arg3:string):Promise<Array<kube.ArgoApplicationHistoryEntry>>;
+
 export function ListArgoApplicationResources(arg1:string,arg2:string,arg3:string):Promise<Array<kube.ArgoApplicationResource>>;
 
 export function ListArgoApplications(arg1:string,arg2:string):Promise<Array<kube.ArgoApplicationInfo>>;
@@ -284,6 +286,8 @@ export function RestartWorkload(arg1:string,arg2:string,arg3:string,arg4:string)
 
 export function RevealSecretValue(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
+export function RollbackArgoApplication(arg1:string,arg2:string,arg3:string,arg4:number,arg5:boolean):Promise<void>;
+
 export function RollbackDaemonSet(arg1:string,arg2:string,arg3:string,arg4:number):Promise<void>;
 
 export function RollbackDeployment(arg1:string,arg2:string,arg3:string,arg4:number):Promise<void>;
@@ -299,6 +303,8 @@ export function ScaleResource(arg1:string,arg2:string,arg3:string,arg4:string,ar
 export function SearchHelmCharts(arg1:string):Promise<Array<kube.HelmChartSearchResult>>;
 
 export function SendExecInput(arg1:string,arg2:string):Promise<void>;
+
+export function SetArgoApplicationAutomation(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
 export function StartExec(arg1:string,arg2:string,arg3:string,arg4:string,arg5:Array<string>):Promise<string>;
 
