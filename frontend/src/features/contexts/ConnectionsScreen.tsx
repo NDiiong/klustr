@@ -101,6 +101,29 @@ export function ConnectionsScreen() {
 
   const contexts = state.kind === 'ready' ? state.contexts : []
 
+  const [versions, setVersions] = useState<Record<string, string | null>>({})
+
+  useEffect(() => {
+    if (state.kind !== 'ready') return
+    let cancelled = false
+    setVersions({})
+    for (const c of contexts) {
+      api
+        .pingContext(c.name)
+        .then((v) => {
+          if (cancelled) return
+          setVersions((prev) => ({ ...prev, [c.name]: shortenK8sVersion(v.gitVersion) }))
+        })
+        .catch(() => {
+          if (cancelled) return
+          setVersions((prev) => ({ ...prev, [c.name]: null }))
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [state.kind, contexts])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return contexts
@@ -367,6 +390,7 @@ export function ConnectionsScreen() {
                       defaultContext={defaultContext}
                       picked={picked}
                       contextTags={contextTags}
+                      versions={versions}
                       onConnect={connectSingle}
                       onTogglePick={togglePick}
                       onToggleDefault={(name) =>
@@ -423,6 +447,13 @@ function cryptoRandomId(): string {
   } catch {
     return `g_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
   }
+}
+
+function shortenK8sVersion(v: string): string {
+  const trimmed = v.trim()
+  if (!trimmed) return ''
+  const semver = trimmed.split('-')[0].split('+')[0]
+  return semver
 }
 
 function shortcutHint(index: number): string | null {
@@ -746,6 +777,7 @@ function ContextSection({
   defaultContext,
   picked,
   contextTags,
+  versions,
   onConnect,
   onTogglePick,
   onToggleDefault,
@@ -755,6 +787,7 @@ function ContextSection({
   defaultContext: string | null
   picked: Set<string>
   contextTags: Record<string, string[]>
+  versions: Record<string, string | null>
   onConnect: (name: string) => void
   onTogglePick: (name: string) => void
   onToggleDefault: (name: string) => void
@@ -800,6 +833,7 @@ function ContextSection({
             tagIds={contextTags[c.name] ?? []}
             shortcut={shortcutHint(baseIndex + idx)}
             highlight={isProd}
+            version={versions[c.name]}
             onConnect={() => onConnect(c.name)}
             onTogglePick={() => onTogglePick(c.name)}
             onToggleDefault={() => onToggleDefault(c.name)}
@@ -1054,6 +1088,7 @@ function ContextCard({
   tagIds,
   shortcut,
   highlight,
+  version,
   onConnect,
   onTogglePick,
   onToggleDefault,
@@ -1064,6 +1099,7 @@ function ContextCard({
   tagIds: string[]
   shortcut: string | null
   highlight: boolean
+  version: string | null | undefined
   onConnect: () => void
   onTogglePick: () => void
   onToggleDefault: () => void
@@ -1174,12 +1210,22 @@ function ContextCard({
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <CardTagBadges contextName={context.name} tagMetas={tagMetas} />
-            {shortcut && (
-              <span className="ml-auto inline-flex items-center gap-0.5 rounded border border-border/70 bg-background/60 px-1 py-px font-mono text-[9px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                <Command className="size-2.5" />
-                {shortcut.replace(/^⌘|^Ctrl/, '')}
-              </span>
-            )}
+            <div className="ml-auto flex items-center gap-1.5">
+              {shortcut && (
+                <span className="inline-flex items-center gap-0.5 rounded border border-border/70 bg-background/60 px-1 py-px font-mono text-[9px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                  <Command className="size-2.5" />
+                  {shortcut.replace(/^⌘|^Ctrl/, '')}
+                </span>
+              )}
+              {version && (
+                <span
+                  className="font-mono text-[10px] text-muted-foreground/70 tabular-nums"
+                  title="Kubernetes server version"
+                >
+                  {version}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <Tooltip>
