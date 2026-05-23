@@ -230,14 +230,14 @@ func crdInfoFromUnstructured(obj *unstructured.Unstructured) (CRDInfo, bool) {
 // entry, skipping the "Age" column since the generic list view always renders
 // age from .metadata.creationTimestamp regardless.
 func parsePrinterColumns(versionEntry map[string]any) []PrinterColumn {
+	out := []PrinterColumn{}
 	if versionEntry == nil {
-		return nil
+		return out
 	}
 	raw, ok := versionEntry["additionalPrinterColumns"].([]any)
 	if !ok || len(raw) == 0 {
-		return nil
+		return out
 	}
-	out := make([]PrinterColumn, 0, len(raw))
 	for _, item := range raw {
 		m, ok := item.(map[string]any)
 		if !ok {
@@ -253,9 +253,6 @@ func parsePrinterColumns(versionEntry map[string]any) []PrinterColumn {
 			continue
 		}
 		out = append(out, PrinterColumn{Name: name, Type: typ, JSONPath: path})
-	}
-	if len(out) == 0 {
-		return nil
 	}
 	return out
 }

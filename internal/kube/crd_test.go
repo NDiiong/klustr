@@ -150,9 +150,10 @@ func TestCRDInfoFromUnstructured(t *testing.T) {
 }
 
 func TestParsePrinterColumns(t *testing.T) {
-	t.Run("nil version entry", func(t *testing.T) {
-		if got := parsePrinterColumns(nil); got != nil {
-			t.Fatalf("got %v", got)
+	t.Run("returns empty slice for nil version entry", func(t *testing.T) {
+		got := parsePrinterColumns(nil)
+		if got == nil || len(got) != 0 {
+			t.Fatalf("got %v, want empty slice", got)
 		}
 	})
 
@@ -188,14 +189,15 @@ func TestParsePrinterColumns(t *testing.T) {
 		}
 	})
 
-	t.Run("returns nil when only Age column present", func(t *testing.T) {
+	t.Run("returns empty slice when only Age column present", func(t *testing.T) {
 		entry := map[string]any{
 			"additionalPrinterColumns": []any{
 				map[string]any{"name": "Age", "type": "date", "jsonPath": ".meta"},
 			},
 		}
-		if got := parsePrinterColumns(entry); got != nil {
-			t.Errorf("got %v, want nil", got)
+		got := parsePrinterColumns(entry)
+		if got == nil || len(got) != 0 {
+			t.Errorf("got %v, want empty slice", got)
 		}
 	})
 }
