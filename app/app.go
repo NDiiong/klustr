@@ -765,6 +765,18 @@ func (a *App) GetReferenceGrant(contextName, namespace, name string) (*kube.Refe
 	return a.clients.ReferenceGrant(contextName, namespace, name)
 }
 
+// ---------------------------------------------------------------------------
+// Karpenter bindings.
+// ---------------------------------------------------------------------------
+
+func (a *App) ListKarpenterNodePools(contextName string) []kube.KarpenterNodePoolInfo {
+	return a.clients.ListKarpenterNodePools(contextName)
+}
+
+func (a *App) ListKarpenterNodeClaims(contextName string) []kube.KarpenterNodeClaimInfo {
+	return a.clients.ListKarpenterNodeClaims(contextName)
+}
+
 func (a *App) FetchMetricsServerManifest() (string, error) {
 	return kube.FetchMetricsServerManifest(a.ctx)
 }
