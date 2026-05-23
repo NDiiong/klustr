@@ -708,6 +708,22 @@ func (a *App) ListArgoApplications(contextName, namespace string) []kube.ArgoApp
 	return a.clients.ListArgoApplications(contextName, namespace)
 }
 
+func (a *App) ListArgoAppProjects(contextName, namespace string) []kube.ArgoAppProjectInfo {
+	return a.clients.ListArgoAppProjects(contextName, namespace)
+}
+
+func (a *App) GetArgoAppProject(contextName, namespace, name string) (*kube.ArgoAppProjectDetail, error) {
+	return a.clients.GetArgoAppProject(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListArgoApplicationSets(contextName, namespace string) []kube.ArgoApplicationSetInfo {
+	return a.clients.ListArgoApplicationSets(contextName, namespace)
+}
+
+func (a *App) GetArgoApplicationSet(contextName, namespace, name string) (*kube.ArgoApplicationSetDetail, error) {
+	return a.clients.GetArgoApplicationSet(a.ctx, contextName, namespace, name)
+}
+
 func (a *App) ListEvents(contextName, namespace, kind, name string) ([]kube.EventInfo, error) {
 	return a.clients.ListEvents(a.ctx, contextName, namespace, kind, name)
 }

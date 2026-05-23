@@ -112,6 +112,163 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	    }
 	}
+	export class ArgoAppProjectDestination {
+	    server: string;
+	    namespace: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectDestination(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.server = source["server"];
+	        this.namespace = source["namespace"];
+	        this.name = source["name"];
+	    }
+	}
+	export class ArgoAppProjectSyncWindow {
+	    kind: string;
+	    schedule: string;
+	    duration: string;
+	    applications: string[];
+	    namespaces: string[];
+	    clusters: string[];
+	    manualSync: boolean;
+	    timeZone: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectSyncWindow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.schedule = source["schedule"];
+	        this.duration = source["duration"];
+	        this.applications = source["applications"];
+	        this.namespaces = source["namespaces"];
+	        this.clusters = source["clusters"];
+	        this.manualSync = source["manualSync"];
+	        this.timeZone = source["timeZone"];
+	    }
+	}
+	export class ArgoAppProjectRole {
+	    name: string;
+	    description: string;
+	    policies: string[];
+	    groups: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectRole(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.policies = source["policies"];
+	        this.groups = source["groups"];
+	    }
+	}
+	export class ArgoAppProjectGroupKind {
+	    group: string;
+	    kind: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectGroupKind(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.group = source["group"];
+	        this.kind = source["kind"];
+	    }
+	}
+	export class ArgoAppProjectDetail {
+	    name: string;
+	    namespace: string;
+	    description: string;
+	    sourceRepos: string[];
+	    sourceNamespaces: string[];
+	    destinations: ArgoAppProjectDestination[];
+	    clusterResourceWhitelist: ArgoAppProjectGroupKind[];
+	    namespaceResourceWhitelist: ArgoAppProjectGroupKind[];
+	    clusterResourceBlacklist: ArgoAppProjectGroupKind[];
+	    namespaceResourceBlacklist: ArgoAppProjectGroupKind[];
+	    roles: ArgoAppProjectRole[];
+	    syncWindows: ArgoAppProjectSyncWindow[];
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.description = source["description"];
+	        this.sourceRepos = source["sourceRepos"];
+	        this.sourceNamespaces = source["sourceNamespaces"];
+	        this.destinations = this.convertValues(source["destinations"], ArgoAppProjectDestination);
+	        this.clusterResourceWhitelist = this.convertValues(source["clusterResourceWhitelist"], ArgoAppProjectGroupKind);
+	        this.namespaceResourceWhitelist = this.convertValues(source["namespaceResourceWhitelist"], ArgoAppProjectGroupKind);
+	        this.clusterResourceBlacklist = this.convertValues(source["clusterResourceBlacklist"], ArgoAppProjectGroupKind);
+	        this.namespaceResourceBlacklist = this.convertValues(source["namespaceResourceBlacklist"], ArgoAppProjectGroupKind);
+	        this.roles = this.convertValues(source["roles"], ArgoAppProjectRole);
+	        this.syncWindows = this.convertValues(source["syncWindows"], ArgoAppProjectSyncWindow);
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class ArgoAppProjectInfo {
+	    name: string;
+	    namespace: string;
+	    description: string;
+	    sourceRepoCount: number;
+	    destinationCount: number;
+	    roleCount: number;
+	    syncWindowCount: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoAppProjectInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.description = source["description"];
+	        this.sourceRepoCount = source["sourceRepoCount"];
+	        this.destinationCount = source["destinationCount"];
+	        this.roleCount = source["roleCount"];
+	        this.syncWindowCount = source["syncWindowCount"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
+	
 	export class ArgoApplicationHistoryEntry {
 	    id: number;
 	    revision: string;
@@ -200,6 +357,120 @@ export namespace kube {
 	        this.sync = source["sync"];
 	        this.health = source["health"];
 	        this.message = source["message"];
+	    }
+	}
+	export class ArgoApplicationSetGeneratedApp {
+	    application: string;
+	    status: string;
+	    step: string;
+	    message: string;
+	    lastTransitionTime: string;
+	    targetRevisions: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoApplicationSetGeneratedApp(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.application = source["application"];
+	        this.status = source["status"];
+	        this.step = source["step"];
+	        this.message = source["message"];
+	        this.lastTransitionTime = source["lastTransitionTime"];
+	        this.targetRevisions = source["targetRevisions"];
+	    }
+	}
+	export class ArgoApplicationSetGenerator {
+	    type: string;
+	    summary: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoApplicationSetGenerator(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.summary = source["summary"];
+	    }
+	}
+	export class ArgoApplicationSetDetail {
+	    name: string;
+	    namespace: string;
+	    generators: ArgoApplicationSetGenerator[];
+	    templateName: string;
+	    templateProject: string;
+	    templateRepoURL: string;
+	    templatePath: string;
+	    templateRevision: string;
+	    templateDestNs: string;
+	    generatedApps: ArgoApplicationSetGeneratedApp[];
+	    conditions: ConditionDetail[];
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoApplicationSetDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.generators = this.convertValues(source["generators"], ArgoApplicationSetGenerator);
+	        this.templateName = source["templateName"];
+	        this.templateProject = source["templateProject"];
+	        this.templateRepoURL = source["templateRepoURL"];
+	        this.templatePath = source["templatePath"];
+	        this.templateRevision = source["templateRevision"];
+	        this.templateDestNs = source["templateDestNs"];
+	        this.generatedApps = this.convertValues(source["generatedApps"], ArgoApplicationSetGeneratedApp);
+	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
+	export class ArgoApplicationSetInfo {
+	    name: string;
+	    namespace: string;
+	    generatorTypes: string[];
+	    appCount: number;
+	    healthyCount: number;
+	    syncedCount: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ArgoApplicationSetInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.generatorTypes = source["generatorTypes"];
+	        this.appCount = source["appCount"];
+	        this.healthyCount = source["healthyCount"];
+	        this.syncedCount = source["syncedCount"];
+	        this.createdAt = source["createdAt"];
 	    }
 	}
 	export class ArgoSyncResultResource {

@@ -20,7 +20,11 @@ export function FetchMetricsServerManifest():Promise<string>;
 
 export function GetAPIService(arg1:string,arg2:string):Promise<kube.APIServiceDetail>;
 
+export function GetArgoAppProject(arg1:string,arg2:string,arg3:string):Promise<kube.ArgoAppProjectDetail>;
+
 export function GetArgoApplicationOperationState(arg1:string,arg2:string,arg3:string):Promise<kube.ArgoOperationState>;
+
+export function GetArgoApplicationSet(arg1:string,arg2:string,arg3:string):Promise<kube.ArgoApplicationSetDetail>;
 
 export function GetCSIDriver(arg1:string,arg2:string):Promise<kube.CSIDriverDetail>;
 
@@ -138,9 +142,13 @@ export function ListAccessSubjects(arg1:string):Promise<Array<kube.AccessSubject
 
 export function ListAccessibleKinds(arg1:string):Promise<Array<string>>;
 
+export function ListArgoAppProjects(arg1:string,arg2:string):Promise<Array<kube.ArgoAppProjectInfo>>;
+
 export function ListArgoApplicationHistory(arg1:string,arg2:string,arg3:string):Promise<Array<kube.ArgoApplicationHistoryEntry>>;
 
 export function ListArgoApplicationResources(arg1:string,arg2:string,arg3:string):Promise<Array<kube.ArgoApplicationResource>>;
+
+export function ListArgoApplicationSets(arg1:string,arg2:string):Promise<Array<kube.ArgoApplicationSetInfo>>;
 
 export function ListArgoApplications(arg1:string,arg2:string):Promise<Array<kube.ArgoApplicationInfo>>;
 

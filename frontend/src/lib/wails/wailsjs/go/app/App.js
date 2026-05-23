@@ -38,8 +38,16 @@ export function GetAPIService(arg1, arg2) {
   return window['go']['app']['App']['GetAPIService'](arg1, arg2);
 }
 
+export function GetArgoAppProject(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetArgoAppProject'](arg1, arg2, arg3);
+}
+
 export function GetArgoApplicationOperationState(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetArgoApplicationOperationState'](arg1, arg2, arg3);
+}
+
+export function GetArgoApplicationSet(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetArgoApplicationSet'](arg1, arg2, arg3);
 }
 
 export function GetCSIDriver(arg1, arg2) {
@@ -274,12 +282,20 @@ export function ListAccessibleKinds(arg1) {
   return window['go']['app']['App']['ListAccessibleKinds'](arg1);
 }
 
+export function ListArgoAppProjects(arg1, arg2) {
+  return window['go']['app']['App']['ListArgoAppProjects'](arg1, arg2);
+}
+
 export function ListArgoApplicationHistory(arg1, arg2, arg3) {
   return window['go']['app']['App']['ListArgoApplicationHistory'](arg1, arg2, arg3);
 }
 
 export function ListArgoApplicationResources(arg1, arg2, arg3) {
   return window['go']['app']['App']['ListArgoApplicationResources'](arg1, arg2, arg3);
+}
+
+export function ListArgoApplicationSets(arg1, arg2) {
+  return window['go']['app']['App']['ListArgoApplicationSets'](arg1, arg2);
 }
 
 export function ListArgoApplications(arg1, arg2) {
