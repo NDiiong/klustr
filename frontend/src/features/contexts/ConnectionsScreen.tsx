@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  Command,
   Layers,
   Pencil,
   Plus,
@@ -33,7 +34,13 @@ import { ThemePicker } from '@/features/_shared/ThemePicker'
 import { ProviderIcon, providerMeta } from '@/features/_shared/providerIcons'
 import { api, type ContextInfo } from '@/lib/api'
 import { useUIStore, type ContextGroup, type TagColor } from '@/store/ui'
-import { COLOR_PALETTE, TAG_COLOR_ORDER, resolveTagMeta, type ContextTagMeta } from './contextTagMeta'
+import {
+  BUILT_IN_TAG_ORDER,
+  COLOR_PALETTE,
+  TAG_COLOR_ORDER,
+  resolveTagMeta,
+  type ContextTagMeta,
+} from './contextTagMeta'
 import { ContextTagMenuContent } from './ContextTagPicker'
 
 type LoadState =
@@ -41,12 +48,21 @@ type LoadState =
   | { kind: 'ready'; contexts: ContextInfo[] }
   | { kind: 'error'; message: string }
 
+type GroupedSection = {
+  id: string
+  meta: ContextTagMeta | null
+  items: ContextInfo[]
+}
+
+const UNTAGGED_KEY = '__untagged__'
+
 export function ConnectionsScreen() {
   const setSelectedContext = useUIStore((s) => s.setSelectedContext)
   const setAggregatedContexts = useUIStore((s) => s.setAggregatedContexts)
   const defaultContext = useUIStore((s) => s.defaultContext)
   const setDefaultContext = useUIStore((s) => s.setDefaultContext)
   const contextTags = useUIStore((s) => s.contextTags)
+  const customTags = useUIStore((s) => s.customTags)
   const contextGroups = useUIStore((s) => s.contextGroups)
   const upsertContextGroup = useUIStore((s) => s.upsertContextGroup)
   const removeContextGroup = useUIStore((s) => s.removeContextGroup)
@@ -90,6 +106,55 @@ export function ConnectionsScreen() {
       )
     })
   }, [contexts, query])
+
+  const sections: GroupedSection[] = useMemo(() => {
+    const byKey = new Map<string, ContextInfo[]>()
+    for (const c of filtered) {
+      const tagIds = contextTags[c.name] ?? []
+      const primary = tagIds[0] ?? UNTAGGED_KEY
+      const arr = byKey.get(primary) ?? []
+      arr.push(c)
+      byKey.set(primary, arr)
+    }
+    const customKeys = [...byKey.keys()]
+      .filter((k) => k !== UNTAGGED_KEY && !BUILT_IN_TAG_ORDER.includes(k))
+      .sort()
+    const order = [...BUILT_IN_TAG_ORDER, ...customKeys, UNTAGGED_KEY]
+    const out: GroupedSection[] = []
+    for (const key of order) {
+      const items = byKey.get(key)
+      if (!items?.length) continue
+      out.push({
+        id: key,
+        meta: key === UNTAGGED_KEY ? null : resolveTagMeta(key, customTags),
+        items,
+      })
+    }
+    return out
+  }, [filtered, contextTags, customTags])
+
+  const orderedVisible = useMemo(
+    () => sections.flatMap((s) => s.items),
+    [sections],
+  )
+
+  const heroContext = useMemo(
+    () => (defaultContext ? contexts.find((c) => c.name === defaultContext) ?? null : null),
+    [contexts, defaultContext],
+  )
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) return
+      if (e.key < '1' || e.key > '9') return
+      const ctx = orderedVisible[Number.parseInt(e.key, 10) - 1]
+      if (!ctx) return
+      e.preventDefault()
+      setSelectedContext(ctx.name)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [orderedVisible, setSelectedContext])
 
   const togglePick = (name: string) => {
     setPicked((prev) => {
@@ -138,15 +203,35 @@ export function ConnectionsScreen() {
       </header>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center px-6 py-10">
-          <div className="flex w-full max-w-5xl flex-col gap-5">
-          <div className="flex flex-col items-center gap-1.5 text-center">
-            <h1 className="text-lg font-semibold tracking-tight">Choose contexts</h1>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-6 py-8">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-semibold tracking-tight">Connect to a cluster</h1>
             <p className="text-xs text-muted-foreground">
-              Pick a single context, or check two or more to view them together. Mark one as
-              auto-connect to skip this screen on next launch.
+              {state.kind === 'ready' ? (
+                <>
+                  {contexts.length} context{contexts.length === 1 ? '' : 's'} in kubeconfig
+                  {contextGroups.length > 0 && (
+                    <> · {contextGroups.length} group{contextGroups.length === 1 ? '' : 's'}</>
+                  )}
+                  {defaultContext && <> · auto-connect: <span className="font-medium text-foreground">{defaultContext}</span></>}
+                  {!defaultContext && <> · pick one or check multiple to view together</>}
+                </>
+              ) : (
+                <>Loading kubeconfig…</>
+              )}
             </p>
           </div>
+
+          {heroContext && (
+            <HeroCard
+              context={heroContext}
+              tagMetas={(contextTags[heroContext.name] ?? [])
+                .map((id) => resolveTagMeta(id, customTags))
+                .filter((m): m is ContextTagMeta => m !== null)}
+              onConnect={() => connectSingle(heroContext.name)}
+              onClearDefault={() => setDefaultContext(null)}
+            />
+          )}
 
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -162,6 +247,22 @@ export function ConnectionsScreen() {
             <Button
               variant="outline"
               size="sm"
+              onClick={() =>
+                setEditing({
+                  id: cryptoRandomId(),
+                  name: '',
+                  contexts: [],
+                  color: 'sky',
+                })
+              }
+              title="Create a saved group of 2+ contexts"
+            >
+              <Plus />
+              New group
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setReloadKey((k) => k + 1)}
               disabled={state.kind === 'loading'}
               title="Reload kubeconfig"
@@ -171,19 +272,11 @@ export function ConnectionsScreen() {
             </Button>
           </div>
 
-          {state.kind === 'ready' && (
-            <GroupsSection
+          {state.kind === 'ready' && contextGroups.length > 0 && (
+            <GroupChipRow
               groups={contextGroups}
               contexts={contexts}
-              onConnectGroup={connectGroup}
-              onCreate={() =>
-                setEditing({
-                  id: cryptoRandomId(),
-                  name: '',
-                  contexts: [],
-                  color: 'sky',
-                })
-              }
+              onConnect={connectGroup}
               onEdit={(g) => setEditing(g)}
               onDelete={(id) => removeContextGroup(id)}
             />
@@ -213,25 +306,30 @@ export function ConnectionsScreen() {
               </div>
             )}
 
-            {state.kind === 'ready' && filtered.length > 0 && (
-              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((c) => (
-                  <ContextCard
-                    key={c.name}
-                    context={c}
-                    isDefault={c.name === defaultContext}
-                    isPicked={picked.has(c.name)}
-                    tagIds={contextTags[c.name] ?? []}
-                    onConnect={() => connectSingle(c.name)}
-                    onTogglePick={() => togglePick(c.name)}
-                    onToggleDefault={() =>
-                      setDefaultContext(c.name === defaultContext ? null : c.name)
-                    }
-                  />
-                ))}
-              </ul>
+            {state.kind === 'ready' && sections.length > 0 && (
+              <div className="flex flex-col gap-5">
+                {sections.map((section, sectionIdx) => {
+                  const baseIdx = sections
+                    .slice(0, sectionIdx)
+                    .reduce((acc, s) => acc + s.items.length, 0)
+                  return (
+                    <ContextSection
+                      key={section.id}
+                      section={section}
+                      baseIndex={baseIdx}
+                      defaultContext={defaultContext}
+                      picked={picked}
+                      contextTags={contextTags}
+                      onConnect={connectSingle}
+                      onTogglePick={togglePick}
+                      onToggleDefault={(name) =>
+                        setDefaultContext(name === defaultContext ? null : name)
+                      }
+                    />
+                  )
+                })}
+              </div>
             )}
-          </div>
           </div>
         </div>
       </main>
@@ -280,153 +378,236 @@ function cryptoRandomId(): string {
   }
 }
 
-function GroupsSection({
-  groups,
-  contexts,
-  onConnectGroup,
-  onCreate,
-  onEdit,
-  onDelete,
+function shortcutHint(index: number): string | null {
+  if (index < 0 || index > 8) return null
+  const isMac =
+    typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform)
+  return `${isMac ? '⌘' : 'Ctrl'}${index + 1}`
+}
+
+function HeroCard({
+  context,
+  tagMetas,
+  onConnect,
+  onClearDefault,
 }: {
-  groups: ContextGroup[]
-  contexts: ContextInfo[]
-  onConnectGroup: (group: ContextGroup) => void
-  onCreate: () => void
-  onEdit: (group: ContextGroup) => void
-  onDelete: (id: string) => void
+  context: ContextInfo
+  tagMetas: ContextTagMeta[]
+  onConnect: () => void
+  onClearDefault: () => void
 }) {
+  const meta = providerMeta(context)
+  const primary = tagMetas[0] ?? null
+  const isMac =
+    typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform)
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Groups
-        </h2>
-        <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={onCreate}>
-          <Plus className="size-3" />
-          New group
-        </Button>
-      </div>
-      {groups.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground">
-          No groups yet. Create one to connect to 2+ contexts in a single click.
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((g) => (
-            <GroupCard
-              key={g.id}
-              group={g}
-              contexts={contexts}
-              onConnect={() => onConnectGroup(g)}
-              onEdit={() => onEdit(g)}
-              onDelete={() => onDelete(g.id)}
-            />
-          ))}
-        </ul>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Connect to ${context.name}`}
+      onClick={onConnect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onConnect()
+        }
+      }}
+      className="group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card to-muted/30 px-4 py-3 text-left transition-colors hover:border-ring hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {primary && (
+        <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${primary.barClass}`} />
       )}
+      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-500">
+        <Zap className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          Auto-connect
+          <span className="text-muted-foreground/60">·</span>
+          <span className="font-normal normal-case tracking-normal text-muted-foreground">
+            mark another card's ⚡ to change
+          </span>
+        </div>
+        <div className="mt-0.5 flex items-center gap-2">
+          <ProviderIcon context={context} className="size-4 shrink-0" />
+          <span className="truncate text-base font-semibold">{context.name}</span>
+          {primary && (
+            <span
+              className={`rounded border px-1.5 py-px text-[10px] font-semibold tracking-wider ${primary.badgeClass}`}
+            >
+              {primary.shortLabel}
+            </span>
+          )}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">
+          {meta.label}
+          {context.server ? <> · {context.server}</> : null}
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          aria-label="Disable auto-connect"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClearDefault()
+          }}
+          className="hidden h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted group-hover:flex"
+        >
+          <X className="size-3" />
+          Unpin
+        </button>
+        <span className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">
+          Connect
+          <kbd className="rounded border border-primary-foreground/30 bg-primary-foreground/10 px-1 font-mono text-[10px]">
+            {isMac ? '⌘1' : 'Ctrl 1'}
+          </kbd>
+        </span>
+      </div>
     </div>
   )
 }
 
-function GroupCard({
-  group,
+function GroupChipRow({
+  groups,
   contexts,
   onConnect,
   onEdit,
   onDelete,
 }: {
-  group: ContextGroup
+  groups: ContextGroup[]
   contexts: ContextInfo[]
-  onConnect: () => void
-  onEdit: () => void
-  onDelete: () => void
+  onConnect: (group: ContextGroup) => void
+  onEdit: (group: ContextGroup) => void
+  onDelete: (id: string) => void
 }) {
-  const members = group.contexts
-    .map((name) => contexts.find((c) => c.name === name))
-    .filter((c): c is ContextInfo => c !== undefined)
-  const missing = group.contexts.length - members.length
-  const colorClasses = COLOR_PALETTE[group.color] ?? COLOR_PALETTE.sky
   return (
-    <li>
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={`Connect to ${group.name}`}
-        onClick={onConnect}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onConnect()
-          }
-        }}
-        className={[
-          'group relative flex w-full cursor-pointer items-start gap-2.5 overflow-hidden rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          'hover:border-ring hover:bg-accent',
-        ].join(' ')}
-      >
-        <span
-          aria-hidden
-          className={`absolute left-0 top-0 h-full w-[3px] ${colorClasses.barClass}`}
-        />
-        <span
-          aria-hidden
-          className={`inline-flex size-7 shrink-0 items-center justify-center rounded-md border ${colorClasses.badgeClass}`}
-        >
-          <Layers className="size-3.5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="truncate pr-12 text-sm font-medium">{group.name}</div>
-          <div
-            className="truncate text-xs text-muted-foreground"
-            title={members.map((m) => m.name).join(', ')}
-          >
-            {members.length} context{members.length === 1 ? '' : 's'}
-            {missing > 0 && (
-              <span className="ml-1 text-amber-600 dark:text-amber-400">({missing} missing)</span>
-            )}
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-1">
-            {members.slice(0, 4).map((m) => (
-              <span
-                key={m.name}
-                className="inline-flex max-w-[8rem] items-center gap-1 rounded border border-border bg-background/60 px-1 py-px text-[10px]"
-              >
-                <ProviderIcon context={m} className="size-3 shrink-0" />
-                <span className="truncate">{m.name}</span>
-              </span>
-            ))}
-            {members.length > 4 && (
-              <span className="text-[10px] text-muted-foreground">+{members.length - 4} more</span>
-            )}
-          </div>
-        </div>
-        <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <button
-            type="button"
-            aria-label="Edit group"
-            onClick={(e) => {
-              e.stopPropagation()
-              onEdit()
-            }}
-            className="inline-flex size-5 items-center justify-center rounded-md border border-border bg-background/80 text-muted-foreground hover:bg-muted"
-          >
-            <Pencil className="size-3" />
-          </button>
-          <button
-            type="button"
-            aria-label="Delete group"
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-            className="inline-flex size-5 items-center justify-center rounded-md border border-destructive/40 bg-background/80 text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="size-3" />
-          </button>
-        </div>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Layers className="size-3" />
+        Groups
       </div>
-    </li>
+      <ul className="flex flex-wrap gap-1.5">
+        {groups.map((g) => {
+          const members = g.contexts.filter((m) => contexts.some((c) => c.name === m))
+          const palette = COLOR_PALETTE[g.color] ?? COLOR_PALETTE.sky
+          const missing = g.contexts.length - members.length
+          return (
+            <li key={g.id}>
+              <span
+                className="group inline-flex items-center overflow-hidden rounded-full border border-border bg-card text-xs transition-colors hover:border-ring"
+              >
+                <button
+                  type="button"
+                  aria-label={`Connect to ${g.name}`}
+                  onClick={() => onConnect(g)}
+                  className="inline-flex items-center gap-1.5 py-1 pl-2 pr-2.5 hover:bg-accent"
+                >
+                  <span aria-hidden className={`size-2 rounded-full ${palette.dotClass}`} />
+                  <span className="max-w-[16rem] truncate font-medium">{g.name}</span>
+                  <span className="text-muted-foreground">
+                    {members.length}
+                    {missing > 0 && (
+                      <span className="ml-0.5 text-amber-500" title={`${missing} missing`}>
+                        −{missing}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                <span className="flex items-center border-l border-border opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    aria-label="Edit group"
+                    onClick={() => onEdit(g)}
+                    className="inline-flex size-6 items-center justify-center text-muted-foreground hover:bg-muted"
+                  >
+                    <Pencil className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Delete group"
+                    onClick={() => onDelete(g.id)}
+                    className="inline-flex size-6 items-center justify-center text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </span>
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+function ContextSection({
+  section,
+  baseIndex,
+  defaultContext,
+  picked,
+  contextTags,
+  onConnect,
+  onTogglePick,
+  onToggleDefault,
+}: {
+  section: GroupedSection
+  baseIndex: number
+  defaultContext: string | null
+  picked: Set<string>
+  contextTags: Record<string, string[]>
+  onConnect: (name: string) => void
+  onTogglePick: (name: string) => void
+  onToggleDefault: (name: string) => void
+}) {
+  const isProd = section.id === 'prod'
+  return (
+    <section className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        {section.meta ? (
+          <>
+            <span aria-hidden className={`size-2 rounded-full ${section.meta.dotClass}`} />
+            <h2
+              className={`text-[10px] font-semibold uppercase tracking-wider ${
+                isProd ? 'text-red-500' : 'text-foreground'
+              }`}
+            >
+              {section.meta.label}
+            </h2>
+          </>
+        ) : (
+          <h2 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Untagged
+          </h2>
+        )}
+        <span className="text-[10px] font-medium tabular-nums text-muted-foreground">
+          {section.items.length}
+        </span>
+        {isProd && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-red-500/80">
+            <AlertTriangle className="size-3" />
+            production
+          </span>
+        )}
+        <div className="ml-auto h-px flex-1 bg-border/60" />
+      </div>
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {section.items.map((c, idx) => (
+          <ContextCard
+            key={c.name}
+            context={c}
+            isDefault={c.name === defaultContext}
+            isPicked={picked.has(c.name)}
+            tagIds={contextTags[c.name] ?? []}
+            shortcut={shortcutHint(baseIndex + idx)}
+            highlight={isProd}
+            onConnect={() => onConnect(c.name)}
+            onTogglePick={() => onTogglePick(c.name)}
+            onToggleDefault={() => onToggleDefault(c.name)}
+          />
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -691,6 +872,8 @@ function ContextCard({
   isDefault,
   isPicked,
   tagIds,
+  shortcut,
+  highlight,
   onConnect,
   onTogglePick,
   onToggleDefault,
@@ -699,6 +882,8 @@ function ContextCard({
   isDefault: boolean
   isPicked: boolean
   tagIds: string[]
+  shortcut: string | null
+  highlight: boolean
   onConnect: () => void
   onTogglePick: () => void
   onToggleDefault: () => void
@@ -728,7 +913,9 @@ function ContextCard({
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           isPicked
             ? 'border-primary bg-accent'
-            : 'border-border hover:border-ring hover:bg-accent',
+            : highlight
+              ? 'border-red-500/30 bg-red-500/[0.03] hover:border-red-500/60 hover:bg-red-500/[0.06]'
+              : 'border-border hover:border-ring hover:bg-accent',
         ].join(' ')}
       >
         {primaryTagMeta && (
@@ -752,12 +939,29 @@ function ContextCard({
         </button>
         <ProviderIcon context={context} className="mt-0.5 size-5 shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="truncate pr-7 text-sm font-medium">{context.name}</div>
+          <div className="flex items-center gap-1.5 pr-7">
+            <span className="truncate text-sm font-medium">{context.name}</span>
+            {isDefault && (
+              <span
+                className="inline-flex shrink-0 items-center gap-0.5 rounded border border-amber-500/40 bg-amber-500/10 px-1 py-px text-[9px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400"
+                title="Auto-connect on launch"
+              >
+                <Zap className="size-2.5" />
+                Auto
+              </span>
+            )}
+          </div>
           <div className="truncate pr-7 text-xs text-muted-foreground">
             {context.server || context.cluster || meta.label}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <CardTagBadges contextName={context.name} tagMetas={tagMetas} />
+            {shortcut && (
+              <span className="ml-auto inline-flex items-center gap-0.5 rounded border border-border/70 bg-background/60 px-1 py-px text-[9px] font-mono text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                <Command className="size-2.5" />
+                {shortcut.replace(/^⌘|^Ctrl/, '')}
+              </span>
+            )}
           </div>
         </div>
         <Tooltip>
