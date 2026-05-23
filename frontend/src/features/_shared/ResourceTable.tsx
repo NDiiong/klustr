@@ -213,7 +213,7 @@ export function ResourceTable<T>({
       }
     }
     return out
-  }, [activeContexts, data, scope, selectedNamespaces.length, query])
+  }, [activeContexts, data, scope, selectedNamespaces, query])
 
   useEffect(() => {
     if (selectedResource) return
