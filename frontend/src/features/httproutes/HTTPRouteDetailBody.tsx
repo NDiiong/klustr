@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { Fragment, useCallback } from 'react'
+import { BrowserOpenURL } from '@/lib/wails/wailsjs/runtime/runtime'
 import {
   api,
   type HTTPRouteDetail,
@@ -56,7 +57,25 @@ export function HTTPRouteDetailBody({
     <div className="space-y-6">
       <Section title="HTTPRoute">
         <Field label="Hostnames" mono>
-          {detail.hostnames.length > 0 ? detail.hostnames.join(', ') : '*'}
+          {detail.hostnames.length > 0
+            ? detail.hostnames.map((h, i) => (
+                <Fragment key={h}>
+                  {i > 0 && ', '}
+                  {h.startsWith('*') ? (
+                    h
+                  ) : (
+                    <button
+                      type="button"
+                      className="cursor-pointer text-left hover:underline"
+                      onClick={() => BrowserOpenURL(`https://${h}`)}
+                      title={`Open https://${h}`}
+                    >
+                      {h}
+                    </button>
+                  )}
+                </Fragment>
+              ))
+            : '*'}
         </Field>
         <Field label="Age">{formatAge(detail.createdAt)}</Field>
       </Section>
