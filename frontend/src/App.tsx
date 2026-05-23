@@ -81,11 +81,11 @@ import { PodSearchPalette } from '@/features/pods/PodSearchPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { api } from '@/lib/api'
+import { api, type CRDInfo } from '@/lib/api'
 import { onKubeChange, onPFUpdate } from '@/lib/events'
 import { useActiveContexts, useUIStore, type ResourceView } from '@/store/ui'
 import { useResources } from '@/store/resources'
-import { useCRDStore } from '@/store/crds'
+import { crdKey, useCRDStore } from '@/store/crds'
 import { useHelmStore } from '@/store/helm'
 import { usePortForwards } from '@/store/portForwards'
 import { kindAccessibleInAny, useAccessStore } from '@/store/access'
@@ -279,11 +279,12 @@ function App() {
   const accessByContext = useAccessStore((s) => s.byContext)
   const activeNavItemRef = useRef<HTMLLIElement | null>(null)
 
-  const hasGatewayAPI = crds.some((c) => c.group === 'gateway.networking.k8s.io')
-  const hasArgoApplications = crds.some(
-    (c) => c.group === 'argoproj.io' && c.resource === 'applications',
-  )
-  const hasKarpenter = crds.some((c) => c.group === 'karpenter.sh')
+  const isAggregated = activeContexts.length >= 2
+  const hasGatewayAPI = !isAggregated && crds.some((c) => c.group === 'gateway.networking.k8s.io')
+  const hasArgoApplications =
+    !isAggregated &&
+    crds.some((c) => c.group === 'argoproj.io' && c.resource === 'applications')
+  const hasKarpenter = !isAggregated && crds.some((c) => c.group === 'karpenter.sh')
   const visibleGroups = useMemo<ResourceGroup[]>(() => {
     const allGroups: ResourceGroup[] = [
       ...RESOURCE_GROUPS,
@@ -365,21 +366,32 @@ function App() {
   }, [activeContexts, resetResources, resetCRDs, resetHelm, resetAccess, setAccess])
 
   useEffect(() => {
-    if (!selectedContext) {
+    if (activeContexts.length === 0) {
       setCRDs([])
       return
     }
+    let cancelled = false
     const reload = () => {
-      api
-        .listCRDs(selectedContext)
-        .then((list) => setCRDs(list ?? []))
-        .catch(() => setCRDs([]))
+      Promise.all(
+        activeContexts.map((ctx) => api.listCRDs(ctx).catch(() => [] as CRDInfo[])),
+      ).then((lists) => {
+        if (cancelled) return
+        const seen = new Map<string, CRDInfo>()
+        for (const list of lists) {
+          for (const c of list ?? []) seen.set(crdKey(c), c)
+        }
+        setCRDs(Array.from(seen.values()))
+      })
     }
     reload()
-    return onKubeChange('_crds', (ctx) => {
-      if (ctx === selectedContext) reload()
+    const unsub = onKubeChange('_crds', (ctx) => {
+      if (activeContexts.includes(ctx)) reload()
     })
-  }, [selectedContext, setCRDs])
+    return () => {
+      cancelled = true
+      unsub()
+    }
+  }, [activeContexts, setCRDs])
 
   if (activeContexts.length === 0) {
     return (
