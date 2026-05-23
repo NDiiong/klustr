@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
 )
 
 // ArgoApplicationInfo is the row shape the Argo Applications view renders.
@@ -228,6 +229,91 @@ func extractArgoResources(obj *unstructured.Unstructured) []ArgoApplicationResou
 		})
 	}
 	return out
+}
+
+// argoResourcesFinalizer is the finalizer Argo CD's application-controller
+// watches for. Its presence tells Argo to clean up every resource the
+// Application manages before allowing the Application CR itself to be
+// removed. Absence means a plain DELETE leaves the managed resources
+// orphaned — which is the same trap users hit in the Argo CD UI.
+const argoResourcesFinalizer = "resources-finalizer.argocd.argoproj.io"
+
+// DeleteArgoApplication deletes an Argo CD Application with the requested
+// cascade behaviour, matching what the Argo CD UI exposes.
+//
+//   - "foreground"    → add finalizer, DELETE with PropagationForeground
+//     (the API server blocks until Argo's cleanup completes; safest).
+//   - "background"    → add finalizer, DELETE with PropagationBackground
+//     (returns immediately; Argo cleans up asynchronously).
+//   - "non-cascading" → strip the finalizer if present, DELETE with
+//     PropagationOrphan; the Application CR is removed, the managed
+//     resources stay in the cluster.
+//
+// Empty mode defaults to "foreground" — the safe choice.
+func (m *ClientManager) DeleteArgoApplication(ctx context.Context, contextName, namespace, name, cascade string) error {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return err
+	}
+	resource := dyn.Resource(argoApplicationGVR).Namespace(namespace)
+
+	var propagation metav1.DeletionPropagation
+	switch cascade {
+	case "", "foreground":
+		propagation = metav1.DeletePropagationForeground
+		if err := setArgoFinalizer(ctx, resource, name, true); err != nil {
+			return err
+		}
+	case "background":
+		propagation = metav1.DeletePropagationBackground
+		if err := setArgoFinalizer(ctx, resource, name, true); err != nil {
+			return err
+		}
+	case "non-cascading":
+		propagation = metav1.DeletePropagationOrphan
+		if err := setArgoFinalizer(ctx, resource, name, false); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid cascade mode: %q (want foreground|background|non-cascading)", cascade)
+	}
+
+	if err := resource.Delete(ctx, name, metav1.DeleteOptions{PropagationPolicy: &propagation}); err != nil {
+		return fmt.Errorf("delete application %s/%s: %w", namespace, name, err)
+	}
+	return nil
+}
+
+// setArgoFinalizer adds or removes argoResourcesFinalizer on the named
+// Application. It's a Get → mutate → Update because the unstructured
+// dynamic client can't strategic-merge a list field cleanly.
+func setArgoFinalizer(ctx context.Context, resource dynamic.ResourceInterface, name string, want bool) error {
+	obj, err := resource.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("get application %s: %w", name, err)
+	}
+	finalizers := obj.GetFinalizers()
+	has := false
+	idx := -1
+	for i, f := range finalizers {
+		if f == argoResourcesFinalizer {
+			has = true
+			idx = i
+			break
+		}
+	}
+	switch {
+	case want && !has:
+		obj.SetFinalizers(append(finalizers, argoResourcesFinalizer))
+	case !want && has:
+		obj.SetFinalizers(append(finalizers[:idx], finalizers[idx+1:]...))
+	default:
+		return nil
+	}
+	if _, err := resource.Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+		return fmt.Errorf("update finalizers on %s: %w", name, err)
+	}
+	return nil
 }
 
 // RefreshArgoApplication forces Argo to recompute the Application's status
