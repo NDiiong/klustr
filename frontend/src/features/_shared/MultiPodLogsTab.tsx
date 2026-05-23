@@ -64,6 +64,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
   const [useRegex, setUseRegex] = useState(false)
   const [filterError, setFilterError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [bufferLength, setBufferLength] = useState(0)
 
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
@@ -80,6 +81,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
       const term = termRef.current
       for (const line of bufferRef.current) term.writeln(line)
       bufferRef.current = []
+      setBufferLength(0)
     }
   }, [paused])
 
@@ -207,6 +209,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
               if (pausedRef.current) {
                 bufferRef.current.push(styled)
                 if (bufferRef.current.length > 10_000) bufferRef.current.shift()
+                setBufferLength(bufferRef.current.length)
                 return
               }
               term.writeln(styled)
@@ -245,6 +248,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
       sessionsRef.current = []
       bufferRef.current = []
       visibleLinesRef.current = []
+      setBufferLength(0)
     }
   }, [contextName, namespace, targets, title])
 
@@ -281,7 +285,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
         </Button>
         <Button type="button" size="xs" variant="outline" onClick={() => setPaused((p) => !p)}>
           {paused ? <Play /> : <Pause />}
-          {paused ? `Resume${bufferRef.current.length > 0 ? ` (${bufferRef.current.length})` : ''}` : 'Pause'}
+          {paused ? `Resume${bufferLength > 0 ? ` (${bufferLength})` : ''}` : 'Pause'}
         </Button>
         <Button
           type="button"
@@ -291,6 +295,7 @@ export function MultiPodLogsTab({ contextName, namespace, selector, title }: Pro
             termRef.current?.clear()
             bufferRef.current = []
             visibleLinesRef.current = []
+            setBufferLength(0)
           }}
         >
           <Eraser />

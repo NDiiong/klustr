@@ -35,6 +35,7 @@ export function PodLogsTab({ detail, contextName }: Props) {
   const [filterValue, setFilterValue] = useState('')
   const [useRegex, setUseRegex] = useState(false)
   const [filterError, setFilterError] = useState<string | null>(null)
+  const [bufferLength, setBufferLength] = useState(0)
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -71,6 +72,7 @@ export function PodLogsTab({ detail, contextName }: Props) {
       const term = termRef.current
       for (const line of bufferRef.current) term.writeln(line)
       bufferRef.current = []
+      setBufferLength(0)
     }
   }, [paused])
 
@@ -149,8 +151,8 @@ export function PodLogsTab({ detail, contextName }: Props) {
           const styled = highlightLogContent(line)
           if (pausedRef.current) {
             bufferRef.current.push(styled)
-            // cap buffer at 5000 lines while paused
             if (bufferRef.current.length > 5_000) bufferRef.current.shift()
+            setBufferLength(bufferRef.current.length)
             return
           }
           term.writeln(styled)
@@ -178,6 +180,7 @@ export function PodLogsTab({ detail, contextName }: Props) {
       unsubClose?.()
       bufferRef.current = []
       visibleLinesRef.current = []
+      setBufferLength(0)
       if (sessionId) {
         api.stopPodLogs(sessionId).catch(() => {})
         EventsOff(`pod:logs:line:${sessionId}`, `pod:logs:close:${sessionId}`)
@@ -224,7 +227,7 @@ export function PodLogsTab({ detail, contextName }: Props) {
           onClick={() => setPaused((p) => !p)}
         >
           {paused ? <Play /> : <Pause />}
-          {paused ? `Resume${bufferRef.current.length > 0 ? ` (${bufferRef.current.length})` : ''}` : 'Pause'}
+          {paused ? `Resume${bufferLength > 0 ? ` (${bufferLength})` : ''}` : 'Pause'}
         </Button>
         <Button
           type="button"
@@ -234,6 +237,7 @@ export function PodLogsTab({ detail, contextName }: Props) {
             termRef.current?.clear()
             bufferRef.current = []
             visibleLinesRef.current = []
+            setBufferLength(0)
           }}
         >
           <Eraser />
