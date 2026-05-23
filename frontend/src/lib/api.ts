@@ -113,6 +113,8 @@ import {
   GetReferenceGrant,
   ListIngresses,
   ListJobs,
+  ListKarpenterNodePools,
+  ListKarpenterNodeClaims,
   ListNamespaces,
   ListNodes,
   ListServiceAccounts,
@@ -317,6 +319,8 @@ export type ReferenceGrantInfo = kube.ReferenceGrantInfo
 export type ReferenceGrantDetail = kube.ReferenceGrantDetail
 export type ReferenceGrantFromDetail = kube.ReferenceGrantFromDetail
 export type ReferenceGrantToDetail = kube.ReferenceGrantToDetail
+export type KarpenterNodePoolInfo = kube.KarpenterNodePoolInfo
+export type KarpenterNodeClaimInfo = kube.KarpenterNodeClaimInfo
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -686,5 +690,9 @@ export const api = {
     contextName: string,
     namespace: string,
   ): Promise<ArgoApplicationInfo[]> => ListArgoApplications(contextName, namespace),
+  listKarpenterNodePools: (contextName: string): Promise<KarpenterNodePoolInfo[]> =>
+    ListKarpenterNodePools(contextName),
+  listKarpenterNodeClaims: (contextName: string): Promise<KarpenterNodeClaimInfo[]> =>
+    ListKarpenterNodeClaims(contextName),
   version: (): Promise<string> => Version(),
 }

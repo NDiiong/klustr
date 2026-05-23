@@ -99,6 +99,8 @@ export type ResourceView =
   | 'grpcroutes'
   | 'gatewayclasses'
   | 'referencegrants'
+  | 'karpenternodepools'
+  | 'karpenternodeclaims'
 
 export type ResourceKind =
   | 'Pod'

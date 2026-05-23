@@ -198,6 +198,10 @@ export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.Ingres
 
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
 
+export function ListKarpenterNodeClaims(arg1:string):Promise<Array<kube.KarpenterNodeClaimInfo>>;
+
+export function ListKarpenterNodePools(arg1:string):Promise<Array<kube.KarpenterNodePoolInfo>>;
+
 export function ListLeases(arg1:string,arg2:string):Promise<Array<kube.LeaseInfo>>;
 
 export function ListLimitRanges(arg1:string,arg2:string):Promise<Array<kube.LimitRangeInfo>>;

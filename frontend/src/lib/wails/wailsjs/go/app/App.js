@@ -394,6 +394,14 @@ export function ListJobs(arg1, arg2) {
   return window['go']['app']['App']['ListJobs'](arg1, arg2);
 }
 
+export function ListKarpenterNodeClaims(arg1) {
+  return window['go']['app']['App']['ListKarpenterNodeClaims'](arg1);
+}
+
+export function ListKarpenterNodePools(arg1) {
+  return window['go']['app']['App']['ListKarpenterNodePools'](arg1);
+}
+
 export function ListLeases(arg1, arg2) {
   return window['go']['app']['App']['ListLeases'](arg1, arg2);
 }

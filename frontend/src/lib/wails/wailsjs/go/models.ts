@@ -2661,6 +2661,86 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class KarpenterNodeClaimInfo {
+	    name: string;
+	    nodeName: string;
+	    nodePool: string;
+	    nodeClassKind: string;
+	    nodeClassName: string;
+	    instanceType: string;
+	    capacityType: string;
+	    zone: string;
+	    providerID: string;
+	    cpu: string;
+	    memory: string;
+	    launched: string;
+	    registered: string;
+	    initialized: string;
+	    drifted: string;
+	    ready: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new KarpenterNodeClaimInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.nodeName = source["nodeName"];
+	        this.nodePool = source["nodePool"];
+	        this.nodeClassKind = source["nodeClassKind"];
+	        this.nodeClassName = source["nodeClassName"];
+	        this.instanceType = source["instanceType"];
+	        this.capacityType = source["capacityType"];
+	        this.zone = source["zone"];
+	        this.providerID = source["providerID"];
+	        this.cpu = source["cpu"];
+	        this.memory = source["memory"];
+	        this.launched = source["launched"];
+	        this.registered = source["registered"];
+	        this.initialized = source["initialized"];
+	        this.drifted = source["drifted"];
+	        this.ready = source["ready"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class KarpenterNodePoolInfo {
+	    name: string;
+	    weight: number;
+	    nodeClassKind: string;
+	    nodeClassName: string;
+	    consolidationPolicy: string;
+	    consolidateAfter: string;
+	    cpuLimit: string;
+	    memoryLimit: string;
+	    cpuUsage: string;
+	    memoryUsage: string;
+	    nodeCount: string;
+	    ready: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new KarpenterNodePoolInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.weight = source["weight"];
+	        this.nodeClassKind = source["nodeClassKind"];
+	        this.nodeClassName = source["nodeClassName"];
+	        this.consolidationPolicy = source["consolidationPolicy"];
+	        this.consolidateAfter = source["consolidateAfter"];
+	        this.cpuLimit = source["cpuLimit"];
+	        this.memoryLimit = source["memoryLimit"];
+	        this.cpuUsage = source["cpuUsage"];
+	        this.memoryUsage = source["memoryUsage"];
+	        this.nodeCount = source["nodeCount"];
+	        this.ready = source["ready"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class Kubeconfig {
 	    contexts: ContextInfo[];
 	    currentContext: string;
