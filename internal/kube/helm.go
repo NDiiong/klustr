@@ -140,9 +140,8 @@ func newHelmManager(rules *clientcmd.ClientConfigLoadingRules) (*helmManager, er
 func (h *helmManager) configFor(contextName, namespace string) (*action.Configuration, error) {
 	key := contextName + "/" + namespace
 	h.mu.Lock()
-	cfg, ok := h.configs[key]
-	h.mu.Unlock()
-	if ok {
+	defer h.mu.Unlock()
+	if cfg, ok := h.configs[key]; ok {
 		return cfg, nil
 	}
 
@@ -159,10 +158,7 @@ func (h *helmManager) configFor(contextName, namespace string) (*action.Configur
 	if err == nil {
 		c.RegistryClient = rc
 	}
-
-	h.mu.Lock()
 	h.configs[key] = c
-	h.mu.Unlock()
 	return c, nil
 }
 
