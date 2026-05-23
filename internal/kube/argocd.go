@@ -135,13 +135,41 @@ var argoApplicationGVR = schema.GroupVersionResource{
 	Resource: "applications",
 }
 
-// SyncArgoApplication triggers a sync on an Argo CD Application by writing the
-// top-level `operation.sync` field. The Argo application-controller watches
-// for `operation` being set, runs the sync, then clears the field once done.
+// ArgoSyncResourceSelector targets a specific managed resource for a
+// selective sync. All four fields must match an entry in
+// .status.resources for Argo to act on it. Empty namespace is valid for
+// cluster-scoped kinds.
+type ArgoSyncResourceSelector struct {
+	Group     string `json:"group"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
+// ArgoSyncOptions mirrors the flags `argocd app sync` exposes — what an SRE
+// expects to choose before kicking off a sync. The zero value is a sensible
+// "hook strategy, prune off, no force/replace/ssa, all resources" sync.
+type ArgoSyncOptions struct {
+	Revision        string                     `json:"revision"`
+	DryRun          bool                       `json:"dryRun"`
+	Prune           bool                       `json:"prune"`
+	Force           bool                       `json:"force"`
+	Replace         bool                       `json:"replace"`
+	ServerSideApply bool                       `json:"serverSideApply"`
+	Strategy        string                     `json:"strategy"` // "hook" (default) or "apply"
+	Resources       []ArgoSyncResourceSelector `json:"resources"`
+}
+
+// SyncArgoApplication writes the operation.sync block, exactly the same
+// payload `argocd app sync` PUTs through argocd-server. Argo's
+// application-controller picks `operation` up, runs the sync, then clears
+// the field once the operation finishes.
 //
-// revision is the git ref to sync to ("" → "HEAD" which means the target
-// revision currently stored in spec.source.targetRevision).
-func (m *ClientManager) SyncArgoApplication(ctx context.Context, contextName, namespace, name, revision string, prune bool) error {
+// Revision="" defaults to "HEAD" (use spec.source.targetRevision).
+// Strategy="" defaults to "hook" — respects sync waves + pre/post-sync
+// hooks, which is what `argocd app sync` does by default.
+func (m *ClientManager) SyncArgoApplication(ctx context.Context, contextName, namespace, name string, opts ArgoSyncOptions) error {
+	revision := opts.Revision
 	if revision == "" {
 		revision = "HEAD"
 	}
@@ -149,19 +177,59 @@ func (m *ClientManager) SyncArgoApplication(ctx context.Context, contextName, na
 	if err != nil {
 		return err
 	}
+
+	sync := map[string]any{
+		"revision": revision,
+		"prune":    opts.Prune,
+		"dryRun":   opts.DryRun,
+	}
+
+	strategy := opts.Strategy
+	if strategy == "" {
+		strategy = "hook"
+	}
+	strategyBody := map[string]any{}
+	if opts.Force {
+		strategyBody["force"] = true
+	}
+	switch strategy {
+	case "apply":
+		sync["syncStrategy"] = map[string]any{"apply": strategyBody}
+	default:
+		sync["syncStrategy"] = map[string]any{"hook": strategyBody}
+	}
+
+	var syncOptions []string
+	if opts.Replace {
+		syncOptions = append(syncOptions, "Replace=true")
+	}
+	if opts.ServerSideApply {
+		syncOptions = append(syncOptions, "ServerSideApply=true")
+	}
+	if len(syncOptions) > 0 {
+		sync["syncOptions"] = syncOptions
+	}
+
+	if len(opts.Resources) > 0 {
+		resources := make([]map[string]any, 0, len(opts.Resources))
+		for _, r := range opts.Resources {
+			resources = append(resources, map[string]any{
+				"group":     r.Group,
+				"kind":      r.Kind,
+				"name":      r.Name,
+				"namespace": r.Namespace,
+			})
+		}
+		sync["resources"] = resources
+	}
+
 	patch := map[string]any{
 		"operation": map[string]any{
 			"initiatedBy": map[string]any{
 				"username":  "klustr",
 				"automated": false,
 			},
-			"sync": map[string]any{
-				"revision": revision,
-				"prune":    prune,
-				"syncStrategy": map[string]any{
-					"hook": map[string]any{},
-				},
-			},
+			"sync": sync,
 		},
 	}
 	body, err := json.Marshal(patch)
@@ -437,6 +505,95 @@ func (m *ClientManager) RollbackArgoApplication(ctx context.Context, contextName
 		return fmt.Errorf("rollback %s/%s to id=%d: %w", namespace, name, id, err)
 	}
 	return nil
+}
+
+// ArgoSyncResultResource is one row inside .status.operationState.syncResult
+// .resources — Argo's record of "here is what the sync touched, here is the
+// outcome". Klustr surfaces this so a dry-run can show a meaningful table
+// instead of fire-and-forget.
+type ArgoSyncResultResource struct {
+	Group     string `json:"group"`
+	Version   string `json:"version"`
+	Kind      string `json:"kind"`
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	Status    string `json:"status"`    // Synced / OutOfSync / Pruned / SyncFailed / Unknown
+	Message   string `json:"message"`   // "deployment.apps/foo configured (server dry run)" etc.
+	HookPhase string `json:"hookPhase"` // Running / Succeeded / Failed / Error
+	HookType  string `json:"hookType"`
+	SyncPhase string `json:"syncPhase"` // PreSync / Sync / PostSync / SyncFail
+}
+
+// ArgoOperationState is the projection of .status.operationState the frontend
+// polls during a sync (especially during dry-run, where there is nothing to
+// see in the cluster afterwards).
+type ArgoOperationState struct {
+	Phase      string                   `json:"phase"`      // Running / Succeeded / Failed / Error / "" (no op yet)
+	Message    string                   `json:"message"`
+	StartedAt  string                   `json:"startedAt"`  // RFC3339
+	FinishedAt string                   `json:"finishedAt"` // RFC3339
+	Revision   string                   `json:"revision"`   // syncResult.revision (the SHA Argo actually ran against)
+	DryRun     bool                     `json:"dryRun"`     // operation.sync.dryRun — lets the caller tell apart "dry-run succeeded" from "real sync succeeded"
+	Resources  []ArgoSyncResultResource `json:"resources"`
+}
+
+// GetArgoApplicationOperationState reads .status.operationState. Empty
+// state (phase="") when Argo has never run an operation on this Application.
+func (m *ClientManager) GetArgoApplicationOperationState(ctx context.Context, contextName, namespace, name string) (ArgoOperationState, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return ArgoOperationState{}, err
+	}
+	obj, err := dyn.Resource(argoApplicationGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return ArgoOperationState{}, err
+	}
+	return extractArgoOperationState(obj), nil
+}
+
+func extractArgoOperationState(obj *unstructured.Unstructured) ArgoOperationState {
+	out := ArgoOperationState{Resources: []ArgoSyncResultResource{}}
+	opState, found, _ := unstructured.NestedMap(obj.Object, "status", "operationState")
+	if !found || opState == nil {
+		return out
+	}
+	out.Phase, _ = opState["phase"].(string)
+	out.Message, _ = opState["message"].(string)
+	out.StartedAt, _ = opState["startedAt"].(string)
+	out.FinishedAt, _ = opState["finishedAt"].(string)
+
+	if operation, ok := opState["operation"].(map[string]any); ok {
+		if sync, ok := operation["sync"].(map[string]any); ok {
+			if dry, ok := sync["dryRun"].(bool); ok {
+				out.DryRun = dry
+			}
+		}
+	}
+
+	if syncResult, ok := opState["syncResult"].(map[string]any); ok {
+		out.Revision, _ = syncResult["revision"].(string)
+		if resources, ok := syncResult["resources"].([]any); ok {
+			for _, r := range resources {
+				rm, ok := r.(map[string]any)
+				if !ok {
+					continue
+				}
+				entry := ArgoSyncResultResource{}
+				entry.Group, _ = rm["group"].(string)
+				entry.Version, _ = rm["version"].(string)
+				entry.Kind, _ = rm["kind"].(string)
+				entry.Namespace, _ = rm["namespace"].(string)
+				entry.Name, _ = rm["name"].(string)
+				entry.Status, _ = rm["status"].(string)
+				entry.Message, _ = rm["message"].(string)
+				entry.HookPhase, _ = rm["hookPhase"].(string)
+				entry.HookType, _ = rm["hookType"].(string)
+				entry.SyncPhase, _ = rm["syncPhase"].(string)
+				out.Resources = append(out.Resources, entry)
+			}
+		}
+	}
+	return out
 }
 
 // argoAutomationBackupAnnotation stashes the prior spec.syncPolicy.automated
