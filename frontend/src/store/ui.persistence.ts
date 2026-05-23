@@ -20,6 +20,7 @@ import {
   type ContextGroup,
   type ContextTag,
   type CustomTagDef,
+  type LastSession,
   type SidebarMode,
   type TagColor,
 } from './ui.types'
@@ -34,6 +35,7 @@ export const AGGREGATED_CONTEXTS_KEY = 'klustr-aggregated-contexts'
 export const CONTEXT_TAGS_KEY = 'klustr-context-tags'
 export const CUSTOM_TAGS_KEY = 'klustr-custom-tags'
 export const CONTEXT_GROUPS_KEY = 'klustr-context-groups'
+export const LAST_SESSION_KEY = 'klustr-last-session'
 
 const VALID_COLORS: ReadonlySet<TagColor> = new Set([
   'rose',
@@ -166,6 +168,34 @@ export function persistAggregatedContexts(list: string[]) {
     localStorage.removeItem(AGGREGATED_CONTEXTS_KEY)
   } else {
     localStorage.setItem(AGGREGATED_CONTEXTS_KEY, JSON.stringify(list))
+  }
+}
+
+// ---- last session --------------------------------------------------------
+
+export function readLastSession(): LastSession | null {
+  try {
+    const raw = localStorage.getItem(LAST_SESSION_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object') return null
+    const o = parsed as Partial<LastSession>
+    if (!Array.isArray(o.contexts)) return null
+    const contexts = o.contexts.filter((c): c is string => typeof c === 'string' && c.length > 0)
+    if (contexts.length === 0) return null
+    const groupId = typeof o.groupId === 'string' && o.groupId.length > 0 ? o.groupId : null
+    const at = typeof o.at === 'number' && Number.isFinite(o.at) ? o.at : Date.now()
+    return { contexts, groupId, at }
+  } catch {
+    return null
+  }
+}
+
+export function persistLastSession(session: LastSession | null) {
+  if (!session || session.contexts.length === 0) {
+    localStorage.removeItem(LAST_SESSION_KEY)
+  } else {
+    localStorage.setItem(LAST_SESSION_KEY, JSON.stringify(session))
   }
 }
 

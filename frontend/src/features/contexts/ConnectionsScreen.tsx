@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  Clock,
   Command,
   Layers,
   Pencil,
@@ -33,7 +34,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ThemePicker } from '@/features/_shared/ThemePicker'
 import { ProviderIcon, providerMeta } from '@/features/_shared/providerIcons'
 import { api, type ContextInfo } from '@/lib/api'
-import { useUIStore, type ContextGroup, type TagColor } from '@/store/ui'
+import {
+  useUIStore,
+  type ContextGroup,
+  type LastSession,
+  type TagColor,
+} from '@/store/ui'
 import {
   BUILT_IN_TAG_ORDER,
   COLOR_PALETTE,
@@ -66,6 +72,8 @@ export function ConnectionsScreen() {
   const contextGroups = useUIStore((s) => s.contextGroups)
   const upsertContextGroup = useUIStore((s) => s.upsertContextGroup)
   const removeContextGroup = useUIStore((s) => s.removeContextGroup)
+  const lastSession = useUIStore((s) => s.lastSession)
+  const clearLastSession = useUIStore((s) => s.clearLastSession)
 
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [query, setQuery] = useState('')
@@ -143,6 +151,21 @@ export function ConnectionsScreen() {
     [contexts, defaultContext],
   )
 
+  const resolvedLastSession = useMemo(() => {
+    if (!lastSession) return null
+    const present = lastSession.contexts.filter((n) => contexts.some((c) => c.name === n))
+    if (present.length === 0) return null
+    if (
+      heroContext &&
+      present.length === 1 &&
+      present[0] === heroContext.name &&
+      !lastSession.groupId
+    ) {
+      return null
+    }
+    return { ...lastSession, contexts: present, missing: lastSession.contexts.length - present.length }
+  }, [lastSession, contexts, heroContext])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) return
@@ -189,6 +212,18 @@ export function ConnectionsScreen() {
     }
   }
 
+  const reconnectLastSession = (session: LastSession) => {
+    const members = session.contexts.filter((n) => contexts.some((c) => c.name === n))
+    if (members.length === 0) return
+    if (members.length === 1) {
+      setSelectedContext(members[0])
+    } else {
+      const groupStillExists =
+        session.groupId && contextGroups.some((g) => g.id === session.groupId)
+      setAggregatedContexts(members, groupStillExists ? session.groupId : null)
+    }
+  }
+
   const pickedCount = picked.size
   const pickedNames = useMemo(
     () => contexts.filter((c) => picked.has(c.name)).map((c) => c.name),
@@ -230,6 +265,18 @@ export function ConnectionsScreen() {
                 .filter((m): m is ContextTagMeta => m !== null)}
               onConnect={() => connectSingle(heroContext.name)}
               onClearDefault={() => setDefaultContext(null)}
+            />
+          )}
+
+          {resolvedLastSession && (
+            <LastSessionCard
+              session={resolvedLastSession}
+              contexts={contexts}
+              contextTags={contextTags}
+              customTags={customTags}
+              contextGroups={contextGroups}
+              onReconnect={() => reconnectLastSession(resolvedLastSession)}
+              onDismiss={clearLastSession}
             />
           )}
 
@@ -462,6 +509,158 @@ function HeroCard({
           <kbd className="rounded border border-primary-foreground/30 bg-primary-foreground/10 px-1 font-mono text-[10px]">
             {isMac ? '⌘1' : 'Ctrl 1'}
           </kbd>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function formatRelativeTime(ts: number): string {
+  const diff = Date.now() - ts
+  if (diff < 60_000) return 'just now'
+  const minutes = Math.floor(diff / 60_000)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months}mo ago`
+  return `${Math.floor(months / 12)}y ago`
+}
+
+type ResolvedLastSession = LastSession & { missing: number }
+
+function LastSessionCard({
+  session,
+  contexts,
+  contextTags,
+  customTags,
+  contextGroups,
+  onReconnect,
+  onDismiss,
+}: {
+  session: ResolvedLastSession
+  contexts: ContextInfo[]
+  contextTags: Record<string, string[]>
+  customTags: Record<string, import('@/store/ui').CustomTagDef>
+  contextGroups: ContextGroup[]
+  onReconnect: () => void
+  onDismiss: () => void
+}) {
+  const isAggregated = session.contexts.length > 1
+  const group =
+    session.groupId ? contextGroups.find((g) => g.id === session.groupId) ?? null : null
+  const primaryName = session.contexts[0]
+  const primaryCtx = contexts.find((c) => c.name === primaryName) ?? null
+  const primaryTagMeta =
+    primaryCtx
+      ? (() => {
+          const ids = contextTags[primaryName] ?? []
+          for (const id of ids) {
+            const m = resolveTagMeta(id, customTags)
+            if (m) return m
+          }
+          return null
+        })()
+      : null
+  const groupPalette = group ? COLOR_PALETTE[group.color] ?? COLOR_PALETTE.sky : null
+
+  let title: React.ReactNode
+  let subtitle: React.ReactNode
+  if (isAggregated) {
+    title = group ? `Group · ${group.name}` : `${session.contexts.length} contexts`
+    subtitle = (
+      <span className="truncate" title={session.contexts.join(', ')}>
+        {session.contexts.slice(0, 3).join(', ')}
+        {session.contexts.length > 3 && ` +${session.contexts.length - 3} more`}
+      </span>
+    )
+  } else {
+    const meta = primaryCtx ? providerMeta(primaryCtx) : null
+    title = primaryName
+    subtitle = (
+      <span className="truncate">
+        {meta?.label}
+        {primaryCtx?.server ? <> · {primaryCtx.server}</> : null}
+      </span>
+    )
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Reconnect to last session (${session.contexts.join(', ')})`}
+      onClick={onReconnect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onReconnect()
+        }
+      }}
+      className="group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-lg border border-border bg-card/60 px-3 py-2.5 text-left transition-colors hover:border-ring hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {(groupPalette || primaryTagMeta) && (
+        <span
+          aria-hidden
+          className={`absolute left-0 top-0 h-full w-[3px] ${
+            groupPalette ? groupPalette.barClass : primaryTagMeta!.barClass
+          }`}
+        />
+      )}
+      <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
+        {isAggregated ? <Layers className="size-4" /> : <Clock className="size-4" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Last session
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-normal normal-case tracking-normal">
+            {formatRelativeTime(session.at)}
+          </span>
+          {session.missing > 0 && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="font-normal normal-case tracking-normal text-amber-500">
+                {session.missing} missing
+              </span>
+            </>
+          )}
+        </div>
+        <div className="mt-0.5 flex items-center gap-2">
+          {!isAggregated && primaryCtx && (
+            <ProviderIcon context={primaryCtx} className="size-4 shrink-0" />
+          )}
+          {isAggregated && groupPalette && (
+            <span aria-hidden className={`size-2.5 rounded-full ${groupPalette.dotClass}`} />
+          )}
+          <span className="truncate text-sm font-medium">{title}</span>
+          {primaryTagMeta && !isAggregated && (
+            <span
+              className={`rounded border px-1 py-px text-[10px] font-semibold tracking-wider ${primaryTagMeta.badgeClass}`}
+            >
+              {primaryTagMeta.shortLabel}
+            </span>
+          )}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <button
+          type="button"
+          aria-label="Dismiss last session"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDismiss()
+          }}
+          className="hidden size-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted group-hover:inline-flex"
+        >
+          <X className="size-3.5" />
+        </button>
+        <span className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium">
+          Reconnect
+          <ArrowRight className="size-3" />
         </span>
       </div>
     </div>

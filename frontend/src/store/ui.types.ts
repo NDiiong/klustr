@@ -42,6 +42,12 @@ export type ContextGroup = {
   color: TagColor
 }
 
+export type LastSession = {
+  contexts: string[]
+  groupId: string | null
+  at: number
+}
+
 export const MAX_TAGS_PER_CONTEXT = 3
 
 export type ResourceView =

@@ -7,6 +7,7 @@ import {
   type ContextTag,
   type CustomTagDef,
   type DetailTab,
+  type LastSession,
   type PendingAction,
   type ResourceView,
   type SelectedResource,
@@ -23,6 +24,7 @@ import {
   persistCustomTags,
   persistDefaultContext,
   persistExpandedCRDGroups,
+  persistLastSession,
   persistSidebarMode,
   persistSidebarWidth,
   persistThemeId,
@@ -33,6 +35,7 @@ import {
   readCustomTags,
   readDefaultContext,
   readExpandedCRDGroups,
+  readLastSession,
   readSavedThemeId,
   readSidebarMode,
   readSidebarWidth,
@@ -50,6 +53,7 @@ export type {
   ContextTag,
   CustomTagDef,
   DetailTab,
+  LastSession,
   PendingAction,
   ResourceKind,
   ResourceView,
@@ -80,6 +84,8 @@ type UIState = {
   contextTags: Record<string, ContextTag[]>
   customTags: Record<string, CustomTagDef>
   contextGroups: ContextGroup[]
+  lastSession: LastSession | null
+  clearLastSession: () => void
   setSelectedContext: (name: string | null) => void
   setAggregatedContexts: (names: string[], groupId?: string | null) => void
   toggleAggregatedContext: (name: string) => void
@@ -194,19 +200,36 @@ export const useUIStore = create<UIState>((set) => {
     contextTags: readContextTags(),
     customTags: readCustomTags(),
     contextGroups: readContextGroups(),
+    lastSession: readLastSession(),
     setSelectedContext: (name) =>
       set((s) => {
         const next = name ? [name] : []
         if (sameList(next, effectiveContextList(s))) return s
-        return normalizeContexts(next)
+        const out = normalizeContexts(next)
+        if (name) {
+          const ls: LastSession = { contexts: [name], groupId: null, at: Date.now() }
+          persistLastSession(ls)
+          return { ...out, lastSession: ls }
+        }
+        return out
       }),
     setAggregatedContexts: (names, groupId) =>
       set((s) => {
         const next = dedupeSorted(names)
         const nextGroup = groupId ?? null
         if (sameList(next, effectiveContextList(s)) && s.activeGroupId === nextGroup) return s
-        return { ...normalizeContexts(next), activeGroupId: nextGroup }
+        const out = { ...normalizeContexts(next), activeGroupId: nextGroup }
+        if (next.length > 0) {
+          const ls: LastSession = { contexts: next, groupId: nextGroup, at: Date.now() }
+          persistLastSession(ls)
+          return { ...out, lastSession: ls }
+        }
+        return out
       }),
+    clearLastSession: () => {
+      persistLastSession(null)
+      set({ lastSession: null })
+    },
     toggleAggregatedContext: (name) =>
       set((s) => {
         const current = effectiveContextList(s)
