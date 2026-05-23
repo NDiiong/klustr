@@ -13,7 +13,13 @@ import {
 import { api, type ContextInfo } from '@/lib/api'
 import { useCRDStore } from '@/store/crds'
 import { useActiveContexts, useUIStore } from '@/store/ui'
-import { ARGO_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS } from './resourceGroups'
+import {
+  ARGO_GROUP,
+  GATEWAY_GROUP,
+  HELM_GROUP,
+  KARPENTER_GROUP,
+  RESOURCE_GROUPS,
+} from './resourceGroups'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -44,14 +50,17 @@ export function CommandPalette() {
   }, [])
 
   const groups = useMemo(() => {
+    const showGateway = crds.some((c) => c.group === 'gateway.networking.k8s.io')
     const showArgo = crds.some(
       (c) => c.group === 'argoproj.io' && c.resource === 'applications',
     )
     const showKarpenter = crds.some((c) => c.group === 'karpenter.sh')
     return [
       ...RESOURCE_GROUPS,
+      ...(showGateway ? [GATEWAY_GROUP] : []),
       ...(showArgo ? [ARGO_GROUP] : []),
       ...(showKarpenter ? [KARPENTER_GROUP] : []),
+      HELM_GROUP,
     ]
   }, [crds])
 
