@@ -316,6 +316,188 @@ func setArgoFinalizer(ctx context.Context, resource dynamic.ResourceInterface, n
 	return nil
 }
 
+// ArgoApplicationHistoryEntry is one row in .status.history[]. Argo records
+// every completed deployment here so a rollback can target a known-good
+// revision by id rather than by SHA.
+type ArgoApplicationHistoryEntry struct {
+	ID              int64  `json:"id"`
+	Revision        string `json:"revision"`
+	DeployedAt      string `json:"deployedAt"`
+	DeployStartedAt string `json:"deployStartedAt"`
+	RepoURL         string `json:"repoURL"`
+	Path            string `json:"path"`
+	TargetRevision  string `json:"targetRevision"`
+	InitiatedBy     string `json:"initiatedBy"`
+	Automated       bool   `json:"automated"`
+}
+
+// ListArgoApplicationHistory returns the .status.history[] entries newest-
+// first. Empty slice (not nil) when the Application has no history yet.
+func (m *ClientManager) ListArgoApplicationHistory(ctx context.Context, contextName, namespace, name string) ([]ArgoApplicationHistoryEntry, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(argoApplicationGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	raw, found, err := unstructured.NestedSlice(obj.Object, "status", "history")
+	if err != nil || !found {
+		return []ArgoApplicationHistoryEntry{}, nil
+	}
+	out := make([]ArgoApplicationHistoryEntry, 0, len(raw))
+	for _, item := range raw {
+		entry, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		out = append(out, extractArgoHistoryEntry(entry))
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID > out[j].ID })
+	return out, nil
+}
+
+// argoNumber accepts both float64 (JSON default) and int64 because the
+// dynamic client's deserialization may yield either depending on path.
+func argoNumber(v any) int64 {
+	switch n := v.(type) {
+	case int64:
+		return n
+	case float64:
+		return int64(n)
+	case int:
+		return int64(n)
+	}
+	return 0
+}
+
+func extractArgoHistoryEntry(m map[string]any) ArgoApplicationHistoryEntry {
+	id := argoNumber(m["id"])
+	revision, _ := m["revision"].(string)
+	deployedAt, _ := m["deployedAt"].(string)
+	deployStartedAt, _ := m["deployStartedAt"].(string)
+	var repoURL, path, targetRev string
+	if src, ok := m["source"].(map[string]any); ok {
+		repoURL, _ = src["repoURL"].(string)
+		path, _ = src["path"].(string)
+		targetRev, _ = src["targetRevision"].(string)
+	}
+	var initiatedBy string
+	automated := false
+	if ib, ok := m["initiatedBy"].(map[string]any); ok {
+		initiatedBy, _ = ib["username"].(string)
+		if v, ok := ib["automated"].(bool); ok {
+			automated = v
+		}
+	}
+	return ArgoApplicationHistoryEntry{
+		ID:              id,
+		Revision:        revision,
+		DeployedAt:      deployedAt,
+		DeployStartedAt: deployStartedAt,
+		RepoURL:         repoURL,
+		Path:            path,
+		TargetRevision:  targetRev,
+		InitiatedBy:     initiatedBy,
+		Automated:       automated,
+	}
+}
+
+// RollbackArgoApplication queues a rollback operation referencing the given
+// history id. Argo's application-controller picks this up like any other
+// operation, restoring the Application to the state recorded in that history
+// entry. prune=true also removes resources that were created after that
+// history entry (matches `argocd app rollback --prune`).
+func (m *ClientManager) RollbackArgoApplication(ctx context.Context, contextName, namespace, name string, id int64, prune bool) error {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return err
+	}
+	patch := map[string]any{
+		"operation": map[string]any{
+			"initiatedBy": map[string]any{
+				"username":  "klustr",
+				"automated": false,
+			},
+			"rollback": map[string]any{
+				"id":    id,
+				"prune": prune,
+			},
+		},
+	}
+	body, err := json.Marshal(patch)
+	if err != nil {
+		return err
+	}
+	_, err = dyn.Resource(argoApplicationGVR).Namespace(namespace).Patch(
+		ctx, name, types.MergePatchType, body, metav1.PatchOptions{},
+	)
+	if err != nil {
+		return fmt.Errorf("rollback %s/%s to id=%d: %w", namespace, name, id, err)
+	}
+	return nil
+}
+
+// argoAutomationBackupAnnotation stashes the prior spec.syncPolicy.automated
+// block (as JSON) when the user suspends auto-sync from Klustr, so a later
+// Resume can restore the exact same flags (selfHeal / prune / etc.) rather
+// than guessing defaults.
+const argoAutomationBackupAnnotation = "klustr.io/argo-automation-suspended"
+
+// SetArgoApplicationAutomation toggles spec.syncPolicy.automated.
+//
+// enabled=false (suspend) → snapshots the current automated block into the
+// klustr.io/argo-automation-suspended annotation, then removes it from spec.
+// enabled=true (resume)   → restores the automated block from that
+// annotation (or sets an empty {} if there is no backup), clearing the
+// annotation on the way out.
+func (m *ClientManager) SetArgoApplicationAutomation(ctx context.Context, contextName, namespace, name string, enabled bool) error {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return err
+	}
+	resource := dyn.Resource(argoApplicationGVR).Namespace(namespace)
+	obj, err := resource.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("get application %s/%s: %w", namespace, name, err)
+	}
+
+	annotations := obj.GetAnnotations()
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+
+	if enabled {
+		var automated map[string]any
+		if raw, ok := annotations[argoAutomationBackupAnnotation]; ok && raw != "" {
+			if err := json.Unmarshal([]byte(raw), &automated); err != nil || automated == nil {
+				automated = map[string]any{}
+			}
+			delete(annotations, argoAutomationBackupAnnotation)
+			obj.SetAnnotations(annotations)
+		} else {
+			automated = map[string]any{}
+		}
+		if err := unstructured.SetNestedField(obj.Object, automated, "spec", "syncPolicy", "automated"); err != nil {
+			return fmt.Errorf("set automated: %w", err)
+		}
+	} else {
+		if current, found, _ := unstructured.NestedMap(obj.Object, "spec", "syncPolicy", "automated"); found {
+			if data, err := json.Marshal(current); err == nil {
+				annotations[argoAutomationBackupAnnotation] = string(data)
+				obj.SetAnnotations(annotations)
+			}
+		}
+		unstructured.RemoveNestedField(obj.Object, "spec", "syncPolicy", "automated")
+	}
+
+	if _, err := resource.Update(ctx, obj, metav1.UpdateOptions{}); err != nil {
+		return fmt.Errorf("update automation on %s/%s: %w", namespace, name, err)
+	}
+	return nil
+}
+
 // RefreshArgoApplication forces Argo to recompute the Application's status
 // without running a sync, via the `argocd.argoproj.io/refresh` annotation.
 // mode is "normal" or "hard"; empty defaults to "normal".
