@@ -188,11 +188,11 @@ export const GATEWAY_GROUP: ResourceGroup = {
   label: 'Gateway API',
   icon: Waypoints,
   items: [
-    { label: 'Gateways', view: 'gateways', icon: DoorOpen, kind: 'Gateway' },
-    { label: 'HTTPRoutes', view: 'httproutes', icon: Route, kind: 'HTTPRoute' },
-    { label: 'GRPCRoutes', view: 'grpcroutes', icon: Route, kind: 'GRPCRoute' },
-    { label: 'GatewayClasses', view: 'gatewayclasses', icon: Compass, kind: 'GatewayClass' },
-    { label: 'ReferenceGrants', view: 'referencegrants', icon: Stamp, kind: 'ReferenceGrant' },
+    { label: 'Gateways', view: 'gateways', icon: DoorOpen },
+    { label: 'HTTPRoutes', view: 'httproutes', icon: Route },
+    { label: 'GRPCRoutes', view: 'grpcroutes', icon: Route },
+    { label: 'GatewayClasses', view: 'gatewayclasses', icon: Compass },
+    { label: 'ReferenceGrants', view: 'referencegrants', icon: Stamp },
   ],
 }
 
