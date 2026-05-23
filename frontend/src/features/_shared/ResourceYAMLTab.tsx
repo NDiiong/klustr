@@ -39,6 +39,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
   useEffect(() => {
     if (!contextName) return
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on resource change so the previous YAML doesn't flash before the new fetch
     setLoaded(false)
     setLoadError(null)
     const fetcher = gvr
@@ -59,6 +60,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- depending on the gvr object identity would re-fire whenever the parent rebuilds it; the destructured primitive fields below are the real inputs
   }, [contextName, kind, namespace, name, gvr?.group, gvr?.version, gvr?.resource])
 
   const apply = useMutation({

@@ -89,6 +89,7 @@ export function RolloutHistoryTab({ contextName, kind, namespace, name }: Props)
   }, [contextName, kind, namespace, name])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial load + subscription kickoff, reload manages its own loading state
     reload()
     return onKubeChange(kind, (ctx) => {
       if (ctx === contextName) reload()
@@ -97,6 +98,7 @@ export function RolloutHistoryTab({ contextName, kind, namespace, name }: Props)
 
   useEffect(() => {
     if (diffRevision === null || activeRevision === null || !contextName) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clear diff state synchronously when the selection drops to null
       setDiffCurrent('')
       setDiffSelected('')
       setDiffError(null)

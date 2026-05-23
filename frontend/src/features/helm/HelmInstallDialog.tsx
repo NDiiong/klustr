@@ -57,6 +57,7 @@ export function HelmInstallDialog({
 
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate the form from the latest initial props when the dialog opens
     setName(initialName)
     setNamespace(initialNamespace || 'default')
     setChartRef(initialChartRef)
