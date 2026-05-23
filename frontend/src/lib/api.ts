@@ -16,6 +16,10 @@ import {
   GetArgoApplicationOperationState,
   ListArgoApplicationResources,
   ListArgoApplications,
+  ListArgoAppProjects,
+  GetArgoAppProject,
+  ListArgoApplicationSets,
+  GetArgoApplicationSet,
   GetHelmRelease,
   HelmChartVersions,
   InstallHelmRelease,
@@ -304,6 +308,16 @@ export type HelmDryRunResult = kube.HelmDryRunResult
 export type ArgoApplicationResource = kube.ArgoApplicationResource
 export type ArgoApplicationInfo = kube.ArgoApplicationInfo
 export type ArgoApplicationHistoryEntry = kube.ArgoApplicationHistoryEntry
+export type ArgoAppProjectInfo = kube.ArgoAppProjectInfo
+export type ArgoAppProjectDetail = kube.ArgoAppProjectDetail
+export type ArgoAppProjectDestination = kube.ArgoAppProjectDestination
+export type ArgoAppProjectGroupKind = kube.ArgoAppProjectGroupKind
+export type ArgoAppProjectRole = kube.ArgoAppProjectRole
+export type ArgoAppProjectSyncWindow = kube.ArgoAppProjectSyncWindow
+export type ArgoApplicationSetInfo = kube.ArgoApplicationSetInfo
+export type ArgoApplicationSetDetail = kube.ArgoApplicationSetDetail
+export type ArgoApplicationSetGenerator = kube.ArgoApplicationSetGenerator
+export type ArgoApplicationSetGeneratedApp = kube.ArgoApplicationSetGeneratedApp
 export type ArgoCascadeMode = 'foreground' | 'background' | 'non-cascading'
 export type ArgoSyncOptions = kube.ArgoSyncOptions
 export type ArgoSyncResourceSelector = kube.ArgoSyncResourceSelector
@@ -732,6 +746,24 @@ export const api = {
     contextName: string,
     namespace: string,
   ): Promise<ArgoApplicationInfo[]> => ListArgoApplications(contextName, namespace),
+  listArgoAppProjects: (
+    contextName: string,
+    namespace: string,
+  ): Promise<ArgoAppProjectInfo[]> => ListArgoAppProjects(contextName, namespace),
+  getArgoAppProject: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<ArgoAppProjectDetail> => GetArgoAppProject(contextName, namespace, name),
+  listArgoApplicationSets: (
+    contextName: string,
+    namespace: string,
+  ): Promise<ArgoApplicationSetInfo[]> => ListArgoApplicationSets(contextName, namespace),
+  getArgoApplicationSet: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<ArgoApplicationSetDetail> => GetArgoApplicationSet(contextName, namespace, name),
   listKarpenterNodePools: (contextName: string): Promise<KarpenterNodePoolInfo[]> =>
     ListKarpenterNodePools(contextName),
   listKarpenterNodeClaims: (contextName: string): Promise<KarpenterNodeClaimInfo[]> =>

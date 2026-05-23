@@ -57,6 +57,8 @@ import { WorkloadsOverviewView } from '@/features/overview/WorkloadsOverviewView
 import { CustomResourceView } from '@/features/crds/CustomResourceView'
 import { CRDGroups } from '@/features/crds/CRDGroups'
 import { ApplicationsView } from '@/features/argocd/ApplicationsView'
+import { AppProjectsView } from '@/features/argocd/AppProjectsView'
+import { ApplicationSetsView } from '@/features/argocd/ApplicationSetsView'
 import { HelmReleasesView } from '@/features/helm/HelmReleasesView'
 import { HelmReposView } from '@/features/helm/HelmReposView'
 import { GatewaysView } from '@/features/gateways/GatewaysView'
@@ -202,6 +204,10 @@ function MainView() {
       return <HelmReposView />
     case 'argocdapplications':
       return <ApplicationsView />
+    case 'argocdappprojects':
+      return <AppProjectsView />
+    case 'argocdapplicationsets':
+      return <ApplicationSetsView />
     case 'gateways':
       return <GatewaysView />
     case 'httproutes':

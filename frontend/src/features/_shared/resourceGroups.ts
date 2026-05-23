@@ -181,7 +181,11 @@ export const HELM_GROUP: ResourceGroup = {
 export const ARGO_GROUP: ResourceGroup = {
   label: 'Argo CD',
   icon: SiArgo,
-  items: [{ label: 'Applications', view: 'argocdapplications', icon: GitBranch }],
+  items: [
+    { label: 'Applications', view: 'argocdapplications', icon: GitBranch },
+    { label: 'Projects', view: 'argocdappprojects', icon: FolderTree },
+    { label: 'ApplicationSets', view: 'argocdapplicationsets', icon: Layers3 },
+  ],
 }
 
 export const GATEWAY_GROUP: ResourceGroup = {

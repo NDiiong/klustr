@@ -94,6 +94,8 @@ export type ResourceView =
   | 'helmreleases'
   | 'helmrepos'
   | 'argocdapplications'
+  | 'argocdappprojects'
+  | 'argocdapplicationsets'
   | 'gateways'
   | 'httproutes'
   | 'grpcroutes'

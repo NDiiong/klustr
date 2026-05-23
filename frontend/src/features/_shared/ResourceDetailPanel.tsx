@@ -22,6 +22,8 @@ import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { ApplicationResourcesTab } from '@/features/argocd/ApplicationResourcesTab'
 import { ApplicationHistoryTab } from '@/features/argocd/ApplicationHistoryTab'
+import { AppProjectDetailBody } from '@/features/argocd/AppProjectDetailBody'
+import { ApplicationSetDetailBody } from '@/features/argocd/ApplicationSetDetailBody'
 import {
   DeleteArgoApplicationButton,
   isArgoApplication,
@@ -303,14 +305,39 @@ function HelmReleaseTabs({
 function CustomResourceTabs({ contextName, resource }: { contextName: string | null; resource: SelectedResource }) {
   const isArgoApp =
     resource.kind === 'Application' && resource.gvr?.group === 'argoproj.io'
-  const [tab, setTab] = useState<string>(isArgoApp ? 'resources' : 'yaml')
+  const isArgoAppProject =
+    resource.kind === 'AppProject' && resource.gvr?.group === 'argoproj.io'
+  const isArgoAppSet =
+    resource.kind === 'ApplicationSet' && resource.gvr?.group === 'argoproj.io'
+  const hasOverview = isArgoAppProject || isArgoAppSet
+  const initialTab = isArgoApp ? 'resources' : hasOverview ? 'overview' : 'yaml'
+  const [tab, setTab] = useState<string>(initialTab)
   return (
     <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
+        {hasOverview && <TabsTrigger value="overview">Overview</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="resources">Resources</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="history">History</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
+      {isArgoAppProject && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <AppProjectDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isArgoAppSet && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <ApplicationSetDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
       {isArgoApp && (
         <TabsContent value="resources" className="min-h-0 flex-1 p-0">
           <ApplicationResourcesTab
