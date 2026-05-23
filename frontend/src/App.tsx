@@ -64,8 +64,10 @@ import { HTTPRoutesView } from '@/features/httproutes/HTTPRoutesView'
 import { GRPCRoutesView } from '@/features/grpcroutes/GRPCRoutesView'
 import { GatewayClassesView } from '@/features/gatewayclasses/GatewayClassesView'
 import { ReferenceGrantsView } from '@/features/referencegrants/ReferenceGrantsView'
+import { KarpenterNodePoolsView } from '@/features/karpenter-nodepools/KarpenterNodePoolsView'
+import { KarpenterNodeClaimsView } from '@/features/karpenter-nodeclaims/KarpenterNodeClaimsView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
-import { ARGO_GROUP, GATEWAY_GROUP, HELM_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
+import { ARGO_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { SidebarGroup } from '@/features/_shared/SidebarGroup'
 import { SidebarResizeHandle } from '@/features/_shared/SidebarResizeHandle'
 import { RowActionDialogs } from '@/features/_shared/RowActionDialogs'
@@ -210,6 +212,10 @@ function MainView() {
       return <GatewayClassesView />
     case 'referencegrants':
       return <ReferenceGrantsView />
+    case 'karpenternodepools':
+      return <KarpenterNodePoolsView />
+    case 'karpenternodeclaims':
+      return <KarpenterNodeClaimsView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">
@@ -271,11 +277,13 @@ function App() {
   const hasArgoApplications = crds.some(
     (c) => c.group === 'argoproj.io' && c.resource === 'applications',
   )
+  const hasKarpenter = crds.some((c) => c.group === 'karpenter.sh')
   const visibleGroups = useMemo<ResourceGroup[]>(() => {
     const allGroups: ResourceGroup[] = [
       ...RESOURCE_GROUPS,
       ...(hasGatewayAPI ? [GATEWAY_GROUP] : []),
       ...(hasArgoApplications ? [ARGO_GROUP] : []),
+      ...(hasKarpenter ? [KARPENTER_GROUP] : []),
       HELM_GROUP,
     ]
     // Filter each group's items by per-context RBAC reach. Items without a
@@ -289,7 +297,7 @@ function App() {
         ),
       }))
       .filter((g) => g.items.length > 0)
-  }, [hasGatewayAPI, hasArgoApplications, accessByContext, activeContexts])
+  }, [hasGatewayAPI, hasArgoApplications, hasKarpenter, accessByContext, activeContexts])
   const navViews = useMemo<ResourceView[]>(() => visibleGroups.flatMap(groupViews), [
     visibleGroups,
   ])

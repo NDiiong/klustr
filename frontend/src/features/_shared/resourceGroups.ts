@@ -48,7 +48,9 @@ import {
   ShieldAlert,
   ShieldCheck,
   Ship,
+  Sprout,
   Stamp,
+  TreePine,
   TrendingUp,
   User,
   Waypoints,
@@ -191,5 +193,18 @@ export const GATEWAY_GROUP: ResourceGroup = {
     { label: 'GRPCRoutes', view: 'grpcroutes', icon: Route, kind: 'GRPCRoute' },
     { label: 'GatewayClasses', view: 'gatewayclasses', icon: Compass, kind: 'GatewayClass' },
     { label: 'ReferenceGrants', view: 'referencegrants', icon: Stamp, kind: 'ReferenceGrant' },
+  ],
+}
+
+// Karpenter custom resources are cluster-scoped; the group is rendered
+// conditionally when the karpenter.sh CRDs are detected in App.tsx, same as
+// Gateway/Argo. NodePool/NodeClaim are not gated on SSAR per-kind access —
+// the CR list is empty if RBAC denies, which is the correct fallback.
+export const KARPENTER_GROUP: ResourceGroup = {
+  label: 'Karpenter',
+  icon: TreePine,
+  items: [
+    { label: 'NodePools', view: 'karpenternodepools', icon: Sprout },
+    { label: 'NodeClaims', view: 'karpenternodeclaims', icon: Server },
   ],
 }
