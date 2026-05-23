@@ -10,6 +10,9 @@ import {
   SyncArgoApplication,
   RefreshArgoApplication,
   DeleteArgoApplication,
+  SetArgoApplicationAutomation,
+  ListArgoApplicationHistory,
+  RollbackArgoApplication,
   ListArgoApplicationResources,
   ListArgoApplications,
   GetHelmRelease,
@@ -299,6 +302,7 @@ export type HelmInstallOptions = kube.HelmInstallOptions
 export type HelmDryRunResult = kube.HelmDryRunResult
 export type ArgoApplicationResource = kube.ArgoApplicationResource
 export type ArgoApplicationInfo = kube.ArgoApplicationInfo
+export type ArgoApplicationHistoryEntry = kube.ArgoApplicationHistoryEntry
 export type ArgoCascadeMode = 'foreground' | 'background' | 'non-cascading'
 export type WorkloadRevision = kube.WorkloadRevision
 export type GatewayInfo = kube.GatewayInfo
@@ -688,6 +692,25 @@ export const api = {
     name: string,
     cascade: ArgoCascadeMode,
   ): Promise<void> => DeleteArgoApplication(contextName, namespace, name, cascade),
+  setArgoApplicationAutomation: (
+    contextName: string,
+    namespace: string,
+    name: string,
+    enabled: boolean,
+  ): Promise<void> => SetArgoApplicationAutomation(contextName, namespace, name, enabled),
+  listArgoApplicationHistory: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<ArgoApplicationHistoryEntry[]> =>
+    ListArgoApplicationHistory(contextName, namespace, name),
+  rollbackArgoApplication: (
+    contextName: string,
+    namespace: string,
+    name: string,
+    id: number,
+    prune: boolean,
+  ): Promise<void> => RollbackArgoApplication(contextName, namespace, name, id, prune),
   listArgoApplicationResources: (
     contextName: string,
     namespace: string,

@@ -21,6 +21,7 @@ import type { ResourceKind } from '@/store/ui'
 import { PodOverviewBody } from '@/features/pods/PodOverviewBody'
 import { PodLogsTab } from '@/features/pods/PodLogsTab'
 import { ApplicationResourcesTab } from '@/features/argocd/ApplicationResourcesTab'
+import { ApplicationHistoryTab } from '@/features/argocd/ApplicationHistoryTab'
 import {
   DeleteArgoApplicationButton,
   isArgoApplication,
@@ -303,11 +304,21 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
     <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
       <TabsList className="mx-6 mt-3 w-fit">
         {isArgoApp && <TabsTrigger value="resources">Resources</TabsTrigger>}
+        {isArgoApp && <TabsTrigger value="history">History</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       {isArgoApp && (
         <TabsContent value="resources" className="min-h-0 flex-1 p-0">
           <ApplicationResourcesTab
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isArgoApp && (
+        <TabsContent value="history" className="min-h-0 flex-1 p-0">
+          <ApplicationHistoryTab
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}

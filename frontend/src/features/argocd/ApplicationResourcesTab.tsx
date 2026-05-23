@@ -124,8 +124,12 @@ export function ApplicationResourcesTab({ contextName, namespace, name }: Props)
                 <td className="px-2 py-1.5 font-medium">{r.kind}</td>
                 <td className="px-2 py-1.5 text-muted-foreground">{r.namespace || '—'}</td>
                 <td className="px-2 py-1.5">{r.name}</td>
-                <td className={`px-2 py-1.5 ${syncClass(r.sync)}`}>{r.sync || '—'}</td>
-                <td className={`px-2 py-1.5 ${healthClass(r.health)}`}>{r.health || '—'}</td>
+                <td className="px-2 py-1.5">
+                  <SyncPill value={r.sync} />
+                </td>
+                <td className="px-2 py-1.5">
+                  <HealthPill value={r.health} title={r.message || undefined} />
+                </td>
               </tr>
             )
           })}
@@ -168,15 +172,39 @@ function isClickable(
   return crds.some((c) => c.group === row.group && c.kind === row.kind)
 }
 
-function syncClass(v: string): string {
-  if (v === 'Synced') return 'text-emerald-600 dark:text-emerald-400'
-  if (v === 'OutOfSync') return 'text-amber-600 dark:text-amber-400 font-medium'
-  return 'text-muted-foreground'
+export function SyncPill({ value }: { value: string }) {
+  if (!value) return <span className="text-muted-foreground/70">—</span>
+  const cls =
+    value === 'Synced'
+      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+      : value === 'OutOfSync'
+        ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+        : 'bg-muted text-muted-foreground'
+  return (
+    <span
+      className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${cls}`}
+    >
+      {value}
+    </span>
+  )
 }
 
-function healthClass(v: string): string {
-  if (v === 'Healthy') return 'text-emerald-600 dark:text-emerald-400'
-  if (v === 'Degraded' || v === 'Missing') return 'text-destructive font-medium'
-  if (v === 'Progressing' || v === 'Suspended') return 'text-amber-600 dark:text-amber-400'
-  return 'text-muted-foreground'
+export function HealthPill({ value, title }: { value: string; title?: string }) {
+  if (!value) return <span className="text-muted-foreground/70">—</span>
+  const cls =
+    value === 'Healthy'
+      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+      : value === 'Degraded' || value === 'Missing'
+        ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
+        : value === 'Progressing' || value === 'Suspended'
+          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+          : 'bg-muted text-muted-foreground'
+  return (
+    <span
+      title={title}
+      className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${cls}`}
+    >
+      {value}
+    </span>
+  )
 }

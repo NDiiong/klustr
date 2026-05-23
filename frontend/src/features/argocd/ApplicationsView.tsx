@@ -11,6 +11,8 @@ import { COL_MD, COL_SM } from '@/features/_shared/columnSizes'
 import { type ByContext } from '@/store/resources'
 import { useCRDStore } from '@/store/crds'
 import { useIsAggregated, useUIStore } from '@/store/ui'
+import { HealthPill, SyncPill } from './ApplicationResourcesTab'
+import { SuspendResumeArgoApplicationButton } from './SuspendResumeArgoApplicationButton'
 
 const ARGO_GROUP = 'argoproj.io'
 const ARGO_RESOURCE = 'applications'
@@ -121,36 +123,48 @@ export function ApplicationsView() {
       columnHelper.display({
         id: 'actions',
         header: 'Actions',
-        size: 170,
-        cell: (i) => (
-          <div className="flex items-center gap-1">
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 px-2 text-xs"
-              onClick={(e) => {
-                e.stopPropagation()
-                onRefresh(i.row.original)
-              }}
-              title="Force Argo to re-evaluate this Application"
-            >
-              <RefreshCcw className="size-3" />
-              Refresh
-            </Button>
-            <Button
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={(e) => {
-                e.stopPropagation()
-                onSync(i.row.original)
-              }}
-              title="Trigger a sync to the target revision"
-            >
-              <RotateCw className="size-3" />
-              Sync
-            </Button>
-          </div>
-        ),
+        size: 260,
+        cell: (i) => {
+          const row = i.row.original
+          return (
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRefresh(row)
+                }}
+                title="Force Argo to re-evaluate this Application"
+              >
+                <RefreshCcw className="size-3" />
+                Refresh
+              </Button>
+              {selectedContext && (
+                <SuspendResumeArgoApplicationButton
+                  contextName={selectedContext}
+                  namespace={row.namespace}
+                  name={row.name}
+                  autoSync={row.autoSync}
+                  variant="row"
+                />
+              )}
+              <Button
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onSync(row)
+                }}
+                title="Trigger a sync to the target revision"
+              >
+                <RotateCw className="size-3" />
+                Sync
+              </Button>
+            </div>
+          )
+        },
       }),
       columnHelper.accessor('createdAt', {
         header: 'Age',
@@ -159,7 +173,7 @@ export function ApplicationsView() {
         sortingFn: 'datetime',
       }),
     ],
-    [onSync, onRefresh],
+    [onSync, onRefresh, selectedContext],
   )
 
   const data = useMemo<ByContext<ArgoApplicationInfo>>(
@@ -237,28 +251,6 @@ export function ApplicationsView() {
       onRowClick={onRowClick}
     />
   )
-}
-
-function SyncPill({ value }: { value: string }) {
-  const cls =
-    value === 'Synced'
-      ? 'text-emerald-600 dark:text-emerald-400'
-      : value === 'OutOfSync'
-        ? 'text-amber-600 dark:text-amber-400 font-medium'
-        : 'text-muted-foreground'
-  return <span className={cls}>{value || '—'}</span>
-}
-
-function HealthPill({ value }: { value: string }) {
-  const cls =
-    value === 'Healthy'
-      ? 'text-emerald-600 dark:text-emerald-400'
-      : value === 'Degraded' || value === 'Missing'
-        ? 'text-destructive font-medium'
-        : value === 'Progressing' || value === 'Suspended'
-          ? 'text-amber-600 dark:text-amber-400'
-          : 'text-muted-foreground'
-  return <span className={cls}>{value || '—'}</span>
 }
 
 function AutoSyncPill({ row }: { row: ArgoApplicationInfo }) {
