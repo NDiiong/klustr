@@ -19,9 +19,7 @@ import (
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
@@ -782,20 +780,8 @@ func maybeTouchHelm(obj any, w *contextWatcher) {
 	w.touch(HelmChangeKind)
 }
 
-// IsHelmReleaseNotFound reports whether err is a "release not found" from Helm.
-func IsHelmReleaseNotFound(err error) bool {
-	if err == nil {
-		return false
-	}
-	if apierrors.IsNotFound(err) {
-		return true
-	}
-	return strings.Contains(strings.ToLower(err.Error()), "not found")
-}
-
-// ensure metav1 stays imported; we use it for any future direct k8s calls.
-var _ = metav1.ListOptions{}
-
-// ensure genericclioptions is referenced so future direct uses don't get
-// silently dropped by goimports.
+// Compile-time assertion that restClientGetter satisfies Helm's
+// RESTClientGetter — the action.Configuration.Init call accepts the
+// interface implicitly, so this guard catches a missing-method break at
+// build time instead of at first use.
 var _ genericclioptions.RESTClientGetter = (*restClientGetter)(nil)
