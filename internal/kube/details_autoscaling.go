@@ -94,7 +94,7 @@ func (w *contextWatcher) HorizontalPodAutoscaler(namespace, name string) (*Horiz
 	if h.Spec.MinReplicas != nil {
 		minR = *h.Spec.MinReplicas
 	}
-	metrics := hpaMetricTargets(h)
+	metrics := w.metricsForHPA(h)
 	conds := make([]ConditionDetail, 0, len(h.Status.Conditions))
 	for _, c := range h.Status.Conditions {
 		conds = append(conds, ConditionDetail{

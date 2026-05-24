@@ -127,6 +127,7 @@ func (w *contextWatcher) start(parent context.Context) error {
 			cancel()
 			return err
 		}
+		go w.warmKEDA(ctx)
 	}
 
 	if err := w.registerHandlers(); err != nil {

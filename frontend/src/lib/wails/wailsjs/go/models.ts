@@ -2410,6 +2410,8 @@ export namespace kube {
 	    current: number;
 	    target: number;
 	    text: string;
+	    reading: string;
+	    source: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new HPAMetricTarget(source);
@@ -2421,6 +2423,8 @@ export namespace kube {
 	        this.current = source["current"];
 	        this.target = source["target"];
 	        this.text = source["text"];
+	        this.reading = source["reading"];
+	        this.source = source["source"];
 	    }
 	}
 	export class HTTPRouteMatchDetail {

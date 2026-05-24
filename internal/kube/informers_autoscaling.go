@@ -25,7 +25,20 @@ type HPAMetricTarget struct {
 	Name    string `json:"name"`
 	Current int32  `json:"current"`
 	Target  int32  `json:"target"`
-	Text    string `json:"text"`
+	// Text is the descriptive label of the metric origin (e.g. "external",
+	// "pods/100", or for KEDA the enriched trigger label like
+	// "prometheus (threshold=10)"). Stays separate from Reading so the
+	// tooltip can render a clean 3-column [name | label | reading] grid.
+	Text string `json:"text"`
+	// Reading is the human-readable current/target pair when one is available
+	// (e.g. "910m / 1" for an external metric, "55% / 75%" for a percent
+	// Resource metric). Empty when the HPA hasn't reported a status reading.
+	Reading string `json:"reading"`
+	// Source tags the metric origin so the frontend can render distinct UIs —
+	// "resource" gets a percent bar, "keda" collapses into a single KEDA badge
+	// in the row with details deferred to the tooltip, and external/pods/object
+	// render as text-only rows.
+	Source string `json:"source"`
 }
 
 type HorizontalPodAutoscalerInfo struct {
@@ -114,12 +127,25 @@ func (w *contextWatcher) HorizontalPodAutoscalers(namespace string) []Horizontal
 			MinReplicas:     min,
 			MaxReplicas:     h.Spec.MaxReplicas,
 			CurrentReplicas: h.Status.CurrentReplicas,
-			Metrics:         hpaMetricTargets(h),
+			Metrics:         w.metricsForHPA(h),
 			CreatedAt:       h.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
 	return out
+}
+
+// metricsForHPA builds the per-metric current/target view and enriches it
+// with KEDA trigger labels when the HPA is owned by a ScaledObject. Kept on
+// contextWatcher so the enrichment can reach into the SO informer cache.
+func (w *contextWatcher) metricsForHPA(h *autoscalingv2.HorizontalPodAutoscaler) []HPAMetricTarget {
+	metrics := hpaMetricTargets(h)
+	if soName := hpaOwnedByKEDA(h); soName != "" {
+		if so, ok := w.scaledObjectByName(h.Namespace, soName); ok {
+			metrics = enrichKEDAMetrics(metrics, so)
+		}
+	}
+	return metrics
 }
 
 // hpaMetricTargets returns a structured per-metric current/target view.
@@ -149,10 +175,16 @@ func hpaMetricTargets(h *autoscalingv2.HorizontalPodAutoscaler) []HPAMetricTarge
 				break
 			}
 			if spec.Resource.Target.Type == autoscalingv2.UtilizationMetricType && spec.Resource.Target.AverageUtilization != nil {
+				reading := ""
+				if cur >= 0 {
+					reading = fmt.Sprintf("%d%% / %d%%", cur, *spec.Resource.Target.AverageUtilization)
+				}
 				out = append(out, HPAMetricTarget{
 					Name:    name,
 					Current: cur,
 					Target:  *spec.Resource.Target.AverageUtilization,
+					Reading: reading,
+					Source:  "resource",
 				})
 				continue
 			}
@@ -160,7 +192,45 @@ func hpaMetricTargets(h *autoscalingv2.HorizontalPodAutoscaler) []HPAMetricTarge
 				Name:    name,
 				Current: -1,
 				Target:  -1,
-				Text:    fmt.Sprintf("%s: %s", name, hpaMetricTargetText(spec.Resource.Target)),
+				Text:    "resource",
+				Reading: hpaMetricTargetText(spec.Resource.Target),
+				Source:  "resource",
+			})
+		case autoscalingv2.ExternalMetricSourceType:
+			if spec.External == nil {
+				continue
+			}
+			out = append(out, HPAMetricTarget{
+				Name:    spec.External.Metric.Name,
+				Current: -1,
+				Target:  -1,
+				Text:    "external",
+				Reading: hpaExternalReading(spec.External, h),
+				Source:  "external",
+			})
+		case autoscalingv2.PodsMetricSourceType:
+			if spec.Pods == nil {
+				continue
+			}
+			out = append(out, HPAMetricTarget{
+				Name:    spec.Pods.Metric.Name,
+				Current: -1,
+				Target:  -1,
+				Text:    "pods",
+				Reading: hpaMetricTargetText(spec.Pods.Target),
+				Source:  "pods",
+			})
+		case autoscalingv2.ObjectMetricSourceType:
+			if spec.Object == nil {
+				continue
+			}
+			out = append(out, HPAMetricTarget{
+				Name:    spec.Object.Metric.Name,
+				Current: -1,
+				Target:  -1,
+				Text:    "object",
+				Reading: hpaMetricTargetText(spec.Object.Target),
+				Source:  "object",
 			})
 		default:
 			out = append(out, HPAMetricTarget{
@@ -168,10 +238,34 @@ func hpaMetricTargets(h *autoscalingv2.HorizontalPodAutoscaler) []HPAMetricTarge
 				Current: -1,
 				Target:  -1,
 				Text:    string(spec.Type),
+				Source:  "external",
 			})
 		}
 	}
 	return out
+}
+
+// hpaExternalReading renders an External metric's current/target as
+// "<current> / <target>", falling back to just the target when the HPA hasn't
+// reported a status reading yet.
+func hpaExternalReading(spec *autoscalingv2.ExternalMetricSource, h *autoscalingv2.HorizontalPodAutoscaler) string {
+	target := hpaMetricTargetText(spec.Target)
+	for _, st := range h.Status.CurrentMetrics {
+		if st.Type != autoscalingv2.ExternalMetricSourceType || st.External == nil {
+			continue
+		}
+		if st.External.Metric.Name != spec.Metric.Name {
+			continue
+		}
+		switch {
+		case st.External.Current.AverageValue != nil:
+			return fmt.Sprintf("%s / %s", st.External.Current.AverageValue.String(), target)
+		case st.External.Current.Value != nil:
+			return fmt.Sprintf("%s / %s", st.External.Current.Value.String(), target)
+		}
+		break
+	}
+	return target
 }
 
 func hpaMetricTargetText(t autoscalingv2.MetricTarget) string {
