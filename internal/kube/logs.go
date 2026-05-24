@@ -109,3 +109,19 @@ func (mgr *logSessionManager) stop(id string) {
 		sess.cancel()
 	}
 }
+
+// stopAll cancels every live log stream. Called from ClientManager.Shutdown
+// so the apiserver-side watch goroutines unwind before the process exits
+// instead of leaking until the kubelet times out their TCP connection.
+func (mgr *logSessionManager) stopAll() {
+	mgr.mu.Lock()
+	sessions := make([]*logSession, 0, len(mgr.sessions))
+	for _, s := range mgr.sessions {
+		sessions = append(sessions, s)
+	}
+	mgr.sessions = make(map[string]*logSession)
+	mgr.mu.Unlock()
+	for _, s := range sessions {
+		s.cancel()
+	}
+}

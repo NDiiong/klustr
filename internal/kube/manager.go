@@ -184,6 +184,26 @@ func (m *ClientManager) Watch(ctx context.Context, contextName string) error {
 	return nil
 }
 
+// Shutdown drains every live resource owned by the manager. Wails calls
+// it from the OnShutdown hook so port-forwards release their local
+// listeners, log streams cancel their apiserver watches, exec sessions
+// close their SPDY channels and every contextWatcher stops its informer
+// goroutines before the process actually exits.
+func (m *ClientManager) Shutdown() {
+	m.pf.stopAll()
+	m.logs.stopAll()
+	m.execs.stopAll()
+
+	m.mu.Lock()
+	watchers := m.watchers
+	m.watchers = make(map[string]*contextWatcher)
+	m.cache = make(map[string]*kubernetes.Clientset)
+	m.mu.Unlock()
+	for _, w := range watchers {
+		w.stop()
+	}
+}
+
 func (m *ClientManager) StopWatch(contextName string) {
 	m.mu.Lock()
 	w, ok := m.watchers[contextName]

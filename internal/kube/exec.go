@@ -152,6 +152,22 @@ func (mgr *execSessionManager) stop(id string) {
 	}
 }
 
+// stopAll closes every live exec session. Called from
+// ClientManager.Shutdown so SPDY streams unwind cleanly on app quit
+// rather than getting truncated when the process exits.
+func (mgr *execSessionManager) stopAll() {
+	mgr.mu.Lock()
+	sessions := make([]*execSession, 0, len(mgr.sessions))
+	for _, s := range mgr.sessions {
+		sessions = append(sessions, s)
+	}
+	mgr.sessions = make(map[string]*execSession)
+	mgr.mu.Unlock()
+	for _, s := range sessions {
+		s.close()
+	}
+}
+
 type execWriter struct {
 	onData ExecDataFunc
 }

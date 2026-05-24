@@ -179,3 +179,19 @@ func (mgr *pfManager) list() []PortForwardInfo {
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
 }
+
+// stopAll closes every active port-forward. Called from
+// ClientManager.Shutdown so the local listeners are released cleanly on
+// app quit instead of being killed mid-connection.
+func (mgr *pfManager) stopAll() {
+	mgr.mu.Lock()
+	sessions := make([]*pfSession, 0, len(mgr.sessions))
+	for _, s := range mgr.sessions {
+		sessions = append(sessions, s)
+	}
+	mgr.sessions = make(map[string]*pfSession)
+	mgr.mu.Unlock()
+	for _, s := range sessions {
+		s.close()
+	}
+}

@@ -66,6 +66,14 @@ func (a *App) Startup(ctx context.Context) {
 	})
 }
 
+// Shutdown is the OnShutdown hook Wails fires when the user quits the
+// app. We use it to drain ClientManager so port-forwards, log streams
+// and exec sessions tear down gracefully instead of dying with the
+// process.
+func (a *App) Shutdown(_ context.Context) {
+	a.clients.Shutdown()
+}
+
 func (a *App) ListContexts() (*kube.Kubeconfig, error) {
 	return a.clients.Kubeconfig()
 }

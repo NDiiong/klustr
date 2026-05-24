@@ -24,8 +24,9 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		OnStartup: a.Startup,
-		Bind:      []interface{}{a},
+		OnStartup:  a.Startup,
+		OnShutdown: a.Shutdown,
+		Bind:       []interface{}{a},
 	})
 	if err != nil {
 		log.Fatal(err)
