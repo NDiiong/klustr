@@ -27,8 +27,8 @@ export function HPATargetBars({ metrics }: Props) {
         side="right"
         align="start"
         sideOffset={8}
-        collisionPadding={16}
-        className="max-w-[min(720px,calc(100vw-2rem))] p-0 font-mono text-[11px]"
+        collisionPadding={24}
+        className="max-h-[min(80vh,520px)] max-w-[min(640px,calc(100vw-3rem))] overflow-y-auto p-0 font-mono text-[11px]"
       >
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
           {kedaMetrics.length > 0 && (
