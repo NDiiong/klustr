@@ -121,8 +121,7 @@ func (m *ClientManager) DaemonSetRevisions(ctx context.Context, contextName, nam
 	if err != nil {
 		return nil, err
 	}
-	ds, err := cs.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
+	if _, err := cs.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{}); err != nil {
 		return nil, err
 	}
 	revs, err := cs.AppsV1().ControllerRevisions(namespace).List(ctx, metav1.ListOptions{})
@@ -142,7 +141,6 @@ func (m *ClientManager) DaemonSetRevisions(ctx context.Context, contextName, nam
 			highest = r.Revision
 		}
 	}
-	_ = ds // future use if we add an Active rule
 	out := make([]WorkloadRevision, 0, len(revs.Items))
 	for i := range revs.Items {
 		r := &revs.Items[i]
