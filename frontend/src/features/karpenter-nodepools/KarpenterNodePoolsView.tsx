@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { api, type KarpenterNodePoolInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
+import { formatMemoryQuantity } from '@/lib/quantity'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { COL_SM, COL_MD } from '@/features/_shared/columnSizes'
 import { ConditionPill } from '@/features/_shared/ConditionPill'
@@ -99,7 +100,12 @@ export function KarpenterNodePoolsView() {
       columnHelper.accessor('memoryUsage', {
         header: 'Memory',
         size: COL_SM,
-        cell: (i) => formatUsageOverLimit(i.getValue(), i.row.original.memoryLimit),
+        cell: (i) =>
+          formatUsageOverLimit(
+            i.getValue(),
+            i.row.original.memoryLimit,
+            formatMemoryQuantity,
+          ),
       }),
       columnHelper.accessor('ready', {
         header: 'Ready',
@@ -189,13 +195,15 @@ export function KarpenterNodePoolsView() {
   )
 }
 
-function formatUsageOverLimit(used: string, limit: string) {
+function formatUsageOverLimit(used: string, limit: string, fmt?: (raw: string) => string) {
   if (!used && !limit) return <span className="text-muted-foreground">—</span>
-  if (!limit) return <span className="font-mono text-xs">{used || '0'}</span>
+  const u = used ? (fmt ? fmt(used) : used) : '0'
+  if (!limit) return <span className="font-mono text-xs">{u}</span>
+  const l = fmt ? fmt(limit) : limit
   return (
-    <span className="font-mono text-xs">
-      {used || '0'}
-      <span className="text-muted-foreground"> / {limit}</span>
+    <span className="font-mono text-xs" title={`${used || '0'} / ${limit}`}>
+      {u}
+      <span className="text-muted-foreground"> / {l}</span>
     </span>
   )
 }
