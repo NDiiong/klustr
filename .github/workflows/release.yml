@@ -24,10 +24,13 @@ jobs:
             label: macOS (Apple Silicon)
             platform: darwin/arm64
             suffix: darwin-arm64.tar.gz
-          - os: windows-latest
-            label: Windows (amd64)
-            platform: windows/amd64
-            suffix: windows-amd64.zip
+          # Windows build disabled — no Windows asset is shipped yet, and the
+          # runner adds ~5 minutes per release. Re-enable when the v1 path
+          # picks up cross-platform distribution.
+          # - os: windows-latest
+          #   label: Windows (amd64)
+          #   platform: windows/amd64
+          #   suffix: windows-amd64.zip
           - os: ubuntu-22.04
             label: Linux (amd64)
             platform: linux/amd64
@@ -44,8 +47,18 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cache Wails CLI
+        id: wails-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin/wails
+          key: wails-cli-v2.12.0-${{ runner.os }}
 
       - name: Install Wails CLI
+        if: steps.wails-cache.outputs.cache-hit != 'true'
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
 
       - name: Install Linux dependencies
@@ -54,28 +67,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
 
-      - name: Resolve version
-        id: ver
+      - name: Resolve version and artifact name
+        id: meta
         shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            VERSION="${GITHUB_REF#refs/tags/}"
           else
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            VERSION="${{ inputs.version }}"
           fi
-
-      - name: Compute artifact name
-        id: artifact
-        shell: bash
-        run: |
-          echo "name=klustr-${{ steps.ver.outputs.version }}-${{ matrix.suffix }}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "name=klustr-${VERSION}-${{ matrix.suffix }}" >> "$GITHUB_OUTPUT"
 
       - name: Build
         shell: bash
         run: |
           wails build \
             -platform ${{ matrix.platform }} \
-            -ldflags "-X klustr/app.Version=${{ steps.ver.outputs.version }}" \
+            -ldflags "-X klustr/app.Version=${{ steps.meta.outputs.version }}" \
             -trimpath \
             -clean
 
@@ -122,26 +131,26 @@ jobs:
         shell: bash
         run: |
           cd build/bin
-          tar -czf ${{ steps.artifact.outputs.name }} klustr.app
+          tar -czf ${{ steps.meta.outputs.name }} klustr.app
 
-      - name: Package Windows
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          cd build/bin
-          Compress-Archive -Path klustr.exe -DestinationPath ${{ steps.artifact.outputs.name }}
+      # - name: Package Windows
+      #   if: matrix.os == 'windows-latest'
+      #   shell: pwsh
+      #   run: |
+      #     cd build/bin
+      #     Compress-Archive -Path klustr.exe -DestinationPath ${{ steps.meta.outputs.name }}
 
       - name: Package Linux
         if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           cd build/bin
-          tar -czf ${{ steps.artifact.outputs.name }} klustr
+          tar -czf ${{ steps.meta.outputs.name }} klustr
 
       - uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.artifact.outputs.name }}
-          path: build/bin/${{ steps.artifact.outputs.name }}
+          name: ${{ steps.meta.outputs.name }}
+          path: build/bin/${{ steps.meta.outputs.name }}
           if-no-files-found: error
 
   release:
