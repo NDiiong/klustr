@@ -422,6 +422,48 @@ func evaluateCells(evaluators []compiledPrinterColumn, obj *unstructured.Unstruc
 	return out
 }
 
+// GetCachedCustomResource returns the cached CR for the given GVR + ns + name
+// without ever touching the server. Used by enrichment paths (e.g. KEDA HPA
+// targets) where blocking the caller on a network round-trip would be wrong.
+// Returns (nil, false) when the informer hasn't been started for this GVR
+// (caller should have called EnsureCRWatch first) or the object isn't cached.
+func (w *crdWatcher) GetCachedCustomResource(gvr schema.GroupVersionResource, namespace, name string) (*unstructured.Unstructured, bool) {
+	w.crMu.Lock()
+	started := w.crWatches[gvr]
+	w.crMu.Unlock()
+	if !started {
+		return nil, false
+	}
+	lister := w.crFactory.ForResource(gvr).Lister()
+	var (
+		raw runtime.Object
+		err error
+	)
+	if namespace == "" {
+		raw, err = lister.Get(name)
+	} else {
+		raw, err = lister.ByNamespace(namespace).Get(name)
+	}
+	if err != nil || raw == nil {
+		return nil, false
+	}
+	obj, ok := raw.(*unstructured.Unstructured)
+	if !ok {
+		return nil, false
+	}
+	return obj, true
+}
+
+// AddCRHandler attaches an extra event handler to the dynamic informer for
+// the given GVR. dynamicSharedInformerFactory caches one informer per GVR so
+// calling this after EnsureCRWatch reuses the same informer; client-go
+// backfills the new handler with the current cache contents.
+func (w *crdWatcher) AddCRHandler(gvr schema.GroupVersionResource, handler cache.ResourceEventHandler) error {
+	inf := w.crFactory.ForResource(gvr).Informer()
+	_, err := inf.AddEventHandler(handler)
+	return err
+}
+
 // GetCustomResource fetches a single CR through the dynamic client so the YAML
 // tab always sees the latest server state, even before the informer has synced.
 func (w *crdWatcher) GetCustomResource(ctx context.Context, gvr schema.GroupVersionResource, namespace, name string) (*unstructured.Unstructured, error) {
