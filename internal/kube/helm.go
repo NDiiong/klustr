@@ -135,6 +135,20 @@ func newHelmManager(rules *clientcmd.ClientConfigLoadingRules) (*helmManager, er
 	}, nil
 }
 
+// invalidate drops every cached action.Configuration whose key starts with
+// the given context — there is one entry per (context, namespace) pair, so
+// disconnecting from a context has to clear them all.
+func (h *helmManager) invalidate(contextName string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	prefix := contextName + "/"
+	for k := range h.configs {
+		if strings.HasPrefix(k, prefix) {
+			delete(h.configs, k)
+		}
+	}
+}
+
 // configFor returns an action.Configuration scoped to the given context and
 // namespace, lazily initializing and caching it.
 func (h *helmManager) configFor(contextName, namespace string) (*action.Configuration, error) {

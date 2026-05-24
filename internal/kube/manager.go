@@ -190,7 +190,15 @@ func (m *ClientManager) StopWatch(contextName string) {
 	if ok {
 		delete(m.watchers, contextName)
 	}
+	// Drop every per-context client cache too: each one holds a rest.Config
+	// snapshot taken when the context first connected, so if the underlying
+	// kubeconfig later changed (cluster recreated on a new port, token
+	// rotated, …) the next Watch() would otherwise hand back stale clients
+	// pointing at the old endpoint and every call would fail.
+	delete(m.cache, contextName)
 	m.mu.Unlock()
+	m.metrics.invalidate(contextName)
+	m.helm.invalidate(contextName)
 	if ok {
 		w.stop()
 	}

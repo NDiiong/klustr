@@ -61,6 +61,12 @@ func (m *ClientManager) ListPodMetrics(ctx context.Context, contextName, namespa
 	return out, nil
 }
 
+func (mc *metricsCache) invalidate(contextName string) {
+	mc.mu.Lock()
+	defer mc.mu.Unlock()
+	delete(mc.client, contextName)
+}
+
 func (m *ClientManager) metricsClient(contextName string) (metricsclient.Interface, error) {
 	m.metrics.mu.Lock()
 	if c, ok := m.metrics.client[contextName]; ok {
