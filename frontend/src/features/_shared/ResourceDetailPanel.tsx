@@ -575,7 +575,6 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return (
         <WebhookConfigurationDetailBody
           contextName={contextName}
-          name={resource.name}
           kind="MutatingWebhookConfiguration"
           loader={(ctx) => api.getMutatingWebhookConfiguration(ctx, resource.name)}
         />
@@ -584,7 +583,6 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
       return (
         <WebhookConfigurationDetailBody
           contextName={contextName}
-          name={resource.name}
           kind="ValidatingWebhookConfiguration"
           loader={(ctx) => api.getValidatingWebhookConfiguration(ctx, resource.name)}
         />

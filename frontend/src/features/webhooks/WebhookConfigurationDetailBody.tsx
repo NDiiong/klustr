@@ -2,7 +2,6 @@ import type { WebhookConfigurationDetail } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { Chips, ErrorBox, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/DetailPrimitives'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
-import { useCallback } from 'react'
 
 type Loader = (ctx: string) => Promise<WebhookConfigurationDetail>
 
@@ -12,12 +11,10 @@ export function WebhookConfigurationDetailBody({
   loader,
 }: {
   contextName: string | null
-  name: string
   kind: string
   loader: Loader
 }) {
-  const load = useCallback(loader, [loader])
-  const { detail, error } = useResourceDetail<WebhookConfigurationDetail>(contextName, kind, load)
+  const { detail, error } = useResourceDetail<WebhookConfigurationDetail>(contextName, kind, loader)
   if (error) return <ErrorBox>{error}</ErrorBox>
   if (!detail) return null
   return (
