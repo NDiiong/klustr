@@ -193,12 +193,7 @@ function ClusterSection({
   const [installerOpen, setInstallerOpen] = useState(false)
   const [uninstallerOpen, setUninstallerOpen] = useState(false)
   const [klustrManaged, setKlustrManaged] = useState(false)
-  const metricsAvailable = overview?.metricsAvailable ?? false
   useEffect(() => {
-    if (!metricsAvailable) {
-      setKlustrManaged(false)
-      return
-    }
     let cancelled = false
     api
       .isMetricsServerKlustrManaged(contextName)
@@ -211,7 +206,7 @@ function ClusterSection({
     return () => {
       cancelled = true
     }
-  }, [contextName, metricsAvailable, lastUpdatedAt])
+  }, [contextName, lastUpdatedAt])
   return (
     <div className={isFirst ? '' : 'border-t border-border'}>
       <div className="flex items-center justify-between gap-3 border-b border-border px-6 py-3">
@@ -237,7 +232,7 @@ function ClusterSection({
         </div>
         <div className="flex items-center gap-2">
           <UpdatedAgo at={lastUpdatedAt} />
-          {metricsAvailable && klustrManaged && (
+          {klustrManaged && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -264,7 +259,9 @@ function ClusterSection({
       {overview && !overview.metricsAvailable && (
         <MetricsBanner
           error={overview.metricsError ?? ''}
+          klustrManaged={klustrManaged}
           onInstall={() => setInstallerOpen(true)}
+          onUninstall={() => setUninstallerOpen(true)}
         />
       )}
       {overviewError && (
@@ -321,27 +318,50 @@ function UpdatedAgo({ at }: { at: number | null }) {
   )
 }
 
-function MetricsBanner({ error, onInstall }: { error: string; onInstall: () => void }) {
+function MetricsBanner({
+  error,
+  klustrManaged,
+  onInstall,
+  onUninstall,
+}: {
+  error: string
+  klustrManaged: boolean
+  onInstall: () => void
+  onUninstall: () => void
+}) {
   return (
     <div className="flex items-start gap-2 border-b border-amber-500/30 bg-amber-500/10 px-6 py-2 text-xs text-amber-700 dark:text-amber-300">
       <Info className="mt-0.5 size-3.5 shrink-0" />
       <div className="flex-1">
-        <div className="font-medium">metrics-server not detected</div>
+        <div className="font-medium">
+          {klustrManaged ? 'metrics-server not responding' : 'metrics-server not detected'}
+        </div>
         <div className="opacity-80">
-          Usage values require a working metrics.k8s.io API. Install metrics-server in the
-          cluster to populate CPU and memory usage. Requests, limits, allocatable, and capacity
-          values are still shown.
+          {klustrManaged
+            ? 'Klustr installed metrics-server in this cluster but the metrics.k8s.io API is not answering. The pod is most likely CrashLooping — uninstall to clean up, then reinstall.'
+            : 'Usage values require a working metrics.k8s.io API. Install metrics-server in the cluster to populate CPU and memory usage. Requests, limits, allocatable, and capacity values are still shown.'}
           {error && <span className="ml-2 opacity-60">({error})</span>}
         </div>
       </div>
-      <Button
-        size="xs"
-        variant="outline"
-        onClick={onInstall}
-        className="shrink-0 border-amber-500/40 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
-      >
-        Install
-      </Button>
+      {klustrManaged ? (
+        <Button
+          size="xs"
+          variant="outline"
+          onClick={onUninstall}
+          className="shrink-0 border-amber-500/40 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
+        >
+          Uninstall
+        </Button>
+      ) : (
+        <Button
+          size="xs"
+          variant="outline"
+          onClick={onInstall}
+          className="shrink-0 border-amber-500/40 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300"
+        >
+          Install
+        </Button>
+      )}
     </div>
   )
 }
