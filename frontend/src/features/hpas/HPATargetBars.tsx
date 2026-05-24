@@ -27,9 +27,10 @@ export function HPATargetBars({ metrics }: Props) {
         side="right"
         align="start"
         sideOffset={8}
-        className="max-w-none p-0 font-mono text-[11px]"
+        collisionPadding={16}
+        className="max-w-[min(720px,calc(100vw-2rem))] p-0 font-mono text-[11px]"
       >
-        <div className="grid min-w-[480px] grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
           {kedaMetrics.length > 0 && (
             <div className="col-span-3 mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
               <span className="inline-flex items-center rounded-sm bg-sky-500/15 px-1.5 py-0.5 font-semibold text-sky-400">
@@ -57,8 +58,8 @@ function MetricRow({ metric }: { metric: HPAMetricTarget }) {
   const reading = readingFor(metric)
   return (
     <>
-      <span className="truncate whitespace-nowrap">{metric.name}</span>
-      <span className="whitespace-nowrap text-muted-foreground">
+      <span className="whitespace-nowrap">{metric.name}</span>
+      <span className="min-w-0 break-words text-muted-foreground">
         {metric.text || ''}
       </span>
       <span className="whitespace-nowrap text-right tabular-nums">
