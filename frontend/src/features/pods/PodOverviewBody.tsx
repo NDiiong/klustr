@@ -138,10 +138,8 @@ function ContainerEnvSection({
                         <EnvValueCell
                           contextName={contextName}
                           namespace={namespace}
-                          envName={e.name}
                           value={e.value}
-                          valueFrom={e.valueFrom}
-                          ref={e.ref ?? null}
+                          envRef={e.ref ?? null}
                         />
                       </Td>
                       <Td className="font-mono text-[11px] text-muted-foreground">
@@ -180,32 +178,30 @@ function EnvValueCell({
   contextName,
   namespace,
   value,
-  ref,
+  envRef,
 }: {
   contextName: string | null
   namespace: string
-  envName: string
   value: string
-  valueFrom: string
-  ref: EnvVarRef | null
+  envRef: EnvVarRef | null
 }) {
-  if (ref && ref.kind === 'Secret') {
+  if (envRef && envRef.kind === 'Secret') {
     return (
       <SecretEnvValue
         contextName={contextName}
         namespace={namespace}
-        secretName={ref.name}
-        secretKey={ref.key}
+        secretName={envRef.name}
+        secretKey={envRef.key}
       />
     )
   }
-  if (ref && ref.kind === 'ConfigMap') {
+  if (envRef && envRef.kind === 'ConfigMap') {
     return (
       <ConfigMapEnvValue
         contextName={contextName}
         namespace={namespace}
-        cmName={ref.name}
-        cmKey={ref.key}
+        cmName={envRef.name}
+        cmKey={envRef.key}
       />
     )
   }
