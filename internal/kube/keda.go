@@ -151,47 +151,69 @@ func kedaTriggerLabel(trigger map[string]any) (text, name string) {
 	return typ, name
 }
 
-// kedaTriggerMetaSummary picks one short, identifying metadata value per
-// well-known KEDA trigger type. Unknown trigger types fall back to a generic
-// `threshold` / `value` lookup.
+// kedaTriggerMetaSummary returns a space-separated `key=value` listing of the
+// most useful trigger metadata fields per well-known KEDA trigger type. The
+// goal is to surface enough that a reader can predict how many replicas the
+// trigger will demand once it activates — for cron that means start + end +
+// desiredReplicas, for prometheus the metric name + threshold +
+// activationThreshold, and so on.
 func kedaTriggerMetaSummary(triggerType string, meta map[string]any) string {
 	if len(meta) == 0 {
 		return ""
 	}
-	pick := func(keys ...string) string {
-		for _, k := range keys {
-			if v, ok := meta[k].(string); ok && v != "" {
-				return k + "=" + v
+	take := func(k string) string {
+		raw, ok := meta[k]
+		if !ok {
+			return ""
+		}
+		var v string
+		switch s := raw.(type) {
+		case string:
+			v = s
+		case int64:
+			v = strconv.FormatInt(s, 10)
+		case float64:
+			v = strconv.FormatFloat(s, 'g', -1, 64)
+		case bool:
+			v = strconv.FormatBool(s)
+		}
+		if v == "" {
+			return ""
+		}
+		return k + "=" + v
+	}
+	join := func(parts ...string) string {
+		out := parts[:0]
+		for _, p := range parts {
+			if p != "" {
+				out = append(out, p)
 			}
 		}
-		return ""
+		return strings.Join(out, " ")
 	}
 	switch triggerType {
 	case "prometheus":
-		if v := pick("metricName"); v != "" {
-			return v
-		}
-		return pick("threshold", "query")
-	case "kafka":
-		return pick("topic", "lagThreshold")
-	case "rabbitmq":
-		return pick("queueName", "value")
-	case "aws-sqs-queue":
-		return pick("queueURL", "queueLength")
-	case "redis", "redis-streams", "redis-cluster", "redis-sentinel":
-		return pick("listName", "stream", "consumerGroup", "listLength")
+		return join(take("metricName"), take("threshold"), take("activationThreshold"))
 	case "cron":
-		return pick("start", "timezone")
+		return join(take("start"), take("end"), take("desiredReplicas"), take("timezone"))
+	case "kafka":
+		return join(take("topic"), take("consumerGroup"), take("lagThreshold"), take("activationLagThreshold"))
+	case "rabbitmq":
+		return join(take("queueName"), take("value"), take("activationValue"), take("mode"))
+	case "aws-sqs-queue":
+		return join(take("queueURL"), take("queueLength"), take("activationQueueLength"))
+	case "redis", "redis-streams", "redis-cluster", "redis-sentinel":
+		return join(take("listName"), take("stream"), take("consumerGroup"), take("listLength"), take("activationListLength"))
 	case "cpu", "memory":
-		return pick("value", "type")
+		return join(take("type"), take("value"))
 	case "external", "external-push":
-		return pick("scalerAddress", "scalerName")
+		return join(take("scalerAddress"), take("scalerName"))
 	case "azure-servicebus":
-		return pick("queueName", "topicName", "subscriptionName")
+		return join(take("queueName"), take("topicName"), take("subscriptionName"), take("messageCount"), take("activationMessageCount"))
 	case "gcp-pubsub":
-		return pick("subscriptionName", "topicName")
+		return join(take("subscriptionName"), take("topicName"), take("value"), take("activationValue"))
 	case "datadog":
-		return pick("query", "metricUnavailableValue")
+		return join(take("query"), take("queryValue"), take("activationQueryValue"))
 	}
-	return pick("threshold", "value", "queryValue")
+	return join(take("threshold"), take("activationThreshold"), take("value"), take("queryValue"))
 }
