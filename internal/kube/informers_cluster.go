@@ -17,13 +17,16 @@ type NamespaceInfo struct {
 }
 
 type NodeInfo struct {
-	Name       string `json:"name"`
-	Status     string `json:"status"`
-	Roles      string `json:"roles"`
-	Version    string `json:"version"`
-	OSImage    string `json:"osImage"`
-	InternalIP string `json:"internalIP"`
-	CreatedAt  string `json:"createdAt"`
+	Name         string `json:"name"`
+	Status       string `json:"status"`
+	Roles        string `json:"roles"`
+	Version      string `json:"version"`
+	OSImage      string `json:"osImage"`
+	InternalIP   string `json:"internalIP"`
+	InstanceType string `json:"instanceType"`
+	CapacityType string `json:"capacityType"`
+	NodePool     string `json:"nodePool"`
+	CreatedAt    string `json:"createdAt"`
 }
 
 type LeaseInfo struct {
@@ -125,13 +128,16 @@ func (w *contextWatcher) Nodes() []NodeInfo {
 	out := make([]NodeInfo, 0, len(list))
 	for _, n := range list {
 		out = append(out, NodeInfo{
-			Name:       n.Name,
-			Status:     nodeStatus(n),
-			Roles:      nodeRoles(n),
-			Version:    n.Status.NodeInfo.KubeletVersion,
-			OSImage:    n.Status.NodeInfo.OSImage,
-			InternalIP: nodeInternalIP(n),
-			CreatedAt:  n.CreationTimestamp.UTC().Format(time.RFC3339),
+			Name:         n.Name,
+			Status:       nodeStatus(n),
+			Roles:        nodeRoles(n),
+			Version:      n.Status.NodeInfo.KubeletVersion,
+			OSImage:      n.Status.NodeInfo.OSImage,
+			InternalIP:   nodeInternalIP(n),
+			InstanceType: nodeInstanceType(n),
+			CapacityType: nodeCapacityType(n),
+			NodePool:     nodeNodePool(n),
+			CreatedAt:    n.CreationTimestamp.UTC().Format(time.RFC3339),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
@@ -412,6 +418,54 @@ func nodeInternalIP(n *corev1.Node) string {
 	for _, addr := range n.Status.Addresses {
 		if addr.Type == corev1.NodeInternalIP {
 			return addr.Address
+		}
+	}
+	return ""
+}
+
+func nodeInstanceType(n *corev1.Node) string {
+	if v := n.Labels["node.kubernetes.io/instance-type"]; v != "" {
+		return v
+	}
+	return n.Labels["beta.kubernetes.io/instance-type"]
+}
+
+// nodeCapacityType normalizes the per-provider "spot vs on-demand" label
+// down to lowercase "spot" / "on-demand" so the UI can render one badge
+// regardless of whether the cluster is on Karpenter, EKS managed node
+// groups, GKE, or AKS.
+func nodeCapacityType(n *corev1.Node) string {
+	if v := n.Labels["karpenter.sh/capacity-type"]; v != "" {
+		return strings.ToLower(v)
+	}
+	switch strings.ToUpper(n.Labels["eks.amazonaws.com/capacityType"]) {
+	case "SPOT":
+		return "spot"
+	case "ON_DEMAND":
+		return "on-demand"
+	}
+	if strings.EqualFold(n.Labels["cloud.google.com/gke-spot"], "true") {
+		return "spot"
+	}
+	switch strings.ToLower(n.Labels["kubernetes.azure.com/scalesetpriority"]) {
+	case "spot":
+		return "spot"
+	case "regular":
+		return "on-demand"
+	}
+	return ""
+}
+
+func nodeNodePool(n *corev1.Node) string {
+	for _, k := range []string{
+		"karpenter.sh/nodepool",
+		"karpenter.sh/provisioner-name",
+		"eks.amazonaws.com/nodegroup",
+		"cloud.google.com/gke-nodepool",
+		"kubernetes.azure.com/agentpool",
+	} {
+		if v := n.Labels[k]; v != "" {
+			return v
 		}
 	}
 	return ""
