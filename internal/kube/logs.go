@@ -109,16 +109,3 @@ func (mgr *logSessionManager) stop(id string) {
 		sess.cancel()
 	}
 }
-
-func (mgr *logSessionManager) stopAll() {
-	mgr.mu.Lock()
-	sessions := make([]*logSession, 0, len(mgr.sessions))
-	for _, s := range mgr.sessions {
-		sessions = append(sessions, s)
-	}
-	mgr.sessions = make(map[string]*logSession)
-	mgr.mu.Unlock()
-	for _, s := range sessions {
-		s.cancel()
-	}
-}
