@@ -32,36 +32,61 @@ export function PodResourceBars({
           <MiniBar label="M" value={mem} usageColorClass={usageColor(mem)} />
         </div>
       </TooltipTrigger>
-      <TooltipContent className="flex flex-col items-stretch gap-0 p-3 font-mono text-[11px]">
-        <ResourceBlock
-          title="CPU"
-          usage={formatCPU(cpuUsageMC)}
-          request={cpuRequestMC > 0 ? formatCPU(cpuRequestMC) : '—'}
-          limit={cpuLimitMC > 0 ? formatCPU(cpuLimitMC) : '—'}
-        />
-        <div className="my-2 h-px bg-background/20" />
-        <ResourceBlock
-          title="Memory"
-          usage={formatMem(memUsageB)}
-          request={memRequestB > 0 ? formatMem(memRequestB) : '—'}
-          limit={memLimitB > 0 ? formatMem(memLimitB) : '—'}
-        />
+      <TooltipContent
+        side="right"
+        align="start"
+        sideOffset={8}
+        className="max-w-none p-0 font-mono text-[11px]"
+      >
+        <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1 px-3 py-2.5">
+          <ResourceBlock
+            badge="CPU"
+            badgeClass="bg-sky-500/15 text-sky-400"
+            usage={formatCPU(cpuUsageMC)}
+            request={cpuRequestMC > 0 ? formatCPU(cpuRequestMC) : '—'}
+            limit={cpuLimitMC > 0 ? formatCPU(cpuLimitMC) : '—'}
+          />
+          <div className="col-span-2 my-1 h-px bg-border/60" />
+          <ResourceBlock
+            badge="MEM"
+            badgeClass="bg-emerald-500/15 text-emerald-400"
+            usage={formatMem(memUsageB)}
+            request={memRequestB > 0 ? formatMem(memRequestB) : '—'}
+            limit={memLimitB > 0 ? formatMem(memLimitB) : '—'}
+          />
+        </div>
       </TooltipContent>
     </Tooltip>
   )
 }
 
-function ResourceBlock({ title, usage, request, limit }: { title: string; usage: string; request: string; limit: string }) {
+function ResourceBlock({
+  badge,
+  badgeClass,
+  usage,
+  request,
+  limit,
+}: {
+  badge: string
+  badgeClass: string
+  usage: string
+  request: string
+  limit: string
+}) {
   return (
-    <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5">
-      <div className="col-span-2 mb-0.5 text-[10px] uppercase tracking-wide opacity-60">{title}</div>
-      <div className="opacity-60">usage</div>
-      <div className="text-right">{usage}</div>
-      <div className="opacity-60">request</div>
-      <div className="text-right">{request}</div>
-      <div className="opacity-60">limit</div>
-      <div className="text-right">{limit}</div>
-    </div>
+    <>
+      <div className="col-span-2 mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+        <span className={`inline-flex items-center rounded-sm px-1.5 py-0.5 font-semibold ${badgeClass}`}>
+          {badge}
+        </span>
+      </div>
+      <span className="opacity-70">usage</span>
+      <span className="whitespace-nowrap text-right tabular-nums">{usage}</span>
+      <span className="opacity-70">request</span>
+      <span className="whitespace-nowrap text-right tabular-nums">{request}</span>
+      <span className="opacity-70">limit</span>
+      <span className="whitespace-nowrap text-right tabular-nums">{limit}</span>
+    </>
   )
 }
 
