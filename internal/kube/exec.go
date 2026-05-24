@@ -121,10 +121,16 @@ func (mgr *execSessionManager) sendInput(id, data string) {
 	_, _ = sess.stdin.Write([]byte(data))
 }
 
+// resize holds mgr.mu across the send so it can never race against
+// stop(): once stop deletes the session from the map and releases the
+// lock, every subsequent resize() sees a nil session and returns before
+// touching the channel. Sending on a closed channel panics even from a
+// select-default, so this ordering — delete-then-close in stop(),
+// lookup-then-send under the same lock here — is what keeps resize safe.
 func (mgr *execSessionManager) resize(id string, cols, rows uint16) {
 	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
 	sess := mgr.sessions[id]
-	mgr.mu.Unlock()
 	if sess == nil {
 		return
 	}
