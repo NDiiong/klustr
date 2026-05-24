@@ -262,10 +262,11 @@ function LabeledNumberInput({
 
 function MetricBar({ metric }: { metric: HPAMetricTarget }) {
   if (metric.target <= 0 || metric.current < 0) {
+    const detail = [metric.text, metric.reading].filter(Boolean).join('  ')
     return (
       <div className="flex items-center justify-between gap-3 rounded border border-border bg-muted/20 px-3 py-2 text-xs">
         <span className="font-mono uppercase tracking-wide text-muted-foreground">{metric.name}</span>
-        <span className="font-mono">{metric.text || '—'}</span>
+        <span className="font-mono">{detail || '—'}</span>
       </div>
     )
   }

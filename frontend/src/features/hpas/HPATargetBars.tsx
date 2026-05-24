@@ -10,35 +10,92 @@ export function HPATargetBars({ metrics }: Props) {
     return <span className="text-muted-foreground">—</span>
   }
 
+  const kedaMetrics = metrics.filter((m) => m.source === 'keda')
+  const otherMetrics = metrics.filter((m) => m.source !== 'keda')
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex w-32 flex-col gap-1">
-          {metrics.map((m) => (
-            <MiniBar key={m.name} metric={m} />
+          {kedaMetrics.length > 0 && <KEDARowBadge count={kedaMetrics.length} />}
+          {otherMetrics.map((m, i) => (
+            <MiniBar key={`row#${i}`} metric={m} />
           ))}
         </div>
       </TooltipTrigger>
-      <TooltipContent className="flex flex-col gap-1 p-3 font-mono text-[11px]">
-        {metrics.map((m) => (
-          <div key={m.name} className="flex items-center justify-between gap-3">
-            <span className="opacity-60">{m.name}</span>
-            <span>{describeMetric(m)}</span>
-          </div>
-        ))}
+      <TooltipContent
+        side="right"
+        align="start"
+        sideOffset={8}
+        className="max-w-none p-0 font-mono text-[11px]"
+      >
+        <div className="grid min-w-[480px] grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
+          {kedaMetrics.length > 0 && (
+            <div className="col-span-3 mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span className="inline-flex items-center rounded-sm bg-sky-500/15 px-1.5 py-0.5 font-semibold text-sky-400">
+                KEDA
+              </span>
+              <span>triggers · {kedaMetrics.length}</span>
+            </div>
+          )}
+          {kedaMetrics.map((m, i) => (
+            <MetricRow key={`k${i}`} metric={m} />
+          ))}
+          {kedaMetrics.length > 0 && otherMetrics.length > 0 && (
+            <div className="col-span-3 my-1 h-px bg-border/60" />
+          )}
+          {otherMetrics.map((m, i) => (
+            <MetricRow key={`o${i}`} metric={m} />
+          ))}
+        </div>
       </TooltipContent>
     </Tooltip>
+  )
+}
+
+function MetricRow({ metric }: { metric: HPAMetricTarget }) {
+  const reading = readingFor(metric)
+  return (
+    <>
+      <span className="truncate whitespace-nowrap">{metric.name}</span>
+      <span className="whitespace-nowrap text-muted-foreground">
+        {metric.text || ''}
+      </span>
+      <span className="whitespace-nowrap text-right tabular-nums">
+        {reading || '—'}
+      </span>
+    </>
+  )
+}
+
+function readingFor(m: HPAMetricTarget): string {
+  if (m.reading) return m.reading
+  if (m.current >= 0 && m.target > 0) return `${m.current}% / ${m.target}%`
+  return ''
+}
+
+function KEDARowBadge({ count }: { count: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="w-3 text-[9px] text-muted-foreground">K</span>
+      <div className="flex h-4 flex-1 items-center justify-between rounded-sm bg-sky-500/15 px-1.5 text-[10px] font-medium text-sky-400">
+        <span>KEDA</span>
+        <span className="tabular-nums opacity-70">×{count}</span>
+      </div>
+    </div>
   )
 }
 
 function MiniBar({ metric }: { metric: HPAMetricTarget }) {
   const label = shortLabel(metric.name)
   if (metric.target <= 0 || metric.current < 0) {
+    const fallback =
+      metric.reading || metric.text || '—'
     return (
       <div className="flex items-center gap-1.5">
         <span className="w-3 text-[9px] text-muted-foreground">{label}</span>
         <span className="flex-1 truncate text-[11px] text-muted-foreground">
-          {metric.text || '—'}
+          {fallback}
         </span>
       </div>
     )
@@ -64,12 +121,6 @@ function shortLabel(name: string): string {
   if (name === 'cpu') return 'C'
   if (name === 'memory') return 'M'
   return name.charAt(0).toUpperCase()
-}
-
-function describeMetric(m: HPAMetricTarget): string {
-  if (m.text) return m.text
-  if (m.target <= 0 || m.current < 0) return '—'
-  return `${m.current}% / ${m.target}%`
 }
 
 function usageColor(pct: number): string {
