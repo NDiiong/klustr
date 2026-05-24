@@ -3521,6 +3521,9 @@ export namespace kube {
 	    version: string;
 	    osImage: string;
 	    internalIP: string;
+	    instanceType: string;
+	    capacityType: string;
+	    nodePool: string;
 	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
@@ -3535,6 +3538,9 @@ export namespace kube {
 	        this.version = source["version"];
 	        this.osImage = source["osImage"];
 	        this.internalIP = source["internalIP"];
+	        this.instanceType = source["instanceType"];
+	        this.capacityType = source["capacityType"];
+	        this.nodePool = source["nodePool"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}

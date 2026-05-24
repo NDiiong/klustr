@@ -19,6 +19,8 @@ function nodeStatusClass(status: string): string {
   return 'text-muted-foreground'
 }
 
+const EMPTY_CELL = <span className="text-muted-foreground">—</span>
+
 export function NodesView() {
   const nodes = useResources((s) => s.nodes)
   const setNodes = useResources((s) => s.setNodes)
@@ -39,6 +41,32 @@ export function NodesView() {
         header: 'Internal IP',
         size: COL_MD,
         cell: (info) => <span className="font-mono text-xs">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor('instanceType', {
+        header: 'Instance',
+        size: COL_MD,
+        cell: (info) => {
+          const v = info.getValue()
+          return v ? <span className="font-mono text-xs">{v}</span> : EMPTY_CELL
+        },
+      }),
+      columnHelper.accessor('capacityType', {
+        header: 'Capacity',
+        size: COL_SM,
+        cell: (info) => {
+          const v = info.getValue()
+          if (!v) return EMPTY_CELL
+          const cls =
+            v === 'spot'
+              ? 'text-amber-600 dark:text-amber-400'
+              : 'text-emerald-600 dark:text-emerald-400'
+          return <span className={cls}>{v}</span>
+        },
+      }),
+      columnHelper.accessor('nodePool', {
+        header: 'NodePool',
+        size: COL_MD,
+        cell: (info) => info.getValue() || EMPTY_CELL,
       }),
       columnHelper.accessor('createdAt', {
         header: 'Age',
