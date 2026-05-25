@@ -52,6 +52,8 @@ import type {
   ResourceSliceInfo,
   ResourceClaimInfo,
   ResourceClaimTemplateInfo,
+  ServiceCIDRInfo,
+  IPAddressInfo,
 } from '@/lib/api'
 
 export type ByContext<T> = Record<string, T[]>
@@ -112,6 +114,8 @@ type ResourcesState = {
   resourceSlices: ByContext<ResourceSliceInfo>
   resourceClaims: ByContext<ResourceClaimInfo>
   resourceClaimTemplates: ByContext<ResourceClaimTemplateInfo>
+  serviceCIDRs: ByContext<ServiceCIDRInfo>
+  ipAddresses: ByContext<IPAddressInfo>
   setNamespaces: (ctx: string, list: NamespaceInfo[]) => void
   setPods: (ctx: string, list: PodInfo[]) => void
   setDeployments: (ctx: string, list: DeploymentInfo[]) => void
@@ -167,6 +171,8 @@ type ResourcesState = {
   setResourceSlices: (ctx: string, list: ResourceSliceInfo[]) => void
   setResourceClaims: (ctx: string, list: ResourceClaimInfo[]) => void
   setResourceClaimTemplates: (ctx: string, list: ResourceClaimTemplateInfo[]) => void
+  setServiceCIDRs: (ctx: string, list: ServiceCIDRInfo[]) => void
+  setIPAddresses: (ctx: string, list: IPAddressInfo[]) => void
   clearContext: (ctx: string) => void
   reset: () => void
 }
@@ -227,6 +233,8 @@ const KIND_KEYS = [
   'resourceSlices',
   'resourceClaims',
   'resourceClaimTemplates',
+  'serviceCIDRs',
+  'ipAddresses',
 ] as const
 
 type KindKey = (typeof KIND_KEYS)[number]
@@ -365,6 +373,8 @@ export const useResources = create<ResourcesState>((set) => ({
     set((s) => ({ resourceClaims: withCtx(s.resourceClaims, ctx, list) })),
   setResourceClaimTemplates: (ctx, list) =>
     set((s) => ({ resourceClaimTemplates: withCtx(s.resourceClaimTemplates, ctx, list) })),
+  setServiceCIDRs: (ctx, list) => set((s) => ({ serviceCIDRs: withCtx(s.serviceCIDRs, ctx, list) })),
+  setIPAddresses: (ctx, list) => set((s) => ({ ipAddresses: withCtx(s.ipAddresses, ctx, list) })),
   clearContext: (ctx) =>
     set((s) => {
       const next = {} as Partial<Record<KindKey, ByContext<unknown>>>

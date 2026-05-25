@@ -318,6 +318,12 @@ func (w *contextWatcher) registerHandlers() error {
 		{"ResourceSlice", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
 			return f.Resource().V1().ResourceSlices().Informer()
 		}},
+		{"ServiceCIDR", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Networking().V1().ServiceCIDRs().Informer()
+		}},
+		{"IPAddress", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Networking().V1().IPAddresses().Informer()
+		}},
 	}
 
 	for _, b := range bindings {

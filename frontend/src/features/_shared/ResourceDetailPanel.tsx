@@ -61,6 +61,8 @@ import { DeviceClassDetailBody } from '@/features/deviceclasses/DeviceClassDetai
 import { ResourceSliceDetailBody } from '@/features/resourceslices/ResourceSliceDetailBody'
 import { ResourceClaimDetailBody } from '@/features/resourceclaims/ResourceClaimDetailBody'
 import { ResourceClaimTemplateDetailBody } from '@/features/resourceclaimtemplates/ResourceClaimTemplateDetailBody'
+import { ServiceCIDRDetailBody } from '@/features/servicecidrs/ServiceCIDRDetailBody'
+import { IPAddressDetailBody } from '@/features/ipaddresses/IPAddressDetailBody'
 import { EndpointsDetailBody } from '@/features/endpoints/EndpointsDetailBody'
 import { ReplicationControllerDetailBody } from '@/features/replicationcontrollers/ReplicationControllerDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
@@ -645,6 +647,10 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
           name={resource.name}
         />
       )
+    case 'ServiceCIDR':
+      return <ServiceCIDRDetailBody contextName={contextName} name={resource.name} />
+    case 'IPAddress':
+      return <IPAddressDetailBody contextName={contextName} name={resource.name} />
     case 'Endpoints':
       return <EndpointsDetailBody contextName={contextName} namespace={resource.namespace} name={resource.name} />
     case 'ReplicationController':

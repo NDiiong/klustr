@@ -134,6 +134,10 @@ export function GetHorizontalPodAutoscaler(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetHorizontalPodAutoscaler'](arg1, arg2, arg3);
 }
 
+export function GetIPAddress(arg1, arg2) {
+  return window['go']['app']['App']['GetIPAddress'](arg1, arg2);
+}
+
 export function GetIngress(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetIngress'](arg1, arg2, arg3);
 }
@@ -256,6 +260,10 @@ export function GetService(arg1, arg2, arg3) {
 
 export function GetServiceAccount(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetServiceAccount'](arg1, arg2, arg3);
+}
+
+export function GetServiceCIDR(arg1, arg2) {
+  return window['go']['app']['App']['GetServiceCIDR'](arg1, arg2);
 }
 
 export function GetStatefulSet(arg1, arg2, arg3) {
@@ -446,6 +454,10 @@ export function ListHorizontalPodAutoscalers(arg1, arg2) {
   return window['go']['app']['App']['ListHorizontalPodAutoscalers'](arg1, arg2);
 }
 
+export function ListIPAddresses(arg1) {
+  return window['go']['app']['App']['ListIPAddresses'](arg1);
+}
+
 export function ListIngressClasses(arg1) {
   return window['go']['app']['App']['ListIngressClasses'](arg1);
 }
@@ -576,6 +588,10 @@ export function ListSecrets(arg1, arg2) {
 
 export function ListServiceAccounts(arg1, arg2) {
   return window['go']['app']['App']['ListServiceAccounts'](arg1, arg2);
+}
+
+export function ListServiceCIDRs(arg1) {
+  return window['go']['app']['App']['ListServiceCIDRs'](arg1);
 }
 
 export function ListServices(arg1, arg2) {

@@ -117,6 +117,10 @@ import {
   GetResourceClaim,
   ListResourceClaimTemplates,
   GetResourceClaimTemplate,
+  ListServiceCIDRs,
+  GetServiceCIDR,
+  ListIPAddresses,
+  GetIPAddress,
   ListAPIServices,
   GetAPIService,
   ListFlowSchemas,
@@ -295,6 +299,10 @@ export type ResourceClaimTemplateInfo = kube.ResourceClaimTemplateInfo
 export type ResourceClaimTemplateDetail = kube.ResourceClaimTemplateDetail
 export type DeviceRequestDetail = kube.DeviceRequestDetail
 export type AllocatedDeviceDetail = kube.AllocatedDeviceDetail
+export type ServiceCIDRInfo = kube.ServiceCIDRInfo
+export type ServiceCIDRDetail = kube.ServiceCIDRDetail
+export type IPAddressInfo = kube.IPAddressInfo
+export type IPAddressDetail = kube.IPAddressDetail
 export type EndpointsDetail = kube.EndpointsDetail
 export type EndpointsSubset = kube.EndpointsSubset
 export type EndpointsSubsetAddress = kube.EndpointsSubsetAddress
@@ -485,6 +493,11 @@ export const api = {
     ns: string,
     name: string,
   ): Promise<ResourceClaimTemplateDetail> => GetResourceClaimTemplate(ctx, ns, name),
+  listServiceCIDRs: (name: string): Promise<ServiceCIDRInfo[]> => ListServiceCIDRs(name),
+  getServiceCIDR: (ctx: string, name: string): Promise<ServiceCIDRDetail> =>
+    GetServiceCIDR(ctx, name),
+  listIPAddresses: (name: string): Promise<IPAddressInfo[]> => ListIPAddresses(name),
+  getIPAddress: (ctx: string, name: string): Promise<IPAddressDetail> => GetIPAddress(ctx, name),
   listAPIServices: (name: string): Promise<APIServiceInfo[]> => ListAPIServices(name),
   getAPIService: (ctx: string, name: string): Promise<APIServiceDetail> => GetAPIService(ctx, name),
   listFlowSchemas: (name: string): Promise<FlowSchemaInfo[]> => ListFlowSchemas(name),

@@ -57,6 +57,19 @@ type NetworkPolicyInfo struct {
 	CreatedAt   string `json:"createdAt"`
 }
 
+type ServiceCIDRInfo struct {
+	Name      string `json:"name"`
+	CIDRs     string `json:"cidrs"`
+	Ready     string `json:"ready"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type IPAddressInfo struct {
+	Name      string `json:"name"`
+	ParentRef string `json:"parentRef"`
+	CreatedAt string `json:"createdAt"`
+}
+
 func (w *contextWatcher) Services(namespace string) []ServiceInfo {
 	f := w.factoryFor("Service")
 	if f == nil {
@@ -274,6 +287,76 @@ func (w *contextWatcher) NetworkPolicies(namespace string) []NetworkPolicyInfo {
 		})
 	}
 	sortByNamespaceName(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func parentRefString(p *networkingv1.ParentReference) string {
+	if p == nil {
+		return ""
+	}
+	parts := make([]string, 0, 4)
+	if p.Group != "" {
+		parts = append(parts, p.Group)
+	} else {
+		parts = append(parts, "core")
+	}
+	parts = append(parts, p.Resource)
+	if p.Namespace != "" {
+		parts = append(parts, p.Namespace)
+	}
+	parts = append(parts, p.Name)
+	return strings.Join(parts, "/")
+}
+
+func serviceCIDRReadyStatus(s *networkingv1.ServiceCIDR) string {
+	for _, c := range s.Status.Conditions {
+		if c.Type == networkingv1.ServiceCIDRConditionReady {
+			return string(c.Status)
+		}
+	}
+	return ""
+}
+
+func (w *contextWatcher) ServiceCIDRs() []ServiceCIDRInfo {
+	f := w.factoryFor("ServiceCIDR")
+	if f == nil {
+		return []ServiceCIDRInfo{}
+	}
+	items, err := f.Networking().V1().ServiceCIDRs().Lister().List(labels.Everything())
+	if err != nil {
+		return []ServiceCIDRInfo{}
+	}
+	out := make([]ServiceCIDRInfo, 0, len(items))
+	for _, s := range items {
+		out = append(out, ServiceCIDRInfo{
+			Name:      s.Name,
+			CIDRs:     strings.Join(s.Spec.CIDRs, ","),
+			Ready:     serviceCIDRReadyStatus(s),
+			CreatedAt: s.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+func (w *contextWatcher) IPAddresses() []IPAddressInfo {
+	f := w.factoryFor("IPAddress")
+	if f == nil {
+		return []IPAddressInfo{}
+	}
+	items, err := f.Networking().V1().IPAddresses().Lister().List(labels.Everything())
+	if err != nil {
+		return []IPAddressInfo{}
+	}
+	out := make([]IPAddressInfo, 0, len(items))
+	for _, ip := range items {
+		out = append(out, IPAddressInfo{
+			Name:      ip.Name,
+			ParentRef: parentRefString(ip.Spec.ParentRef),
+			CreatedAt: ip.CreationTimestamp.UTC().Format(time.RFC3339),
+		})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 

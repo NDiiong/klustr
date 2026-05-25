@@ -68,6 +68,8 @@ export function GetHelmRelease(arg1:string,arg2:string,arg3:string):Promise<kube
 
 export function GetHorizontalPodAutoscaler(arg1:string,arg2:string,arg3:string):Promise<kube.HorizontalPodAutoscalerDetail>;
 
+export function GetIPAddress(arg1:string,arg2:string):Promise<kube.IPAddressDetail>;
+
 export function GetIngress(arg1:string,arg2:string,arg3:string):Promise<kube.IngressDetail>;
 
 export function GetIngressClass(arg1:string,arg2:string):Promise<kube.IngressClassDetail>;
@@ -129,6 +131,8 @@ export function GetSecret(arg1:string,arg2:string,arg3:string):Promise<kube.Secr
 export function GetService(arg1:string,arg2:string,arg3:string):Promise<kube.ServiceDetail>;
 
 export function GetServiceAccount(arg1:string,arg2:string,arg3:string):Promise<kube.ServiceAccountDetail>;
+
+export function GetServiceCIDR(arg1:string,arg2:string):Promise<kube.ServiceCIDRDetail>;
 
 export function GetStatefulSet(arg1:string,arg2:string,arg3:string):Promise<kube.StatefulSetDetail>;
 
@@ -224,6 +228,8 @@ export function ListHelmRepos():Promise<Array<kube.HelmRepoInfo>>;
 
 export function ListHorizontalPodAutoscalers(arg1:string,arg2:string):Promise<Array<kube.HorizontalPodAutoscalerInfo>>;
 
+export function ListIPAddresses(arg1:string):Promise<Array<kube.IPAddressInfo>>;
+
 export function ListIngressClasses(arg1:string):Promise<Array<kube.IngressClassInfo>>;
 
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
@@ -289,6 +295,8 @@ export function ListRuntimeClasses(arg1:string):Promise<Array<kube.RuntimeClassI
 export function ListSecrets(arg1:string,arg2:string):Promise<Array<kube.SecretInfo>>;
 
 export function ListServiceAccounts(arg1:string,arg2:string):Promise<Array<kube.ServiceAccountInfo>>;
+
+export function ListServiceCIDRs(arg1:string):Promise<Array<kube.ServiceCIDRInfo>>;
 
 export function ListServices(arg1:string,arg2:string):Promise<Array<kube.ServiceInfo>>;
 

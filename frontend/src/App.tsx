@@ -46,6 +46,8 @@ import { DeviceClassesView } from '@/features/deviceclasses/DeviceClassesView'
 import { ResourceSlicesView } from '@/features/resourceslices/ResourceSlicesView'
 import { ResourceClaimsView } from '@/features/resourceclaims/ResourceClaimsView'
 import { ResourceClaimTemplatesView } from '@/features/resourceclaimtemplates/ResourceClaimTemplatesView'
+import { ServiceCIDRsView } from '@/features/servicecidrs/ServiceCIDRsView'
+import { IPAddressesView } from '@/features/ipaddresses/IPAddressesView'
 import { EndpointsView } from '@/features/endpoints/EndpointsView'
 import { ReplicationControllersView } from '@/features/replicationcontrollers/ReplicationControllersView'
 import { EventsView } from '@/features/events/EventsView'
@@ -194,6 +196,10 @@ function MainView() {
       return <ResourceClaimsView />
     case 'resourceclaimtemplates':
       return <ResourceClaimTemplatesView />
+    case 'servicecidrs':
+      return <ServiceCIDRsView />
+    case 'ipaddresses':
+      return <IPAddressesView />
     case 'endpoints':
       return <EndpointsView />
     case 'replicationcontrollers':

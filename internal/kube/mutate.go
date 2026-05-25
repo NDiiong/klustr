@@ -53,6 +53,9 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"ResourceClaim":         {Group: "resource.k8s.io", Version: "v1", Resource: "resourceclaims"},
 	"ResourceClaimTemplate": {Group: "resource.k8s.io", Version: "v1", Resource: "resourceclaimtemplates"},
 	"ResourceSlice":         {Group: "resource.k8s.io", Version: "v1", Resource: "resourceslices"},
+
+	"ServiceCIDR": {Group: "networking.k8s.io", Version: "v1", Resource: "servicecidrs"},
+	"IPAddress":   {Group: "networking.k8s.io", Version: "v1", Resource: "ipaddresses"},
 	"Endpoints":              {Group: "", Version: "v1", Resource: "endpoints"},
 	"ReplicationController":  {Group: "", Version: "v1", Resource: "replicationcontrollers"},
 

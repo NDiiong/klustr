@@ -176,6 +176,8 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
       { label: 'EndpointSlices', view: 'endpointslices', icon: Link2, kind: 'EndpointSlice' },
       { label: 'Endpoints', view: 'endpoints', icon: Link, kind: 'Endpoints' },
       { label: 'IngressClasses', view: 'ingressclasses', icon: Compass, kind: 'IngressClass' },
+      { label: 'Service CIDRs', view: 'servicecidrs', icon: Waypoints, kind: 'ServiceCIDR' },
+      { label: 'IP Addresses', view: 'ipaddresses', icon: Network, kind: 'IPAddress' },
     ],
   },
   {

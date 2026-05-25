@@ -81,3 +81,35 @@ func (m *ClientManager) NetworkPolicy(contextName, namespace, name string) (*Net
 	}
 	return w.NetworkPolicy(namespace, name)
 }
+
+func (m *ClientManager) ServiceCIDRs(contextName string) []ServiceCIDRInfo {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return []ServiceCIDRInfo{}
+	}
+	return w.ServiceCIDRs()
+}
+
+func (m *ClientManager) ServiceCIDR(contextName, name string) (*ServiceCIDRDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.ServiceCIDR(name)
+}
+
+func (m *ClientManager) IPAddresses(contextName string) []IPAddressInfo {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return []IPAddressInfo{}
+	}
+	return w.IPAddresses()
+}
+
+func (m *ClientManager) IPAddress(contextName, name string) (*IPAddressDetail, error) {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return nil, fmt.Errorf("no active watch for context %q", contextName)
+	}
+	return w.IPAddress(name)
+}

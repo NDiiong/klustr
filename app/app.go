@@ -572,6 +572,22 @@ func (a *App) GetResourceClaimTemplate(contextName, namespace, name string) (*ku
 	return a.clients.ResourceClaimTemplate(contextName, namespace, name)
 }
 
+func (a *App) ListServiceCIDRs(name string) []kube.ServiceCIDRInfo {
+	return a.clients.ServiceCIDRs(name)
+}
+
+func (a *App) GetServiceCIDR(contextName, name string) (*kube.ServiceCIDRDetail, error) {
+	return a.clients.ServiceCIDR(contextName, name)
+}
+
+func (a *App) ListIPAddresses(name string) []kube.IPAddressInfo {
+	return a.clients.IPAddresses(name)
+}
+
+func (a *App) GetIPAddress(contextName, name string) (*kube.IPAddressDetail, error) {
+	return a.clients.IPAddress(contextName, name)
+}
+
 func (a *App) ListEndpoints(name, namespace string) []kube.EndpointsInfo {
 	return a.clients.EndpointsList(name, namespace)
 }

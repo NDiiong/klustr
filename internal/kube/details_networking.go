@@ -127,6 +127,25 @@ type NetworkPolicyDetail struct {
 	CreatedAt   string            `json:"createdAt"`
 }
 
+type ServiceCIDRDetail struct {
+	Name        string            `json:"name"`
+	UID         string            `json:"uid"`
+	CIDRs       []string          `json:"cidrs"`
+	Conditions  []ConditionDetail `json:"conditions"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
+type IPAddressDetail struct {
+	Name        string            `json:"name"`
+	UID         string            `json:"uid"`
+	ParentRef   string            `json:"parentRef"`
+	Labels      map[string]string `json:"labels"`
+	Annotations map[string]string `json:"annotations"`
+	CreatedAt   string            `json:"createdAt"`
+}
+
 func (w *contextWatcher) Service(namespace, name string) (*ServiceDetail, error) {
 	f := w.factoryFor("Service")
 	if f == nil {
@@ -371,5 +390,53 @@ func (w *contextWatcher) NetworkPolicy(namespace, name string) (*NetworkPolicyDe
 		Labels:      p.Labels,
 		Annotations: p.Annotations,
 		CreatedAt:   p.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) ServiceCIDR(name string) (*ServiceCIDRDetail, error) {
+	f := w.factoryFor("ServiceCIDR")
+	if f == nil {
+		return nil, errKindNoAccess("ServiceCIDR")
+	}
+	s, err := f.Networking().V1().ServiceCIDRs().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	conds := make([]ConditionDetail, 0, len(s.Status.Conditions))
+	for _, c := range s.Status.Conditions {
+		conds = append(conds, ConditionDetail{
+			Type:    c.Type,
+			Status:  string(c.Status),
+			Reason:  c.Reason,
+			Message: c.Message,
+		})
+	}
+	return &ServiceCIDRDetail{
+		Name:        s.Name,
+		UID:         string(s.UID),
+		CIDRs:       append([]string{}, s.Spec.CIDRs...),
+		Conditions:  conds,
+		Labels:      s.Labels,
+		Annotations: s.Annotations,
+		CreatedAt:   s.CreationTimestamp.UTC().Format(time.RFC3339),
+	}, nil
+}
+
+func (w *contextWatcher) IPAddress(name string) (*IPAddressDetail, error) {
+	f := w.factoryFor("IPAddress")
+	if f == nil {
+		return nil, errKindNoAccess("IPAddress")
+	}
+	ip, err := f.Networking().V1().IPAddresses().Lister().Get(name)
+	if err != nil {
+		return nil, err
+	}
+	return &IPAddressDetail{
+		Name:        ip.Name,
+		UID:         string(ip.UID),
+		ParentRef:   parentRefString(ip.Spec.ParentRef),
+		Labels:      ip.Labels,
+		Annotations: ip.Annotations,
+		CreatedAt:   ip.CreationTimestamp.UTC().Format(time.RFC3339),
 	}, nil
 }
