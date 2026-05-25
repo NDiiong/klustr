@@ -76,6 +76,10 @@ export function GetLease(arg1:string,arg2:string,arg3:string):Promise<kube.Lease
 
 export function GetLimitRange(arg1:string,arg2:string,arg3:string):Promise<kube.LimitRangeDetail>;
 
+export function GetMutatingAdmissionPolicy(arg1:string,arg2:string):Promise<kube.AdmissionPolicyDetail>;
+
+export function GetMutatingAdmissionPolicyBinding(arg1:string,arg2:string):Promise<kube.AdmissionPolicyBindingDetail>;
+
 export function GetMutatingWebhookConfiguration(arg1:string,arg2:string):Promise<kube.WebhookConfigurationDetail>;
 
 export function GetNamespace(arg1:string,arg2:string):Promise<kube.NamespaceDetail>;
@@ -123,6 +127,10 @@ export function GetStatefulSet(arg1:string,arg2:string,arg3:string):Promise<kube
 export function GetStorageClass(arg1:string,arg2:string):Promise<kube.StorageClassDetail>;
 
 export function GetSubjectAccess(arg1:string,arg2:string,arg3:string,arg4:string):Promise<kube.SubjectAccess>;
+
+export function GetValidatingAdmissionPolicy(arg1:string,arg2:string):Promise<kube.AdmissionPolicyDetail>;
+
+export function GetValidatingAdmissionPolicyBinding(arg1:string,arg2:string):Promise<kube.AdmissionPolicyBindingDetail>;
 
 export function GetValidatingWebhookConfiguration(arg1:string,arg2:string):Promise<kube.WebhookConfigurationDetail>;
 
@@ -220,6 +228,10 @@ export function ListLeases(arg1:string,arg2:string):Promise<Array<kube.LeaseInfo
 
 export function ListLimitRanges(arg1:string,arg2:string):Promise<Array<kube.LimitRangeInfo>>;
 
+export function ListMutatingAdmissionPolicies(arg1:string):Promise<Array<kube.AdmissionPolicyInfo>>;
+
+export function ListMutatingAdmissionPolicyBindings(arg1:string):Promise<Array<kube.AdmissionPolicyBindingInfo>>;
+
 export function ListMutatingWebhookConfigurations(arg1:string):Promise<Array<kube.WebhookConfigurationInfo>>;
 
 export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
@@ -269,6 +281,10 @@ export function ListStatefulSetRevisions(arg1:string,arg2:string,arg3:string):Pr
 export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.StatefulSetInfo>>;
 
 export function ListStorageClasses(arg1:string):Promise<Array<kube.StorageClassInfo>>;
+
+export function ListValidatingAdmissionPolicies(arg1:string):Promise<Array<kube.AdmissionPolicyInfo>>;
+
+export function ListValidatingAdmissionPolicyBindings(arg1:string):Promise<Array<kube.AdmissionPolicyBindingInfo>>;
 
 export function ListValidatingWebhookConfigurations(arg1:string):Promise<Array<kube.WebhookConfigurationInfo>>;
 

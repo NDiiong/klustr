@@ -150,6 +150,14 @@ export function GetLimitRange(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetLimitRange'](arg1, arg2, arg3);
 }
 
+export function GetMutatingAdmissionPolicy(arg1, arg2) {
+  return window['go']['app']['App']['GetMutatingAdmissionPolicy'](arg1, arg2);
+}
+
+export function GetMutatingAdmissionPolicyBinding(arg1, arg2) {
+  return window['go']['app']['App']['GetMutatingAdmissionPolicyBinding'](arg1, arg2);
+}
+
 export function GetMutatingWebhookConfiguration(arg1, arg2) {
   return window['go']['app']['App']['GetMutatingWebhookConfiguration'](arg1, arg2);
 }
@@ -244,6 +252,14 @@ export function GetStorageClass(arg1, arg2) {
 
 export function GetSubjectAccess(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['GetSubjectAccess'](arg1, arg2, arg3, arg4);
+}
+
+export function GetValidatingAdmissionPolicy(arg1, arg2) {
+  return window['go']['app']['App']['GetValidatingAdmissionPolicy'](arg1, arg2);
+}
+
+export function GetValidatingAdmissionPolicyBinding(arg1, arg2) {
+  return window['go']['app']['App']['GetValidatingAdmissionPolicyBinding'](arg1, arg2);
 }
 
 export function GetValidatingWebhookConfiguration(arg1, arg2) {
@@ -438,6 +454,14 @@ export function ListLimitRanges(arg1, arg2) {
   return window['go']['app']['App']['ListLimitRanges'](arg1, arg2);
 }
 
+export function ListMutatingAdmissionPolicies(arg1) {
+  return window['go']['app']['App']['ListMutatingAdmissionPolicies'](arg1);
+}
+
+export function ListMutatingAdmissionPolicyBindings(arg1) {
+  return window['go']['app']['App']['ListMutatingAdmissionPolicyBindings'](arg1);
+}
+
 export function ListMutatingWebhookConfigurations(arg1) {
   return window['go']['app']['App']['ListMutatingWebhookConfigurations'](arg1);
 }
@@ -536,6 +560,14 @@ export function ListStatefulSets(arg1, arg2) {
 
 export function ListStorageClasses(arg1) {
   return window['go']['app']['App']['ListStorageClasses'](arg1);
+}
+
+export function ListValidatingAdmissionPolicies(arg1) {
+  return window['go']['app']['App']['ListValidatingAdmissionPolicies'](arg1);
+}
+
+export function ListValidatingAdmissionPolicyBindings(arg1) {
+  return window['go']['app']['App']['ListValidatingAdmissionPolicyBindings'](arg1);
 }
 
 export function ListValidatingWebhookConfigurations(arg1) {

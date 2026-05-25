@@ -101,6 +101,14 @@ import {
   ListLeases,
   ListMutatingWebhookConfigurations,
   ListValidatingWebhookConfigurations,
+  ListValidatingAdmissionPolicies,
+  GetValidatingAdmissionPolicy,
+  ListValidatingAdmissionPolicyBindings,
+  GetValidatingAdmissionPolicyBinding,
+  ListMutatingAdmissionPolicies,
+  GetMutatingAdmissionPolicy,
+  ListMutatingAdmissionPolicyBindings,
+  GetMutatingAdmissionPolicyBinding,
   ListAPIServices,
   GetAPIService,
   ListFlowSchemas,
@@ -258,6 +266,15 @@ export type RuntimeClassDetail = kube.RuntimeClassDetail
 export type LeaseDetail = kube.LeaseDetail
 export type WebhookConfigurationDetail = kube.WebhookConfigurationDetail
 export type WebhookSummary = kube.WebhookSummary
+export type AdmissionPolicyInfo = kube.AdmissionPolicyInfo
+export type AdmissionPolicyDetail = kube.AdmissionPolicyDetail
+export type AdmissionPolicyBindingInfo = kube.AdmissionPolicyBindingInfo
+export type AdmissionPolicyBindingDetail = kube.AdmissionPolicyBindingDetail
+export type AdmissionPolicyValidation = kube.AdmissionPolicyValidation
+export type AdmissionPolicyMutation = kube.AdmissionPolicyMutation
+export type AdmissionPolicyMatchCondition = kube.AdmissionPolicyMatchCondition
+export type AdmissionPolicyVariable = kube.AdmissionPolicyVariable
+export type AdmissionPolicyAuditAnnotation = kube.AdmissionPolicyAuditAnnotation
 export type EndpointsDetail = kube.EndpointsDetail
 export type EndpointsSubset = kube.EndpointsSubset
 export type EndpointsSubsetAddress = kube.EndpointsSubsetAddress
@@ -409,6 +426,26 @@ export const api = {
     ListMutatingWebhookConfigurations(name),
   listValidatingWebhookConfigurations: (name: string): Promise<WebhookConfigurationInfo[]> =>
     ListValidatingWebhookConfigurations(name),
+  listValidatingAdmissionPolicies: (name: string): Promise<AdmissionPolicyInfo[]> =>
+    ListValidatingAdmissionPolicies(name),
+  getValidatingAdmissionPolicy: (ctx: string, name: string): Promise<AdmissionPolicyDetail> =>
+    GetValidatingAdmissionPolicy(ctx, name),
+  listValidatingAdmissionPolicyBindings: (name: string): Promise<AdmissionPolicyBindingInfo[]> =>
+    ListValidatingAdmissionPolicyBindings(name),
+  getValidatingAdmissionPolicyBinding: (
+    ctx: string,
+    name: string,
+  ): Promise<AdmissionPolicyBindingDetail> => GetValidatingAdmissionPolicyBinding(ctx, name),
+  listMutatingAdmissionPolicies: (name: string): Promise<AdmissionPolicyInfo[]> =>
+    ListMutatingAdmissionPolicies(name),
+  getMutatingAdmissionPolicy: (ctx: string, name: string): Promise<AdmissionPolicyDetail> =>
+    GetMutatingAdmissionPolicy(ctx, name),
+  listMutatingAdmissionPolicyBindings: (name: string): Promise<AdmissionPolicyBindingInfo[]> =>
+    ListMutatingAdmissionPolicyBindings(name),
+  getMutatingAdmissionPolicyBinding: (
+    ctx: string,
+    name: string,
+  ): Promise<AdmissionPolicyBindingDetail> => GetMutatingAdmissionPolicyBinding(ctx, name),
   listAPIServices: (name: string): Promise<APIServiceInfo[]> => ListAPIServices(name),
   getAPIService: (ctx: string, name: string): Promise<APIServiceDetail> => GetAPIService(ctx, name),
   listFlowSchemas: (name: string): Promise<FlowSchemaInfo[]> => ListFlowSchemas(name),

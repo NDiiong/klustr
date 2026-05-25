@@ -38,6 +38,10 @@ import { PriorityLevelsView } from '@/features/prioritylevels/PriorityLevelsView
 import { LeasesView } from '@/features/leases/LeasesView'
 import { MutatingWebhookConfigurationsView } from '@/features/webhooks/MutatingWebhookConfigurationsView'
 import { ValidatingWebhookConfigurationsView } from '@/features/webhooks/ValidatingWebhookConfigurationsView'
+import { ValidatingAdmissionPoliciesView } from '@/features/validatingadmissionpolicies/ValidatingAdmissionPoliciesView'
+import { ValidatingAdmissionPolicyBindingsView } from '@/features/validatingadmissionpolicybindings/ValidatingAdmissionPolicyBindingsView'
+import { MutatingAdmissionPoliciesView } from '@/features/mutatingadmissionpolicies/MutatingAdmissionPoliciesView'
+import { MutatingAdmissionPolicyBindingsView } from '@/features/mutatingadmissionpolicybindings/MutatingAdmissionPolicyBindingsView'
 import { EndpointsView } from '@/features/endpoints/EndpointsView'
 import { ReplicationControllersView } from '@/features/replicationcontrollers/ReplicationControllersView'
 import { EventsView } from '@/features/events/EventsView'
@@ -170,6 +174,14 @@ function MainView() {
       return <MutatingWebhookConfigurationsView />
     case 'validatingwebhookconfigurations':
       return <ValidatingWebhookConfigurationsView />
+    case 'validatingadmissionpolicies':
+      return <ValidatingAdmissionPoliciesView />
+    case 'validatingadmissionpolicybindings':
+      return <ValidatingAdmissionPolicyBindingsView />
+    case 'mutatingadmissionpolicies':
+      return <MutatingAdmissionPoliciesView />
+    case 'mutatingadmissionpolicybindings':
+      return <MutatingAdmissionPolicyBindingsView />
     case 'endpoints':
       return <EndpointsView />
     case 'replicationcontrollers':

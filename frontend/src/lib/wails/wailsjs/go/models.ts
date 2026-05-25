@@ -112,6 +112,230 @@ export namespace kube {
 	        this.namespace = source["namespace"];
 	    }
 	}
+	export class AdmissionPolicyAuditAnnotation {
+	    key: string;
+	    valueExpression: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyAuditAnnotation(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.key = source["key"];
+	        this.valueExpression = source["valueExpression"];
+	    }
+	}
+	export class AdmissionPolicyMatchCondition {
+	    name: string;
+	    expression: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyMatchCondition(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.expression = source["expression"];
+	    }
+	}
+	export class AdmissionPolicyBindingDetail {
+	    name: string;
+	    uid: string;
+	    policyName: string;
+	    paramRef: string;
+	    validationActions: string[];
+	    matchResources: string[];
+	    matchConditions: AdmissionPolicyMatchCondition[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyBindingDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.policyName = source["policyName"];
+	        this.paramRef = source["paramRef"];
+	        this.validationActions = source["validationActions"];
+	        this.matchResources = source["matchResources"];
+	        this.matchConditions = this.convertValues(source["matchConditions"], AdmissionPolicyMatchCondition);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AdmissionPolicyBindingInfo {
+	    name: string;
+	    policyName: string;
+	    paramRef: string;
+	    actions: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyBindingInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.policyName = source["policyName"];
+	        this.paramRef = source["paramRef"];
+	        this.actions = source["actions"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class AdmissionPolicyVariable {
+	    name: string;
+	    expression: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyVariable(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.expression = source["expression"];
+	    }
+	}
+	export class AdmissionPolicyMutation {
+	    name: string;
+	    patchType: string;
+	    description: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyMutation(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.patchType = source["patchType"];
+	        this.description = source["description"];
+	    }
+	}
+	export class AdmissionPolicyValidation {
+	    expression: string;
+	    message: string;
+	    reason: string;
+	    messageExpression: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyValidation(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.expression = source["expression"];
+	        this.message = source["message"];
+	        this.reason = source["reason"];
+	        this.messageExpression = source["messageExpression"];
+	    }
+	}
+	export class AdmissionPolicyDetail {
+	    name: string;
+	    uid: string;
+	    failPolicy: string;
+	    paramKind: string;
+	    matchResources: string[];
+	    validations: AdmissionPolicyValidation[];
+	    mutations: AdmissionPolicyMutation[];
+	    auditAnnotations: AdmissionPolicyAuditAnnotation[];
+	    matchConditions: AdmissionPolicyMatchCondition[];
+	    variables: AdmissionPolicyVariable[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.failPolicy = source["failPolicy"];
+	        this.paramKind = source["paramKind"];
+	        this.matchResources = source["matchResources"];
+	        this.validations = this.convertValues(source["validations"], AdmissionPolicyValidation);
+	        this.mutations = this.convertValues(source["mutations"], AdmissionPolicyMutation);
+	        this.auditAnnotations = this.convertValues(source["auditAnnotations"], AdmissionPolicyAuditAnnotation);
+	        this.matchConditions = this.convertValues(source["matchConditions"], AdmissionPolicyMatchCondition);
+	        this.variables = this.convertValues(source["variables"], AdmissionPolicyVariable);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class AdmissionPolicyInfo {
+	    name: string;
+	    failPolicy: string;
+	    paramKind: string;
+	    validations: number;
+	    mutations: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AdmissionPolicyInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.failPolicy = source["failPolicy"];
+	        this.paramKind = source["paramKind"];
+	        this.validations = source["validations"];
+	        this.mutations = source["mutations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
+	
+	
+	
 	export class ArgoAppProjectDestination {
 	    server: string;
 	    namespace: string;

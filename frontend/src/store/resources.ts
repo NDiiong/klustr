@@ -46,6 +46,8 @@ import type {
   GRPCRouteInfo,
   GatewayClassInfo,
   ReferenceGrantInfo,
+  AdmissionPolicyInfo,
+  AdmissionPolicyBindingInfo,
 } from '@/lib/api'
 
 export type ByContext<T> = Record<string, T[]>
@@ -98,6 +100,10 @@ type ResourcesState = {
   grpcRoutes: ByContext<GRPCRouteInfo>
   gatewayClasses: ByContext<GatewayClassInfo>
   referenceGrants: ByContext<ReferenceGrantInfo>
+  validatingAdmissionPolicies: ByContext<AdmissionPolicyInfo>
+  validatingAdmissionPolicyBindings: ByContext<AdmissionPolicyBindingInfo>
+  mutatingAdmissionPolicies: ByContext<AdmissionPolicyInfo>
+  mutatingAdmissionPolicyBindings: ByContext<AdmissionPolicyBindingInfo>
   setNamespaces: (ctx: string, list: NamespaceInfo[]) => void
   setPods: (ctx: string, list: PodInfo[]) => void
   setDeployments: (ctx: string, list: DeploymentInfo[]) => void
@@ -145,6 +151,10 @@ type ResourcesState = {
   setGRPCRoutes: (ctx: string, list: GRPCRouteInfo[]) => void
   setGatewayClasses: (ctx: string, list: GatewayClassInfo[]) => void
   setReferenceGrants: (ctx: string, list: ReferenceGrantInfo[]) => void
+  setValidatingAdmissionPolicies: (ctx: string, list: AdmissionPolicyInfo[]) => void
+  setValidatingAdmissionPolicyBindings: (ctx: string, list: AdmissionPolicyBindingInfo[]) => void
+  setMutatingAdmissionPolicies: (ctx: string, list: AdmissionPolicyInfo[]) => void
+  setMutatingAdmissionPolicyBindings: (ctx: string, list: AdmissionPolicyBindingInfo[]) => void
   clearContext: (ctx: string) => void
   reset: () => void
 }
@@ -197,6 +207,10 @@ const KIND_KEYS = [
   'grpcRoutes',
   'gatewayClasses',
   'referenceGrants',
+  'validatingAdmissionPolicies',
+  'validatingAdmissionPolicyBindings',
+  'mutatingAdmissionPolicies',
+  'mutatingAdmissionPolicyBindings',
 ] as const
 
 type KindKey = (typeof KIND_KEYS)[number]
@@ -312,6 +326,22 @@ export const useResources = create<ResourcesState>((set) => ({
     set((s) => ({ gatewayClasses: withCtx(s.gatewayClasses, ctx, list) })),
   setReferenceGrants: (ctx, list) =>
     set((s) => ({ referenceGrants: withCtx(s.referenceGrants, ctx, list) })),
+  setValidatingAdmissionPolicies: (ctx, list) =>
+    set((s) => ({
+      validatingAdmissionPolicies: withCtx(s.validatingAdmissionPolicies, ctx, list),
+    })),
+  setValidatingAdmissionPolicyBindings: (ctx, list) =>
+    set((s) => ({
+      validatingAdmissionPolicyBindings: withCtx(s.validatingAdmissionPolicyBindings, ctx, list),
+    })),
+  setMutatingAdmissionPolicies: (ctx, list) =>
+    set((s) => ({
+      mutatingAdmissionPolicies: withCtx(s.mutatingAdmissionPolicies, ctx, list),
+    })),
+  setMutatingAdmissionPolicyBindings: (ctx, list) =>
+    set((s) => ({
+      mutatingAdmissionPolicyBindings: withCtx(s.mutatingAdmissionPolicyBindings, ctx, list),
+    })),
   clearContext: (ctx) =>
     set((s) => {
       const next = {} as Partial<Record<KindKey, ByContext<unknown>>>

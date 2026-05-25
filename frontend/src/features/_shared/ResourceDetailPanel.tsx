@@ -55,6 +55,8 @@ import { FlowSchemaDetailBody } from '@/features/flowschemas/FlowSchemaDetailBod
 import { PriorityLevelDetailBody } from '@/features/prioritylevels/PriorityLevelDetailBody'
 import { LeaseDetailBody } from '@/features/leases/LeaseDetailBody'
 import { WebhookConfigurationDetailBody } from '@/features/webhooks/WebhookConfigurationDetailBody'
+import { AdmissionPolicyDetailBody } from '@/features/validatingadmissionpolicies/AdmissionPolicyDetailBody'
+import { AdmissionPolicyBindingDetailBody } from '@/features/validatingadmissionpolicybindings/AdmissionPolicyBindingDetailBody'
 import { EndpointsDetailBody } from '@/features/endpoints/EndpointsDetailBody'
 import { ReplicationControllerDetailBody } from '@/features/replicationcontrollers/ReplicationControllerDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
@@ -585,6 +587,38 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
           contextName={contextName}
           kind="ValidatingWebhookConfiguration"
           loader={(ctx) => api.getValidatingWebhookConfiguration(ctx, resource.name)}
+        />
+      )
+    case 'ValidatingAdmissionPolicy':
+      return (
+        <AdmissionPolicyDetailBody
+          contextName={contextName}
+          kind="ValidatingAdmissionPolicy"
+          loader={(ctx) => api.getValidatingAdmissionPolicy(ctx, resource.name)}
+        />
+      )
+    case 'ValidatingAdmissionPolicyBinding':
+      return (
+        <AdmissionPolicyBindingDetailBody
+          contextName={contextName}
+          kind="ValidatingAdmissionPolicyBinding"
+          loader={(ctx) => api.getValidatingAdmissionPolicyBinding(ctx, resource.name)}
+        />
+      )
+    case 'MutatingAdmissionPolicy':
+      return (
+        <AdmissionPolicyDetailBody
+          contextName={contextName}
+          kind="MutatingAdmissionPolicy"
+          loader={(ctx) => api.getMutatingAdmissionPolicy(ctx, resource.name)}
+        />
+      )
+    case 'MutatingAdmissionPolicyBinding':
+      return (
+        <AdmissionPolicyBindingDetailBody
+          contextName={contextName}
+          kind="MutatingAdmissionPolicyBinding"
+          loader={(ctx) => api.getMutatingAdmissionPolicyBinding(ctx, resource.name)}
         />
       )
     case 'Endpoints':

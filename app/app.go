@@ -508,6 +508,38 @@ func (a *App) ListValidatingWebhookConfigurations(name string) []kube.WebhookCon
 	return a.clients.ValidatingWebhookConfigurations(name)
 }
 
+func (a *App) ListValidatingAdmissionPolicies(name string) []kube.AdmissionPolicyInfo {
+	return a.clients.ValidatingAdmissionPolicies(name)
+}
+
+func (a *App) GetValidatingAdmissionPolicy(contextName, name string) (*kube.AdmissionPolicyDetail, error) {
+	return a.clients.ValidatingAdmissionPolicy(contextName, name)
+}
+
+func (a *App) ListValidatingAdmissionPolicyBindings(name string) []kube.AdmissionPolicyBindingInfo {
+	return a.clients.ValidatingAdmissionPolicyBindings(name)
+}
+
+func (a *App) GetValidatingAdmissionPolicyBinding(contextName, name string) (*kube.AdmissionPolicyBindingDetail, error) {
+	return a.clients.ValidatingAdmissionPolicyBinding(contextName, name)
+}
+
+func (a *App) ListMutatingAdmissionPolicies(name string) []kube.AdmissionPolicyInfo {
+	return a.clients.MutatingAdmissionPolicies(name)
+}
+
+func (a *App) GetMutatingAdmissionPolicy(contextName, name string) (*kube.AdmissionPolicyDetail, error) {
+	return a.clients.MutatingAdmissionPolicy(contextName, name)
+}
+
+func (a *App) ListMutatingAdmissionPolicyBindings(name string) []kube.AdmissionPolicyBindingInfo {
+	return a.clients.MutatingAdmissionPolicyBindings(name)
+}
+
+func (a *App) GetMutatingAdmissionPolicyBinding(contextName, name string) (*kube.AdmissionPolicyBindingDetail, error) {
+	return a.clients.MutatingAdmissionPolicyBinding(contextName, name)
+}
+
 func (a *App) ListEndpoints(name, namespace string) []kube.EndpointsInfo {
 	return a.clients.EndpointsList(name, namespace)
 }

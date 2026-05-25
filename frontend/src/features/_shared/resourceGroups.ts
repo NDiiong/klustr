@@ -9,6 +9,7 @@ import {
   Boxes,
   Briefcase,
   CalendarClock,
+  Cog,
   Compass,
   Copy,
   CopyPlus,
@@ -121,6 +122,30 @@ export const RESOURCE_GROUPS: ResourceGroup[] = [
       { label: 'Leases', view: 'leases', icon: Handshake, kind: 'Lease' },
       { label: 'MutatingWebhooks', view: 'mutatingwebhookconfigurations', icon: Webhook, kind: 'MutatingWebhookConfiguration' },
       { label: 'ValidatingWebhooks', view: 'validatingwebhookconfigurations', icon: Webhook, kind: 'ValidatingWebhookConfiguration' },
+      {
+        label: 'ValidatingAdmissionPolicies',
+        view: 'validatingadmissionpolicies',
+        icon: ShieldCheck,
+        kind: 'ValidatingAdmissionPolicy',
+      },
+      {
+        label: 'VAP Bindings',
+        view: 'validatingadmissionpolicybindings',
+        icon: Link2,
+        kind: 'ValidatingAdmissionPolicyBinding',
+      },
+      {
+        label: 'MutatingAdmissionPolicies',
+        view: 'mutatingadmissionpolicies',
+        icon: Cog,
+        kind: 'MutatingAdmissionPolicy',
+      },
+      {
+        label: 'MAP Bindings',
+        view: 'mutatingadmissionpolicybindings',
+        icon: Link2,
+        kind: 'MutatingAdmissionPolicyBinding',
+      },
     ],
   },
   {

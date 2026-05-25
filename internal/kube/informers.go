@@ -294,6 +294,18 @@ func (w *contextWatcher) registerHandlers() error {
 		{"PriorityLevelConfiguration", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
 			return f.Flowcontrol().V1().PriorityLevelConfigurations().Informer()
 		}},
+		{"ValidatingAdmissionPolicy", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Admissionregistration().V1().ValidatingAdmissionPolicies().Informer()
+		}},
+		{"ValidatingAdmissionPolicyBinding", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Admissionregistration().V1().ValidatingAdmissionPolicyBindings().Informer()
+		}},
+		{"MutatingAdmissionPolicy", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Admissionregistration().V1().MutatingAdmissionPolicies().Informer()
+		}},
+		{"MutatingAdmissionPolicyBinding", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Admissionregistration().V1().MutatingAdmissionPolicyBindings().Informer()
+		}},
 	}
 
 	for _, b := range bindings {
