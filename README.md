@@ -22,11 +22,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SametKUM/klustr/releases/download/v0.31.0/hero.mp4">
-    <img src="docs/hero.gif" alt="Klustr tour — Welcome screen, multi-cluster, HPA, Argo CD sync, log streaming, Helm upgrade" width="900">
-  </a>
-  <br>
-  <sub><a href="https://github.com/SametKUM/klustr/releases/download/v0.31.0/hero.mp4">▶ Download full-quality 1920×1200 MP4 (9 MB)</a></sub>
+  <video src="https://sametkum.github.io/klustr/hero.mp4" autoplay loop muted playsinline width="900" poster="docs/hero-poster.png">
+    <a href="https://sametkum.github.io/klustr/hero.mp4"><img src="docs/hero.gif" alt="Klustr tour — Welcome screen, multi-cluster, HPA, Argo CD sync, log streaming, Helm upgrade" width="900"></a>
+  </video>
 </p>
 
 ## What is Klustr?
