@@ -101,6 +101,19 @@ open /Applications/klustr.app
 
 The Linux binary links against `webkit2gtk-4.1` + `gtk-3`. Ubuntu 24.04+, Fedora 39+, Arch and most other modern distros ship those runtime libraries by default; on Ubuntu 22.04 install `libwebkit2gtk-4.1-0 libgtk-3-0` first.
 
+#### Debian / Ubuntu (.deb)
+
+The .deb pulls in the runtime dependencies automatically and registers a `klustr` desktop entry.
+
+```bash
+VERSION="$(curl -fsSL https://api.github.com/repos/SametKUM/klustr/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+')"
+DEB="klustr_${VERSION#v}_amd64.deb"
+curl -LO "https://github.com/SametKUM/klustr/releases/download/${VERSION}/${DEB}"
+sudo apt install "./${DEB}"
+```
+
+#### Manual (tarball)
+
 Download the latest `linux-amd64` tarball from the [Releases](https://github.com/SametKUM/klustr/releases/latest) page, then:
 
 ```bash

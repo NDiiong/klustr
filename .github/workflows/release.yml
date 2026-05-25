@@ -79,6 +79,9 @@ jobs:
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "name=klustr-${VERSION}-${{ matrix.suffix }}" >> "$GITHUB_OUTPUT"
+          DEB_VERSION="${VERSION#v}"
+          echo "deb_version=${DEB_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "deb_name=klustr_${DEB_VERSION}_amd64.deb" >> "$GITHUB_OUTPUT"
 
       - name: Build
         shell: bash
@@ -153,10 +156,31 @@ jobs:
           cd build/bin
           tar -czf ${{ steps.meta.outputs.name }} klustr
 
+      - name: Build Linux .deb
+        if: matrix.os == 'ubuntu-24.04'
+        shell: bash
+        env:
+          NFPM_VERSION: "2.46.3"
+          VERSION: ${{ steps.meta.outputs.deb_version }}
+        run: |
+          curl -sSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" \
+            | tar -xz -C /tmp nfpm
+          /tmp/nfpm package \
+            --config build/linux/nfpm.yaml \
+            --packager deb \
+            --target "build/bin/${{ steps.meta.outputs.deb_name }}"
+
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.meta.outputs.name }}
           path: build/bin/${{ steps.meta.outputs.name }}
+          if-no-files-found: error
+
+      - if: matrix.os == 'ubuntu-24.04'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.meta.outputs.deb_name }}
+          path: build/bin/${{ steps.meta.outputs.deb_name }}
           if-no-files-found: error
 
   release:
@@ -175,6 +199,7 @@ jobs:
           files: |
             artifacts/klustr-*-darwin-arm64.tar.gz
             artifacts/klustr-*-linux-amd64.tar.gz
+            artifacts/klustr_*_amd64.deb
           generate_release_notes: true
           append_body: true
           body: |
@@ -200,10 +225,23 @@ jobs:
 
             ## Install (Linux amd64)
 
-            The Linux build links against `webkit2gtk-4.1` + `gtk-3`. Make sure
-            those runtime libraries are present (Ubuntu 24.04+, Fedora 39+,
-            Arch and most modern distros ship them by default; on Ubuntu
-            22.04 install `libwebkit2gtk-4.1-0 libgtk-3-0`).
+            The Linux build links against `webkit2gtk-4.1` + `gtk-3`. Ubuntu
+            24.04+, Fedora 39+, Arch and most modern distros ship those
+            runtime libraries by default; on Ubuntu 22.04 install
+            `libwebkit2gtk-4.1-0 libgtk-3-0` first.
+
+            ### Debian / Ubuntu (.deb)
+
+            The .deb pulls in the runtime dependencies automatically and
+            registers a `klustr` desktop entry.
+
+            ```bash
+            VERSION="${{ github.ref_name }}"; DEB="klustr_${VERSION#v}_amd64.deb"
+            curl -LO "https://github.com/SametKUM/klustr/releases/download/${VERSION}/${DEB}"
+            sudo apt install "./${DEB}"
+            ```
+
+            ### Manual (tarball)
 
             ```bash
             curl -LO https://github.com/SametKUM/klustr/releases/download/${{ github.ref_name }}/klustr-${{ github.ref_name }}-linux-amd64.tar.gz

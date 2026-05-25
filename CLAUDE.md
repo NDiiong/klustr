@@ -22,7 +22,7 @@ Cross-platform Kubernetes desktop client. Multi-context cluster management with 
 | Lint / format | golangci-lint (Go) + ESLint (frontend) |
 | Tests | `go test` (backend) + Vitest + jsdom (frontend) |
 | CI release builds | GitHub Actions matrix on hosted runners (macOS, Windows, Linux) |
-| Release publishing | `softprops/action-gh-release` (macOS + Linux assets today), Homebrew cask auto-bump for macOS |
+| Release publishing | `softprops/action-gh-release` (macOS .tar.gz + Linux .tar.gz + .deb assets today), Homebrew cask auto-bump for macOS |
 
 ## Project Structure
 
@@ -99,7 +99,8 @@ klustr/
 │       ├── lib/wails/            auto-generated Go bindings — DO NOT EDIT
 │       ├── lib/api.ts            ergonomic wrappers over wails bindings
 │       └── lib/events.ts         onKubeChange / onPFUpdate Wails event subscriptions
-├── build/                        Wails build artifacts (icons, Info.plist)
+├── build/                        Wails build artifacts (icons, Info.plist) +
+│                                 linux/ (nfpm.yaml + klustr.desktop for the .deb)
 ├── docs/
 │   ├── hero.mp4 / hero.gif         README hero — MP4 embedded inline via
 │   │                               github.com/user-attachments/assets URL
@@ -339,7 +340,7 @@ Klustr is pre-1.0 and ships from `main`. The flow per release:
    - Only `fix:` / `refactor:` / `test:` / `docs:` / `chore:` → patch bump (`v0.X.Y`).
 3. **Smoke-test in `wails dev`**: run it, exercise the changed feature, wait for explicit OK before pushing.
 4. **Tag and push**: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`. This triggers `.github/workflows/release.yml`.
-5. **Wait for the workflow** (~7 min). It builds darwin-arm64 + linux-amd64, attaches both as assets, and creates a **draft** GitHub release with auto-generated notes appended to the install block.
+5. **Wait for the workflow** (~7 min). It builds darwin-arm64 + linux-amd64 (.tar.gz + .deb), attaches all three as assets, and creates a **draft** GitHub release with auto-generated notes appended to the install block.
 6. **Rewrite the draft notes**: write the notes to a `.md` file and pass `--notes-file`:
    ```bash
    gh release edit vX.Y.Z --notes-file release-notes.md
