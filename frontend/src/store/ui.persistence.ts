@@ -28,6 +28,7 @@ import {
 export const THEME_STORAGE_KEY = 'klustr-theme'
 export const COLLAPSED_NAV_GROUPS_KEY = 'klustr-collapsed-nav-groups'
 export const EXPANDED_CRD_GROUPS_KEY = 'klustr-expanded-crd-groups'
+export const HIDDEN_SIDEBAR_ITEMS_KEY = 'klustr-hidden-sidebar-items'
 export const SIDEBAR_MODE_KEY = 'klustr-sidebar-mode'
 export const SIDEBAR_WIDTH_KEY = 'klustr-sidebar-width'
 export const DEFAULT_CONTEXT_KEY = 'klustr-default-context'
@@ -143,6 +144,33 @@ export function readExpandedCRDGroups(): string[] {
 
 export function persistExpandedCRDGroups(list: string[]) {
   localStorage.setItem(EXPANDED_CRD_GROUPS_KEY, JSON.stringify(list))
+}
+
+export function readHiddenSidebarItemsByContext(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(HIDDEN_SIDEBAR_ITEMS_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    const result: Record<string, string[]> = {}
+    for (const [ctx, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!Array.isArray(value)) continue
+      const list = value.filter((v): v is string => typeof v === 'string')
+      if (list.length > 0) result[ctx] = list
+    }
+    return result
+  } catch {
+    return {}
+  }
+}
+
+export function persistHiddenSidebarItemsByContext(map: Record<string, string[]>) {
+  const entries = Object.entries(map).filter(([, list]) => list.length > 0)
+  if (entries.length === 0) {
+    localStorage.removeItem(HIDDEN_SIDEBAR_ITEMS_KEY)
+  } else {
+    localStorage.setItem(HIDDEN_SIDEBAR_ITEMS_KEY, JSON.stringify(Object.fromEntries(entries)))
+  }
 }
 
 // ---- context selection ---------------------------------------------------

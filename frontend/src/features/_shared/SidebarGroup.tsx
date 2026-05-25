@@ -1,6 +1,12 @@
-import type { Ref } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { Fragment, type Ref } from 'react'
+import { ChevronRight, EyeOff } from 'lucide-react'
 
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import type { ResourceGroup } from '@/features/_shared/resourceGroups'
 import type { ResourceView, SidebarMode } from '@/store/ui'
@@ -13,6 +19,7 @@ type Props = {
   selectedView: ResourceView
   selectedCRDKey: string | null
   onSelectView: (view: ResourceView) => void
+  onHideItem?: (view: ResourceView) => void
   activeItemRef?: Ref<HTMLLIElement>
 }
 
@@ -24,6 +31,7 @@ export function SidebarGroup({
   selectedView,
   selectedCRDKey,
   onSelectView,
+  onHideItem,
   activeItemRef,
 }: Props) {
   if (mode === 'icons') {
@@ -120,13 +128,12 @@ export function SidebarGroup({
             const enabled = item.view !== undefined
             const active =
               item.view !== undefined && item.view === selectedView && selectedCRDKey === null
-            return (
+            const row = (
               <li
-                key={item.label}
                 ref={active ? activeItemRef : undefined}
                 aria-disabled={!enabled}
                 className={[
-                  'flex items-center gap-2 rounded border-l-2 px-2 py-1 text-sm transition-colors',
+                  'group/sidebar-item flex items-center gap-2 rounded border-l-2 pl-2 pr-1 py-1 text-sm transition-colors',
                   enabled
                     ? 'cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     : 'cursor-default text-muted-foreground/60',
@@ -144,8 +151,35 @@ export function SidebarGroup({
                     aria-hidden
                   />
                 ) : null}
-                <span className="truncate">{item.label}</span>
+                <span className="flex-1 truncate">{item.label}</span>
+                {onHideItem && item.view && (
+                  <button
+                    type="button"
+                    aria-label={`Hide ${item.label} from sidebar`}
+                    title="Hide from sidebar"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onHideItem(item.view!)
+                    }}
+                    className="ml-auto flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-0 transition-opacity hover:bg-background hover:text-foreground focus-visible:opacity-100 group-hover/sidebar-item:opacity-100"
+                  >
+                    <EyeOff className="size-3" aria-hidden />
+                  </button>
+                )}
               </li>
+            )
+            if (!onHideItem || !item.view) return <Fragment key={item.label}>{row}</Fragment>
+            const view = item.view
+            return (
+              <ContextMenu key={item.label}>
+                <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onSelect={() => onHideItem(view)}>
+                    <EyeOff className="size-3.5" aria-hidden />
+                    Hide from sidebar
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             )
           })}
         </ul>

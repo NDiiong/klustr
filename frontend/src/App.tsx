@@ -80,6 +80,7 @@ import { KarpenterNodePoolsView } from '@/features/karpenter-nodepools/Karpenter
 import { KarpenterNodeClaimsView } from '@/features/karpenter-nodeclaims/KarpenterNodeClaimsView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { ARGO_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
+import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
 import { SidebarGroup } from '@/features/_shared/SidebarGroup'
 import { SidebarResizeHandle } from '@/features/_shared/SidebarResizeHandle'
 import { RowActionDialogs } from '@/features/_shared/RowActionDialogs'
@@ -93,7 +94,12 @@ import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type CRDInfo } from '@/lib/api'
 import { onKubeChange, onPFUpdate } from '@/lib/events'
-import { useActiveContexts, useUIStore, type ResourceView } from '@/store/ui'
+import {
+  useActiveContexts,
+  useEffectiveHiddenSidebarItems,
+  useUIStore,
+  type ResourceView,
+} from '@/store/ui'
 import { useResources } from '@/store/resources'
 import { crdKey, useCRDStore } from '@/store/crds'
 import { useHelmStore } from '@/store/helm'
@@ -307,6 +313,10 @@ function App() {
   const setAccess = useAccessStore((s) => s.set)
   const resetAccess = useAccessStore((s) => s.reset)
   const accessByContext = useAccessStore((s) => s.byContext)
+  const hiddenSidebarItems = useEffectiveHiddenSidebarItems()
+  const hideSidebarItem = useUIStore((s) => s.hideSidebarItem)
+  const showSidebarItem = useUIStore((s) => s.showSidebarItem)
+  const clearHiddenSidebarItems = useUIStore((s) => s.clearHiddenSidebarItems)
   const activeNavItemRef = useRef<HTMLLIElement | null>(null)
 
   const isAggregated = activeContexts.length >= 2
@@ -326,15 +336,27 @@ function App() {
     // Filter each group's items by per-context RBAC reach. Items without a
     // `kind` (Overview, Events, Access Review, Helm Repos) always survive
     // because they aren't gated on a single kind. Drop groups that empty out.
+    // The user-hide filter runs after RBAC so the "Show hidden" popover
+    // never offers an item the current contexts can't see anyway.
+    const hidden = new Set<string>(hiddenSidebarItems)
     return allGroups
       .map((g) => ({
         ...g,
         items: g.items.filter(
-          (i) => !i.kind || kindAccessibleInAny(accessByContext, activeContexts, i.kind),
+          (i) =>
+            (!i.kind || kindAccessibleInAny(accessByContext, activeContexts, i.kind)) &&
+            (!i.view || !hidden.has(i.view)),
         ),
       }))
       .filter((g) => g.items.length > 0)
-  }, [hasGatewayAPI, hasArgoApplications, hasKarpenter, accessByContext, activeContexts])
+  }, [
+    hasGatewayAPI,
+    hasArgoApplications,
+    hasKarpenter,
+    accessByContext,
+    activeContexts,
+    hiddenSidebarItems,
+  ])
   const navViews = useMemo<ResourceView[]>(() => visibleGroups.flatMap(groupViews), [
     visibleGroups,
   ])
@@ -513,6 +535,7 @@ function App() {
                 selectedView={selectedView}
                 selectedCRDKey={selectedCRDKey}
                 onSelectView={setSelectedView}
+                onHideItem={hideSidebarItem}
                 activeItemRef={activeNavItemRef}
               />
             ))}
@@ -526,6 +549,22 @@ function App() {
               />
             )}
           </nav>
+          {hiddenSidebarItems.length > 0 && (
+            <div
+              className={
+                sidebarMode === 'icons'
+                  ? 'flex justify-center border-t border-sidebar-border/60 p-1'
+                  : 'border-t border-sidebar-border/60 px-2 py-1.5'
+              }
+            >
+              <HiddenSidebarItemsButton
+                hiddenItems={hiddenSidebarItems}
+                mode={sidebarMode}
+                onShowItem={showSidebarItem}
+                onClearAll={clearHiddenSidebarItems}
+              />
+            </div>
+          )}
           {sidebarMode === 'expanded' && (
             <SidebarResizeHandle width={sidebarWidth} onResize={setSidebarWidth} />
           )}

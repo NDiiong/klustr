@@ -24,6 +24,7 @@ import {
   persistCustomTags,
   persistDefaultContext,
   persistExpandedCRDGroups,
+  persistHiddenSidebarItemsByContext,
   persistLastSession,
   persistSidebarMode,
   persistSidebarWidth,
@@ -37,6 +38,7 @@ import {
   readCustomTags,
   readDefaultContext,
   readExpandedCRDGroups,
+  readHiddenSidebarItemsByContext,
   readLastSession,
   readSavedThemeId,
   readSidebarMode,
@@ -82,6 +84,7 @@ type UIState = {
   sidebarWidth: number
   collapsedNavGroups: string[]
   expandedCRDGroups: string[]
+  hiddenSidebarItemsByContext: Record<string, ResourceView[]>
   defaultContext: string | null
   contextTags: Record<string, ContextTag[]>
   customTags: Record<string, CustomTagDef>
@@ -106,6 +109,9 @@ type UIState = {
   setSidebarWidth: (px: number) => void
   toggleNavGroup: (label: string) => void
   toggleCRDGroup: (label: string) => void
+  hideSidebarItem: (view: ResourceView) => void
+  showSidebarItem: (view: ResourceView) => void
+  clearHiddenSidebarItems: () => void
   setDefaultContext: (name: string | null) => void
   toggleContextTag: (name: string, tagId: string) => void
   clearContextTags: (name: string) => void
@@ -195,6 +201,7 @@ export const useUIStore = create<UIState>((set) => {
     sidebarMode: readSidebarMode(),
     sidebarWidth: readSidebarWidth(),
     collapsedNavGroups: readCollapsedNavGroups(),
+    hiddenSidebarItemsByContext: readHiddenSidebarItemsByContext() as Record<string, ResourceView[]>,
     expandedCRDGroups: readExpandedCRDGroups(),
     defaultContext: initialDefaultContext,
     contextTags: readContextTags(),
@@ -338,6 +345,56 @@ export const useUIStore = create<UIState>((set) => {
         persistCollapsedNavGroups(next)
         return { collapsedNavGroups: next }
       }),
+    hideSidebarItem: (view) =>
+      set((s) => {
+        const ctxs = effectiveContextList(s)
+        if (ctxs.length === 0) return s
+        const next = { ...s.hiddenSidebarItemsByContext }
+        let changed = false
+        for (const ctx of ctxs) {
+          const list = next[ctx] ?? []
+          if (list.includes(view)) continue
+          next[ctx] = [...list, view]
+          changed = true
+        }
+        if (!changed) return s
+        persistHiddenSidebarItemsByContext(next)
+        return { hiddenSidebarItemsByContext: next }
+      }),
+    showSidebarItem: (view) =>
+      set((s) => {
+        const ctxs = effectiveContextList(s)
+        if (ctxs.length === 0) return s
+        const next = { ...s.hiddenSidebarItemsByContext }
+        let changed = false
+        for (const ctx of ctxs) {
+          const list = next[ctx]
+          if (!list || !list.includes(view)) continue
+          const filtered = list.filter((v) => v !== view)
+          if (filtered.length === 0) delete next[ctx]
+          else next[ctx] = filtered
+          changed = true
+        }
+        if (!changed) return s
+        persistHiddenSidebarItemsByContext(next)
+        return { hiddenSidebarItemsByContext: next }
+      }),
+    clearHiddenSidebarItems: () =>
+      set((s) => {
+        const ctxs = effectiveContextList(s)
+        if (ctxs.length === 0) return s
+        const next = { ...s.hiddenSidebarItemsByContext }
+        let changed = false
+        for (const ctx of ctxs) {
+          if (next[ctx]) {
+            delete next[ctx]
+            changed = true
+          }
+        }
+        if (!changed) return s
+        persistHiddenSidebarItemsByContext(next)
+        return { hiddenSidebarItemsByContext: next }
+      }),
     toggleCRDGroup: (label) =>
       set((s) => {
         const next = s.expandedCRDGroups.includes(label)
@@ -435,4 +492,22 @@ export function useActiveContexts(): string[] {
 
 export function useIsAggregated(): boolean {
   return useUIStore((s) => s.aggregatedContexts.length > 1)
+}
+
+// Hidden sidebar items are stored per-context so each cluster can have its
+// own curated sidebar. In aggregated mode we intersect across contexts: only
+// items hidden in *every* active context stay hidden, so switching to
+// multi-context view doesn't suddenly hide things the user wanted to see in
+// the additional clusters.
+export function useEffectiveHiddenSidebarItems(): ResourceView[] {
+  return useUIStore(
+    useShallow((s) => {
+      const ctxs = effectiveContextList(s)
+      if (ctxs.length === 0) return []
+      const first = s.hiddenSidebarItemsByContext[ctxs[0]] ?? []
+      if (ctxs.length === 1) return first
+      const rest = ctxs.slice(1).map((c) => new Set(s.hiddenSidebarItemsByContext[c] ?? []))
+      return first.filter((v) => rest.every((set) => set.has(v)))
+    }),
+  )
 }
