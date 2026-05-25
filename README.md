@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <code>brew install sametkum/klustr/klustr</code>
+  <code>brew tap sametkum/klustr && brew install klustr</code>
   &nbsp;·&nbsp;
   <a href="#install">other install options</a>
 </p>
