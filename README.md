@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/e296fbda-0fd8-4407-ba0b-625d340a622b" autoplay loop muted playsinline width="900"></video>
+  <video src="https://github.com/user-attachments/assets/2fa03a47-aed6-42a3-933a-1a1b5f094b1b" autoplay loop muted playsinline width="900"></video>
 </p>
 
 ## What is Klustr?
