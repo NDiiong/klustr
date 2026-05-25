@@ -22,8 +22,11 @@
 </p>
 
 <p align="center">
-  <code>brew tap sametkum/klustr && brew install klustr</code>
-  &nbsp;·&nbsp;
+  <strong>macOS</strong>&nbsp;·&nbsp;<code>brew tap sametkum/klustr && brew install klustr</code><br>
+  <strong>Arch / CachyOS / Manjaro</strong>&nbsp;·&nbsp;<code>paru -S klustr-bin</code><br>
+  <strong>Debian / Ubuntu</strong>&nbsp;·&nbsp;<code>sudo apt install ./klustr_*_amd64.deb</code> &nbsp;(<a href="#debian--ubuntu-deb">download first</a>)
+</p>
+<p align="center">
   <a href="#install">other install options</a>
 </p>
 
