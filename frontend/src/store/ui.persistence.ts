@@ -32,6 +32,7 @@ export const SIDEBAR_MODE_KEY = 'klustr-sidebar-mode'
 export const SIDEBAR_WIDTH_KEY = 'klustr-sidebar-width'
 export const DEFAULT_CONTEXT_KEY = 'klustr-default-context'
 export const AGGREGATED_CONTEXTS_KEY = 'klustr-aggregated-contexts'
+export const SELECTED_NAMESPACES_KEY = 'klustr-selected-namespaces'
 export const CONTEXT_TAGS_KEY = 'klustr-context-tags'
 export const CUSTOM_TAGS_KEY = 'klustr-custom-tags'
 export const CONTEXT_GROUPS_KEY = 'klustr-context-groups'
@@ -168,6 +169,18 @@ export function persistAggregatedContexts(list: string[]) {
     localStorage.removeItem(AGGREGATED_CONTEXTS_KEY)
   } else {
     localStorage.setItem(AGGREGATED_CONTEXTS_KEY, JSON.stringify(list))
+  }
+}
+
+export function readSelectedNamespaces(): string[] {
+  return readStringArray(SELECTED_NAMESPACES_KEY)
+}
+
+export function persistSelectedNamespaces(list: string[]) {
+  if (list.length === 0) {
+    localStorage.removeItem(SELECTED_NAMESPACES_KEY)
+  } else {
+    localStorage.setItem(SELECTED_NAMESPACES_KEY, JSON.stringify(list))
   }
 }
 

@@ -29,6 +29,8 @@ import {
   persistSidebarWidth,
   persistThemeId,
   readAggregatedContexts,
+  readSelectedNamespaces,
+  persistSelectedNamespaces,
   readCollapsedNavGroups,
   readContextGroups,
   readContextTags,
@@ -136,7 +138,6 @@ type NormalizedContexts = {
   selectedContext: string | null
   aggregatedContexts: string[]
   activeGroupId: string | null
-  selectedNamespaces: string[]
   selectedCRDKey: string | null
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
@@ -151,7 +152,6 @@ function normalizeContexts(next: readonly string[]): NormalizedContexts {
     selectedContext: selectedNext,
     aggregatedContexts: aggregatedNext,
     activeGroupId: null,
-    selectedNamespaces: [],
     selectedCRDKey: null,
     selectedResource: null,
     lastSelectedResource: null,
@@ -183,7 +183,7 @@ export const useUIStore = create<UIState>((set) => {
     selectedContext: selectedAtBoot,
     aggregatedContexts: aggregatedAtBoot,
     activeGroupId: null,
-    selectedNamespaces: [],
+    selectedNamespaces: readSelectedNamespaces(),
     selectedView: 'overview',
     selectedCRDKey: null,
     selectedResource: null,
@@ -244,17 +244,24 @@ export const useUIStore = create<UIState>((set) => {
         if (effectiveContextList(s).length === 0) return s
         return normalizeContexts([])
       }),
-    setSelectedNamespaces: (names) =>
-      set({ selectedNamespaces: dedupeSorted(names) }),
+    setSelectedNamespaces: (names) => {
+      const next = dedupeSorted(names)
+      persistSelectedNamespaces(next)
+      set({ selectedNamespaces: next })
+    },
     toggleSelectedNamespace: (name) =>
       set((s) => {
         const has = s.selectedNamespaces.includes(name)
         const next = has
           ? s.selectedNamespaces.filter((n) => n !== name)
           : dedupeSorted([...s.selectedNamespaces, name])
+        persistSelectedNamespaces(next)
         return { selectedNamespaces: next }
       }),
-    clearSelectedNamespaces: () => set({ selectedNamespaces: [] }),
+    clearSelectedNamespaces: () => {
+      persistSelectedNamespaces([])
+      set({ selectedNamespaces: [] })
+    },
     setSelectedView: (view) =>
       set({
         selectedView: view,
