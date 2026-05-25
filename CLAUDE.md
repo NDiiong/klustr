@@ -100,7 +100,14 @@ klustr/
 │       ├── lib/api.ts            ergonomic wrappers over wails bindings
 │       └── lib/events.ts         onKubeChange / onPFUpdate Wails event subscriptions
 ├── build/                        Wails build artifacts (icons, Info.plist)
-├── docs/screenshots/             README hero + feature screenshots
+├── docs/
+│   ├── hero.mp4 / hero.gif         README hero — MP4 embedded inline via
+│   │                               github.com/user-attachments/assets URL
+│   │                               (only domain that github's README HTML
+│   │                               sanitizer allows in <video src>)
+│   ├── hero-poster.png             video poster + source-of-truth backup
+│   └── screenshots/                numbered themed pack `01-*.png` …
+│                                   `10-*.png` for README grid + press / blog
 ├── hack/                         user's local fixtures (NEVER commit anything under hack/)
 └── .github/workflows/            release matrix (release.yml → builds 3 OSes, ships macOS)
 ```
@@ -175,16 +182,17 @@ Both detections live in `App.tsx` (`hasGatewayAPI`, `hasArgoApplications`) by gr
 Klustr can drive 2+ contexts at once as a single virtual cluster:
 
 - `useActiveContexts()` returns `aggregatedContexts` when length ≥ 2, else `[selectedContext]`. Every list/detail call fans out per context client-side and tags rows with a `Context` column.
-- The connection picker (`ConnectionsScreen`) lets the user **save a named group** of contexts. `contextGroups` lives in the UI store; selecting a saved group is one click.
+- The connection picker (`ConnectionsScreen`) lets the user **save a named group** of contexts. `contextGroups` lives in the UI store; selecting a saved group is one click. The same saved groups also appear in a **Groups section at the top of the in-session `ContextSwitcher` dropdown**, so a group can be activated mid-session without dropping back to the Welcome screen.
 - The status bar pings every active context every ~25 s (`/version` against a copy of the rest.Config with a 5 s timeout — see `manager.go` `Ping`). The dot turns amber on slow pings, red on failure with the real error in the tooltip.
 - Switching contexts (or the namespace selection across them) does not restart informers for already-attached contexts — `Watch` is idempotent per context and `StopWatch` is what tears one down.
 
 ### Context tags & groups
 
-`ui.persistence.ts` persists two related concepts:
+`ui.persistence.ts` persists three related concepts:
 
 - **Tags** (`contextTags`): up to `MAX_TAGS_PER_CONTEXT` (3) string ids per context. Colored, picked from a fixed palette. Custom tag definitions live in `customTags`.
 - **Groups** (`contextGroups`): named multi-context selections with their own color. Activating a group sets `aggregatedContexts` and `activeGroupId` in one transaction.
+- **Namespace selection** (`selectedNamespaces`): multi-namespace filter that **survives context switches and reloads**. `normalizeContexts` deliberately does NOT clear it — namespaces that don't exist in the newly active context(s) are silently ignored at lister-query time, so the filter keeps applying cleanly across single-context, aggregated and group-active modes.
 
 The top bar paints a thin colored stripe matching the primary tag (or active group) so the user has a constant visual reminder which environment they're touching. This is the only "guardrail" today against running a destructive action on the wrong cluster — a richer destructive-context guard is on the roadmap.
 
@@ -204,7 +212,7 @@ Four-region layout:
 
 - **Top color stripe** (optional): reflects active context tag / group color.
 - **Header**: app name, context switcher, namespace selector, context-tag picker, port-forward indicator, disconnect button, theme picker.
-- **Sidebar**: collapsible resource-type navigation grouped Overview / Workloads / Config / Network / Storage / Cluster / **Access Control**. Two groups appear conditionally: **Gateway** (when the gateway CRDs are present) and **Argo CD** (when the Application CRD is present). **Helm** is always shown. CRD groups (anything outside the above) are listed by API group below the static groups.
+- **Sidebar**: collapsible resource-type navigation. Static groups in order: **Cluster** (Overview, Nodes, Namespaces, API Services, Flow Schemas, Priority Levels, Events) / **Workloads** (Overview, Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, ReplicationControllers, Jobs, CronJobs) / **Config** (ConfigMaps, Secrets, ResourceQuotas, LimitRanges, PriorityClasses, RuntimeClasses, Leases) / **Autoscaling** (HorizontalPodAutoscalers, PodDisruptionBudgets) / **Admission** (MutatingWebhooks, ValidatingWebhooks) / **Network** (Services, Ingresses, NetworkPolicies, EndpointSlices, Endpoints, IngressClasses) / **Storage** (PVCs, PVs, StorageClasses, CSI Drivers, CSI Nodes, Volume Attachments) / **Access Control** (Access Review, Service Accounts, Cluster Roles, Roles, Cluster Role Bindings, Role Bindings, CSRs) / **Helm** (always shown). Conditional groups: **Gateway API** (when the `gateway.networking.k8s.io` CRDs are present) and **Argo CD** (when the `applications.argoproj.io` CRD is present). Discovered CRDs (anything outside the above) are listed by API group below the static groups.
 - **Main**: resource list (`ResourceTable` generic over `<T>`) → detail Dialog with `Overview / Logs / Exec / Events / History / YAML` tabs as relevant.
 - **Status bar** (bottom): per-active-context ping dots, port-forward count, GitHub repo link, version label.
 
@@ -276,6 +284,7 @@ For CRs Klustr **already lists generically** via the CRD watcher with a YAML-onl
 
 - Use Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `test:`, `docs:`).
 - Prefer many small, logically scoped commits over a single monolithic one — target ~10–20 small commits per feature batch when work splits cleanly.
+- Append **`[skip ci]`** to docs-only / asset-only commits (`docs:`, `chore(docs):`, README-only `chore:`, screenshot or video updates) so the release workflow doesn't run on content-only changes. Never use it on `feat:`, `fix:`, `refactor:`, `perf:`, `test:`, or anything that changes runnable code — those should keep running CI.
 
 ## Testing
 
@@ -298,6 +307,7 @@ The test surface is **headless unit tests only** — Vitest+jsdom for frontend, 
 - Marketing-style copy or emoji in UI strings unless explicitly requested.
 - Editing auto-generated Wails bindings.
 - Staging anything under `hack/`. That directory is the user's local fixtures and is curated by hand.
+- Triggering the release workflow on docs-only / asset-only changes. Append **`[skip ci]`** to those commit subjects so the build doesn't run for a README tweak.
 
 ## Development Workflow
 
@@ -330,7 +340,11 @@ Klustr is pre-1.0 and ships from `main`. The flow per release:
 3. **Smoke-test in `wails dev`**: run it, exercise the changed feature, wait for explicit OK before pushing.
 4. **Tag and push**: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`. This triggers `.github/workflows/release.yml`.
 5. **Wait for the workflow** (~7 min). It builds darwin-arm64, windows-amd64, linux-amd64, attaches only the macOS asset (today) and creates a **draft** GitHub release with auto-generated notes appended to the install block.
-6. **Rewrite the draft notes** by hand (`gh release edit vX.Y.Z --notes "$(cat <<'EOF' … EOF)"`). Keep the install block at the bottom verbatim.
+6. **Rewrite the draft notes**: write the notes to a `.md` file and pass `--notes-file`:
+   ```bash
+   gh release edit vX.Y.Z --notes-file release-notes.md
+   ```
+   `--notes-file` is required — inline heredocs (`--notes "$(cat <<EOF…EOF)"`) silently break triple-backtick code fences inside the body. Keep the **Install** block at the bottom of the file verbatim (Homebrew + Manual `curl` snippet, with the tag pinned in the URL).
 7. **Publish**: `gh release edit vX.Y.Z --draft=false`. The same workflow run automatically bumps the Homebrew cask in the tap repo (`HOMEBREW_TAP_TOKEN`).
 
 Notes on the workflow:
