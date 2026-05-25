@@ -22,6 +22,12 @@
 </p>
 
 <p align="center">
+  <code>brew install sametkum/klustr/klustr</code>
+  &nbsp;·&nbsp;
+  <a href="#install">other install options</a>
+</p>
+
+<p align="center">
   <video src="https://github.com/user-attachments/assets/e296fbda-0fd8-4407-ba0b-625d340a622b" autoplay loop muted playsinline width="900"></video>
 </p>
 
