@@ -59,16 +59,18 @@ Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://
 
 ## Screenshots
 
+Every shot is captured live from real clusters. Each is rendered in a different theme so the pack doubles as a tour of Klustr's themes — see [`docs/screenshots/`](docs/screenshots) for the full set including light variants.
+
 |   |   |
 |---|---|
-| ![Cluster overview](docs/screenshots/cluster-overview.png) | ![Pods view](docs/screenshots/pods.png) |
-| **Cluster overview** — CPU / memory / pod donuts, warnings | **Live resource browser** — usage bars, restart badges |
-| ![Pod detail](docs/screenshots/pod-detail.png) | ![Aggregated logs](docs/screenshots/logs.png) |
-| **Pod detail** — env, containers, conditions, clickable owner & node | **Aggregated logs** — Stern-style across a workload |
-| ![YAML diff](docs/screenshots/yaml-diff.png) | ![Port-forward](docs/screenshots/port-forward.png) |
-| **YAML edit** — Monaco diff before apply | **Port-forwarding** — suggested ports, status indicator |
-| ![Argo CD Applications](docs/screenshots/argocd-applications.png) |   |
-| **Argo CD** — Sync / Health pills, auto-sync state, clickable repo, per-row Sync & Refresh without `argocd` CLI |   |
+| ![Cluster overview — Nord](docs/screenshots/03-cluster-overview-nord.png) | ![Pods aggregated — Dracula](docs/screenshots/02-pods-aggregated-dracula.png) |
+| **Cluster overview** — CPU / memory / pod donuts, warnings feed | **Aggregated pods** — two clusters in one table, status pill variety |
+| ![Argo CD Applications — One Dark](docs/screenshots/05-argo-sync-one-dark.png) | ![Helm Upgrade — Tokyo Night Day](docs/screenshots/04-helm-upgrade-tokyo-night-day.png) |
+| **Argo CD** — Sync / Health pills, per-row Sync & Refresh without `argocd` CLI | **Helm Upgrade** — values editor, Wait / Atomic options, dry-run preview |
+| ![HTTPRoutes — Monokai](docs/screenshots/06-gateway-httproutes-monokai.png) | ![Logs streaming — Default Dark](docs/screenshots/07-logs-audit-stream-default-dark.png) |
+| **Gateway API** — HTTPRoutes with parents, hostnames, accepted pills | **Aggregated logs** — multi-pod stream, per-pod ANSI colors, level highlighting |
+| ![Pod detail — Tokyo Night](docs/screenshots/08-pod-detail-tokyo-night.png) | ![YAML edit — Monokai Light](docs/screenshots/09-yaml-diff-monokai-light.png) |
+| **Pod detail** — env, containers, conditions, clickable owner & node | **YAML edit** — Monaco editor with diff before apply |
 
 ## Install
 
