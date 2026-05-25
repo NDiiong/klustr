@@ -48,6 +48,7 @@ import {
   type ContextTagMeta,
 } from './contextTagMeta'
 import { ContextTagMenuContent } from './ContextTagPicker'
+import { TagBadge } from './TagBadge'
 
 type LoadState =
   | { kind: 'loading' }
@@ -509,13 +510,7 @@ function HeroCard({
         <div className="mt-0.5 flex items-center gap-2">
           <ProviderIcon context={context} className="size-4 shrink-0" />
           <span className="truncate text-base font-semibold">{context.name}</span>
-          {primary && (
-            <span
-              className={`rounded border px-1.5 py-px text-[10px] font-semibold tracking-wider ${primary.badgeClass}`}
-            >
-              {primary.shortLabel}
-            </span>
-          )}
+          {primary && <TagBadge meta={primary} />}
         </div>
         <div className="truncate text-xs text-muted-foreground">
           {meta.label}
@@ -691,13 +686,7 @@ function LastSessionCard({
         </div>
         <div className="mt-0.5 flex items-center gap-2">
           <span className="truncate text-sm font-medium">{title}</span>
-          {primaryTagMeta && !isAggregated && (
-            <span
-              className={`rounded border px-1 py-px text-[10px] font-semibold tracking-wider ${primaryTagMeta.badgeClass}`}
-            >
-              {primaryTagMeta.shortLabel}
-            </span>
-          )}
+          {primaryTagMeta && !isAggregated && <TagBadge meta={primaryTagMeta} />}
         </div>
         <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
       </div>
@@ -1153,13 +1142,7 @@ function CardTagBadges({
         className="inline-flex cursor-pointer items-center gap-1 rounded transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {tagMetas.map((m) => (
-          <span
-            key={m.id}
-            className={`rounded border px-1 py-px text-[10px] font-semibold tracking-wider ${m.badgeClass}`}
-            aria-label={m.label}
-          >
-            {m.shortLabel}
-          </span>
+          <TagBadge key={m.id} meta={m} />
         ))}
       </span>
     ) : (

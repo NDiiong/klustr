@@ -15,6 +15,7 @@ import { api, type ContextInfo } from '@/lib/api'
 import { ProviderIcon, ProviderIconStack } from '@/features/_shared/providerIcons'
 import { useActiveContexts, useUIStore } from '@/store/ui'
 import { COLOR_PALETTE, resolveTagMeta } from './contextTagMeta'
+import { TagBadge } from './TagBadge'
 
 export function ContextSwitcher() {
   const [contexts, setContexts] = useState<ContextInfo[]>([])
@@ -189,13 +190,7 @@ export function ContextSwitcher() {
                             {c.name}
                           </span>
                           {tagMetas.map((m) => (
-                            <span
-                              key={m.id}
-                              className={`shrink-0 rounded border px-1 py-px text-[9px] font-semibold leading-tight tracking-wider ${m.badgeClass}`}
-                              aria-label={m.label}
-                            >
-                              {m.shortLabel}
-                            </span>
+                            <TagBadge key={m.id} meta={m} size="xs" />
                           ))}
                           {isAutoConnect && (
                             <span className="shrink-0 rounded bg-muted px-1 py-px text-[10px] uppercase tracking-wide text-muted-foreground">

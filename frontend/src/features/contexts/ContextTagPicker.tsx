@@ -20,6 +20,7 @@ import {
   makeTagSlug,
   resolveTagMeta,
 } from './contextTagMeta'
+import { TagBadge } from './TagBadge'
 
 function NewTagForm({
   onCreated,
@@ -260,29 +261,24 @@ export function ContextTagPicker() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={metas.length === 0 ? 'text-muted-foreground' : 'gap-1.5 px-2'}
-          aria-label={
-            metas.length > 0
-              ? `Context tags: ${metas.map((m) => m.label).join(', ')}`
-              : 'Tag context'
-          }
-        >
-          {metas.length === 0 ? (
+        {metas.length === 0 ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-muted-foreground"
+            aria-label="Tag context"
+          >
             <Tag className="size-3.5" />
-          ) : (
-            metas.map((m) => (
-              <span
-                key={m.id}
-                className={`rounded border px-1 py-px text-[10px] font-semibold tracking-wider ${m.badgeClass}`}
-              >
-                {m.shortLabel}
-              </span>
-            ))
-          )}
-        </Button>
+          </Button>
+        ) : (
+          <button
+            type="button"
+            aria-label={`Context tags: ${metas.map((m) => m.label).join(', ')}`}
+            className="inline-flex items-center gap-1.5 border-0 bg-transparent p-0 transition-opacity hover:opacity-80 focus:outline-none focus-visible:opacity-80"
+          >
+            {metas.map((m) => <TagBadge key={m.id} meta={m} />)}
+          </button>
+        )}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-60 p-1">
         <ContextTagMenuContent contextName={selectedContext} onClose={() => setOpen(false)} />
