@@ -172,7 +172,9 @@ jobs:
 
       - uses: softprops/action-gh-release@v3
         with:
-          files: artifacts/klustr-*-darwin-*
+          files: |
+            artifacts/klustr-*-darwin-arm64.tar.gz
+            artifacts/klustr-*-linux-amd64.tar.gz
           generate_release_notes: true
           append_body: true
           body: |
@@ -194,6 +196,20 @@ jobs:
             tar -xzf klustr-${{ github.ref_name }}-darwin-arm64.tar.gz
             mv klustr.app /Applications/
             open /Applications/klustr.app
+            ```
+
+            ## Install (Linux amd64)
+
+            The Linux build links against `webkit2gtk-4.1` + `gtk-3`. Make sure
+            those runtime libraries are present (Ubuntu 24.04+, Fedora 39+,
+            Arch and most modern distros ship them by default; on Ubuntu
+            22.04 install `libwebkit2gtk-4.1-0 libgtk-3-0`).
+
+            ```bash
+            curl -LO https://github.com/SametKUM/klustr/releases/download/${{ github.ref_name }}/klustr-${{ github.ref_name }}-linux-amd64.tar.gz
+            tar -xzf klustr-${{ github.ref_name }}-linux-amd64.tar.gz
+            install -Dm755 klustr ~/.local/bin/klustr
+            klustr
             ```
           draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}

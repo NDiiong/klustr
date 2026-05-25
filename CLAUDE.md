@@ -22,7 +22,7 @@ Cross-platform Kubernetes desktop client. Multi-context cluster management with 
 | Lint / format | golangci-lint (Go) + ESLint (frontend) |
 | Tests | `go test` (backend) + Vitest + jsdom (frontend) |
 | CI release builds | GitHub Actions matrix on hosted runners (macOS, Windows, Linux) |
-| Release publishing | `softprops/action-gh-release` (macOS asset only today), Homebrew cask auto-bump |
+| Release publishing | `softprops/action-gh-release` (macOS + Linux assets today), Homebrew cask auto-bump for macOS |
 
 ## Project Structure
 
@@ -339,7 +339,7 @@ Klustr is pre-1.0 and ships from `main`. The flow per release:
    - Only `fix:` / `refactor:` / `test:` / `docs:` / `chore:` → patch bump (`v0.X.Y`).
 3. **Smoke-test in `wails dev`**: run it, exercise the changed feature, wait for explicit OK before pushing.
 4. **Tag and push**: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`. This triggers `.github/workflows/release.yml`.
-5. **Wait for the workflow** (~7 min). It builds darwin-arm64, windows-amd64, linux-amd64, attaches only the macOS asset (today) and creates a **draft** GitHub release with auto-generated notes appended to the install block.
+5. **Wait for the workflow** (~7 min). It builds darwin-arm64 + linux-amd64, attaches both as assets, and creates a **draft** GitHub release with auto-generated notes appended to the install block.
 6. **Rewrite the draft notes**: write the notes to a `.md` file and pass `--notes-file`:
    ```bash
    gh release edit vX.Y.Z --notes-file release-notes.md
@@ -349,7 +349,7 @@ Klustr is pre-1.0 and ships from `main`. The flow per release:
 
 Notes on the workflow:
 - `prerelease: true` is set automatically when the tag contains a `-` (e.g. `v0.15.0-rc1`).
-- Linux and Windows binaries are built but **not** published yet — that ships as part of the v1 path.
+- Linux (amd64) is published as a release asset. Windows is still built-but-unpublished — that ships as part of the v1 path.
 - Auto-update is **not** wired in — also a v1 prerequisite.
 
 ## Verification Before Reporting Done

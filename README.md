@@ -97,9 +97,21 @@ mv klustr.app /Applications/
 open /Applications/klustr.app
 ```
 
-### Windows / Linux
+### Linux (amd64)
 
-Windows and Linux builds will be attached to releases once they've been validated on each platform. Until then, please build from source — see [Build from source](#build-from-source).
+The Linux binary links against `webkit2gtk-4.1` + `gtk-3`. Ubuntu 24.04+, Fedora 39+, Arch and most other modern distros ship those runtime libraries by default; on Ubuntu 22.04 install `libwebkit2gtk-4.1-0 libgtk-3-0` first.
+
+Download the latest `linux-amd64` tarball from the [Releases](https://github.com/SametKUM/klustr/releases/latest) page, then:
+
+```bash
+tar -xzf klustr-*-linux-amd64.tar.gz
+install -Dm755 klustr ~/.local/bin/klustr
+klustr
+```
+
+### Windows
+
+Windows builds will be attached to releases once they've been validated. Until then, please build from source — see [Build from source](#build-from-source).
 
 ## Quick start
 
@@ -144,7 +156,8 @@ Full design notes, conventions and the "add a new resource kind" recipe live in 
 - [x] Gateway API — Gateways, HTTPRoutes, GRPCRoutes, GatewayClasses, ReferenceGrants (typed informers, status pills, listener / rule / RouteParentStatus tables)
 - [x] Multi-cluster aggregated mode + named context groups + per-context health ping
 - [x] Notarized macOS build — signed with a Developer ID Application certificate and notarized by Apple
-- [ ] Linux & Windows release distribution (after per-platform testing)
+- [x] Linux (amd64) release distribution
+- [ ] Windows release distribution (after per-platform testing)
 
 ## Contributing
 
