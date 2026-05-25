@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { api, type ContextInfo } from '@/lib/api'
 import { ProviderIcon } from '@/features/_shared/providerIcons'
 import { useActiveContexts, useUIStore } from '@/store/ui'
-import { resolveTagMeta } from './contextTagMeta'
+import { COLOR_PALETTE, resolveTagMeta } from './contextTagMeta'
 
 export function ContextSwitcher() {
   const [contexts, setContexts] = useState<ContextInfo[]>([])
@@ -25,9 +25,12 @@ export function ContextSwitcher() {
   const activeContexts = useActiveContexts()
   const toggleAggregated = useUIStore((s) => s.toggleAggregatedContext)
   const clearAggregated = useUIStore((s) => s.clearAggregatedContexts)
+  const setAggregatedContexts = useUIStore((s) => s.setAggregatedContexts)
   const autoConnectContext = useUIStore((s) => s.defaultContext)
   const contextTags = useUIStore((s) => s.contextTags)
   const customTags = useUIStore((s) => s.customTags)
+  const contextGroups = useUIStore((s) => s.contextGroups)
+  const activeGroupId = useUIStore((s) => s.activeGroupId)
 
   useEffect(() => {
     let cancelled = false
@@ -80,6 +83,35 @@ export function ContextSwitcher() {
           <CommandInput placeholder="Filter contexts…" />
           <CommandList className="max-h-[24rem]">
             <CommandEmpty>No contexts match.</CommandEmpty>
+            {contextGroups.length > 0 && (
+              <>
+                <CommandGroup heading="Groups">
+                  {contextGroups.map((g) => {
+                    const isActive = g.id === activeGroupId
+                    const dotClass = COLOR_PALETTE[g.color]?.barClass ?? 'bg-slate-500'
+                    return (
+                      <CommandItem
+                        key={g.id}
+                        value={`__group_${g.id}_${g.name}`}
+                        onSelect={() => {
+                          setAggregatedContexts(g.contexts, g.id)
+                          setOpen(false)
+                        }}
+                        className="items-center gap-2 py-2"
+                      >
+                        <Checkbox checked={isActive} />
+                        <span className={`inline-block size-2 shrink-0 rounded-full ${dotClass}`} />
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium">{g.name}</span>
+                        <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {g.contexts.length}
+                        </span>
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
             {contexts.length === 0 ? (
               <div className="px-2 py-3 text-xs text-muted-foreground">No contexts found.</div>
             ) : (
