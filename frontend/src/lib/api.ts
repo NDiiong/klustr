@@ -109,6 +109,14 @@ import {
   GetMutatingAdmissionPolicy,
   ListMutatingAdmissionPolicyBindings,
   GetMutatingAdmissionPolicyBinding,
+  ListDeviceClasses,
+  GetDeviceClass,
+  ListResourceSlices,
+  GetResourceSlice,
+  ListResourceClaims,
+  GetResourceClaim,
+  ListResourceClaimTemplates,
+  GetResourceClaimTemplate,
   ListAPIServices,
   GetAPIService,
   ListFlowSchemas,
@@ -275,6 +283,18 @@ export type AdmissionPolicyMutation = kube.AdmissionPolicyMutation
 export type AdmissionPolicyMatchCondition = kube.AdmissionPolicyMatchCondition
 export type AdmissionPolicyVariable = kube.AdmissionPolicyVariable
 export type AdmissionPolicyAuditAnnotation = kube.AdmissionPolicyAuditAnnotation
+export type DeviceClassInfo = kube.DeviceClassInfo
+export type DeviceClassDetail = kube.DeviceClassDetail
+export type DeviceSelectorDetail = kube.DeviceSelectorDetail
+export type ResourceSliceInfo = kube.ResourceSliceInfo
+export type ResourceSliceDetail = kube.ResourceSliceDetail
+export type ResourceSliceDeviceDetail = kube.ResourceSliceDeviceDetail
+export type ResourceClaimInfo = kube.ResourceClaimInfo
+export type ResourceClaimDetail = kube.ResourceClaimDetail
+export type ResourceClaimTemplateInfo = kube.ResourceClaimTemplateInfo
+export type ResourceClaimTemplateDetail = kube.ResourceClaimTemplateDetail
+export type DeviceRequestDetail = kube.DeviceRequestDetail
+export type AllocatedDeviceDetail = kube.AllocatedDeviceDetail
 export type EndpointsDetail = kube.EndpointsDetail
 export type EndpointsSubset = kube.EndpointsSubset
 export type EndpointsSubsetAddress = kube.EndpointsSubsetAddress
@@ -446,6 +466,25 @@ export const api = {
     ctx: string,
     name: string,
   ): Promise<AdmissionPolicyBindingDetail> => GetMutatingAdmissionPolicyBinding(ctx, name),
+  listDeviceClasses: (name: string): Promise<DeviceClassInfo[]> => ListDeviceClasses(name),
+  getDeviceClass: (ctx: string, name: string): Promise<DeviceClassDetail> =>
+    GetDeviceClass(ctx, name),
+  listResourceSlices: (name: string): Promise<ResourceSliceInfo[]> => ListResourceSlices(name),
+  getResourceSlice: (ctx: string, name: string): Promise<ResourceSliceDetail> =>
+    GetResourceSlice(ctx, name),
+  listResourceClaims: (name: string, namespace: string): Promise<ResourceClaimInfo[]> =>
+    ListResourceClaims(name, namespace),
+  getResourceClaim: (ctx: string, ns: string, name: string): Promise<ResourceClaimDetail> =>
+    GetResourceClaim(ctx, ns, name),
+  listResourceClaimTemplates: (
+    name: string,
+    namespace: string,
+  ): Promise<ResourceClaimTemplateInfo[]> => ListResourceClaimTemplates(name, namespace),
+  getResourceClaimTemplate: (
+    ctx: string,
+    ns: string,
+    name: string,
+  ): Promise<ResourceClaimTemplateDetail> => GetResourceClaimTemplate(ctx, ns, name),
   listAPIServices: (name: string): Promise<APIServiceInfo[]> => ListAPIServices(name),
   getAPIService: (ctx: string, name: string): Promise<APIServiceDetail> => GetAPIService(ctx, name),
   listFlowSchemas: (name: string): Promise<FlowSchemaInfo[]> => ListFlowSchemas(name),

@@ -48,6 +48,11 @@ var kindToGVR = map[string]schema.GroupVersionResource{
 	"ValidatingAdmissionPolicyBinding": {Group: "admissionregistration.k8s.io", Version: "v1", Resource: "validatingadmissionpolicybindings"},
 	"MutatingAdmissionPolicy":          {Group: "admissionregistration.k8s.io", Version: "v1", Resource: "mutatingadmissionpolicies"},
 	"MutatingAdmissionPolicyBinding":   {Group: "admissionregistration.k8s.io", Version: "v1", Resource: "mutatingadmissionpolicybindings"},
+
+	"DeviceClass":           {Group: "resource.k8s.io", Version: "v1", Resource: "deviceclasses"},
+	"ResourceClaim":         {Group: "resource.k8s.io", Version: "v1", Resource: "resourceclaims"},
+	"ResourceClaimTemplate": {Group: "resource.k8s.io", Version: "v1", Resource: "resourceclaimtemplates"},
+	"ResourceSlice":         {Group: "resource.k8s.io", Version: "v1", Resource: "resourceslices"},
 	"Endpoints":              {Group: "", Version: "v1", Resource: "endpoints"},
 	"ReplicationController":  {Group: "", Version: "v1", Resource: "replicationcontrollers"},
 

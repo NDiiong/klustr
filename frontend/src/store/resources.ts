@@ -48,6 +48,10 @@ import type {
   ReferenceGrantInfo,
   AdmissionPolicyInfo,
   AdmissionPolicyBindingInfo,
+  DeviceClassInfo,
+  ResourceSliceInfo,
+  ResourceClaimInfo,
+  ResourceClaimTemplateInfo,
 } from '@/lib/api'
 
 export type ByContext<T> = Record<string, T[]>
@@ -104,6 +108,10 @@ type ResourcesState = {
   validatingAdmissionPolicyBindings: ByContext<AdmissionPolicyBindingInfo>
   mutatingAdmissionPolicies: ByContext<AdmissionPolicyInfo>
   mutatingAdmissionPolicyBindings: ByContext<AdmissionPolicyBindingInfo>
+  deviceClasses: ByContext<DeviceClassInfo>
+  resourceSlices: ByContext<ResourceSliceInfo>
+  resourceClaims: ByContext<ResourceClaimInfo>
+  resourceClaimTemplates: ByContext<ResourceClaimTemplateInfo>
   setNamespaces: (ctx: string, list: NamespaceInfo[]) => void
   setPods: (ctx: string, list: PodInfo[]) => void
   setDeployments: (ctx: string, list: DeploymentInfo[]) => void
@@ -155,6 +163,10 @@ type ResourcesState = {
   setValidatingAdmissionPolicyBindings: (ctx: string, list: AdmissionPolicyBindingInfo[]) => void
   setMutatingAdmissionPolicies: (ctx: string, list: AdmissionPolicyInfo[]) => void
   setMutatingAdmissionPolicyBindings: (ctx: string, list: AdmissionPolicyBindingInfo[]) => void
+  setDeviceClasses: (ctx: string, list: DeviceClassInfo[]) => void
+  setResourceSlices: (ctx: string, list: ResourceSliceInfo[]) => void
+  setResourceClaims: (ctx: string, list: ResourceClaimInfo[]) => void
+  setResourceClaimTemplates: (ctx: string, list: ResourceClaimTemplateInfo[]) => void
   clearContext: (ctx: string) => void
   reset: () => void
 }
@@ -211,6 +223,10 @@ const KIND_KEYS = [
   'validatingAdmissionPolicyBindings',
   'mutatingAdmissionPolicies',
   'mutatingAdmissionPolicyBindings',
+  'deviceClasses',
+  'resourceSlices',
+  'resourceClaims',
+  'resourceClaimTemplates',
 ] as const
 
 type KindKey = (typeof KIND_KEYS)[number]
@@ -342,6 +358,13 @@ export const useResources = create<ResourcesState>((set) => ({
     set((s) => ({
       mutatingAdmissionPolicyBindings: withCtx(s.mutatingAdmissionPolicyBindings, ctx, list),
     })),
+  setDeviceClasses: (ctx, list) => set((s) => ({ deviceClasses: withCtx(s.deviceClasses, ctx, list) })),
+  setResourceSlices: (ctx, list) =>
+    set((s) => ({ resourceSlices: withCtx(s.resourceSlices, ctx, list) })),
+  setResourceClaims: (ctx, list) =>
+    set((s) => ({ resourceClaims: withCtx(s.resourceClaims, ctx, list) })),
+  setResourceClaimTemplates: (ctx, list) =>
+    set((s) => ({ resourceClaimTemplates: withCtx(s.resourceClaimTemplates, ctx, list) })),
   clearContext: (ctx) =>
     set((s) => {
       const next = {} as Partial<Record<KindKey, ByContext<unknown>>>

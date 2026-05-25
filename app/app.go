@@ -540,6 +540,38 @@ func (a *App) GetMutatingAdmissionPolicyBinding(contextName, name string) (*kube
 	return a.clients.MutatingAdmissionPolicyBinding(contextName, name)
 }
 
+func (a *App) ListDeviceClasses(name string) []kube.DeviceClassInfo {
+	return a.clients.DeviceClasses(name)
+}
+
+func (a *App) GetDeviceClass(contextName, name string) (*kube.DeviceClassDetail, error) {
+	return a.clients.DeviceClass(contextName, name)
+}
+
+func (a *App) ListResourceSlices(name string) []kube.ResourceSliceInfo {
+	return a.clients.ResourceSlices(name)
+}
+
+func (a *App) GetResourceSlice(contextName, name string) (*kube.ResourceSliceDetail, error) {
+	return a.clients.ResourceSlice(contextName, name)
+}
+
+func (a *App) ListResourceClaims(name, namespace string) []kube.ResourceClaimInfo {
+	return a.clients.ResourceClaims(name, namespace)
+}
+
+func (a *App) GetResourceClaim(contextName, namespace, name string) (*kube.ResourceClaimDetail, error) {
+	return a.clients.ResourceClaim(contextName, namespace, name)
+}
+
+func (a *App) ListResourceClaimTemplates(name, namespace string) []kube.ResourceClaimTemplateInfo {
+	return a.clients.ResourceClaimTemplates(name, namespace)
+}
+
+func (a *App) GetResourceClaimTemplate(contextName, namespace, name string) (*kube.ResourceClaimTemplateDetail, error) {
+	return a.clients.ResourceClaimTemplate(contextName, namespace, name)
+}
+
 func (a *App) ListEndpoints(name, namespace string) []kube.EndpointsInfo {
 	return a.clients.EndpointsList(name, namespace)
 }

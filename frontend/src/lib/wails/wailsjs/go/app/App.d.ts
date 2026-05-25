@@ -48,6 +48,8 @@ export function GetDaemonSet(arg1:string,arg2:string,arg3:string):Promise<kube.D
 
 export function GetDeployment(arg1:string,arg2:string,arg3:string):Promise<kube.DeploymentDetail>;
 
+export function GetDeviceClass(arg1:string,arg2:string):Promise<kube.DeviceClassDetail>;
+
 export function GetEndpointSlice(arg1:string,arg2:string,arg3:string):Promise<kube.EndpointSliceDetail>;
 
 export function GetEndpoints(arg1:string,arg2:string,arg3:string):Promise<kube.EndpointsDetail>;
@@ -106,7 +108,13 @@ export function GetReplicaSet(arg1:string,arg2:string,arg3:string):Promise<kube.
 
 export function GetReplicationController(arg1:string,arg2:string,arg3:string):Promise<kube.ReplicationControllerDetail>;
 
+export function GetResourceClaim(arg1:string,arg2:string,arg3:string):Promise<kube.ResourceClaimDetail>;
+
+export function GetResourceClaimTemplate(arg1:string,arg2:string,arg3:string):Promise<kube.ResourceClaimTemplateDetail>;
+
 export function GetResourceQuota(arg1:string,arg2:string,arg3:string):Promise<kube.ResourceQuotaDetail>;
+
+export function GetResourceSlice(arg1:string,arg2:string):Promise<kube.ResourceSliceDetail>;
 
 export function GetResourceYAML(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
@@ -190,6 +198,8 @@ export function ListDeploymentRevisions(arg1:string,arg2:string,arg3:string):Pro
 
 export function ListDeployments(arg1:string,arg2:string):Promise<Array<kube.DeploymentInfo>>;
 
+export function ListDeviceClasses(arg1:string):Promise<Array<kube.DeviceClassInfo>>;
+
 export function ListEndpointSlices(arg1:string,arg2:string):Promise<Array<kube.EndpointSliceInfo>>;
 
 export function ListEndpoints(arg1:string,arg2:string):Promise<Array<kube.EndpointsInfo>>;
@@ -262,7 +272,13 @@ export function ListReplicaSets(arg1:string,arg2:string):Promise<Array<kube.Repl
 
 export function ListReplicationControllers(arg1:string,arg2:string):Promise<Array<kube.ReplicationControllerInfo>>;
 
+export function ListResourceClaimTemplates(arg1:string,arg2:string):Promise<Array<kube.ResourceClaimTemplateInfo>>;
+
+export function ListResourceClaims(arg1:string,arg2:string):Promise<Array<kube.ResourceClaimInfo>>;
+
 export function ListResourceQuotas(arg1:string,arg2:string):Promise<Array<kube.ResourceQuotaInfo>>;
+
+export function ListResourceSlices(arg1:string):Promise<Array<kube.ResourceSliceInfo>>;
 
 export function ListRoleBindings(arg1:string,arg2:string):Promise<Array<kube.RoleBindingInfo>>;
 

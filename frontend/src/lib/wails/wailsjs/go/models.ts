@@ -336,6 +336,24 @@ export namespace kube {
 	
 	
 	
+	export class AllocatedDeviceDetail {
+	    request: string;
+	    driver: string;
+	    pool: string;
+	    device: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AllocatedDeviceDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.request = source["request"];
+	        this.driver = source["driver"];
+	        this.pool = source["pool"];
+	        this.device = source["device"];
+	    }
+	}
 	export class ArgoAppProjectDestination {
 	    server: string;
 	    namespace: string;
@@ -1898,6 +1916,103 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class DeviceSelectorDetail {
+	    expression: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeviceSelectorDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.expression = source["expression"];
+	    }
+	}
+	export class DeviceClassDetail {
+	    name: string;
+	    uid: string;
+	    selectors: DeviceSelectorDetail[];
+	    config: number;
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeviceClassDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.selectors = this.convertValues(source["selectors"], DeviceSelectorDetail);
+	        this.config = source["config"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DeviceClassInfo {
+	    name: string;
+	    selectors: number;
+	    config: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeviceClassInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.selectors = source["selectors"];
+	        this.config = source["config"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class DeviceRequestDetail {
+	    name: string;
+	    deviceClassName: string;
+	    allocationMode: string;
+	    count: number;
+	    selectors: string[];
+	    adminAccess: boolean;
+	    firstAvailable: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeviceRequestDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.deviceClassName = source["deviceClassName"];
+	        this.allocationMode = source["allocationMode"];
+	        this.count = source["count"];
+	        this.selectors = source["selectors"];
+	        this.adminAccess = source["adminAccess"];
+	        this.firstAvailable = source["firstAvailable"];
+	    }
+	}
+	
 	export class EndpointSlicePort {
 	    name: string;
 	    port: number;
@@ -4572,6 +4687,134 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class ResourceClaimDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    status: string;
+	    requests: DeviceRequestDetail[];
+	    allocatedDevices: AllocatedDeviceDetail[];
+	    reservedFor: string[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceClaimDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.status = source["status"];
+	        this.requests = this.convertValues(source["requests"], DeviceRequestDetail);
+	        this.allocatedDevices = this.convertValues(source["allocatedDevices"], AllocatedDeviceDetail);
+	        this.reservedFor = source["reservedFor"];
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ResourceClaimInfo {
+	    name: string;
+	    namespace: string;
+	    requests: number;
+	    status: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceClaimInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.requests = source["requests"];
+	        this.status = source["status"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class ResourceClaimTemplateDetail {
+	    name: string;
+	    namespace: string;
+	    uid: string;
+	    requests: DeviceRequestDetail[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceClaimTemplateDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.uid = source["uid"];
+	        this.requests = this.convertValues(source["requests"], DeviceRequestDetail);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ResourceClaimTemplateInfo {
+	    name: string;
+	    namespace: string;
+	    requests: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceClaimTemplateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.requests = source["requests"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class ResourceQuotaEntry {
 	    resource: string;
 	    used: string;
@@ -4652,6 +4895,99 @@ export namespace kube {
 	        this.scopes = source["scopes"];
 	        this.used = source["used"];
 	        this.hard = source["hard"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class ResourceSliceDeviceDetail {
+	    name: string;
+	    attributes: string[];
+	    capacities: string[];
+	    bindsToNode: boolean;
+	    taints: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceSliceDeviceDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.attributes = source["attributes"];
+	        this.capacities = source["capacities"];
+	        this.bindsToNode = source["bindsToNode"];
+	        this.taints = source["taints"];
+	    }
+	}
+	export class ResourceSliceDetail {
+	    name: string;
+	    uid: string;
+	    driver: string;
+	    poolName: string;
+	    nodeName: string;
+	    allNodes: boolean;
+	    devices: ResourceSliceDeviceDetail[];
+	    labels: Record<string, string>;
+	    annotations: Record<string, string>;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceSliceDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.uid = source["uid"];
+	        this.driver = source["driver"];
+	        this.poolName = source["poolName"];
+	        this.nodeName = source["nodeName"];
+	        this.allNodes = source["allNodes"];
+	        this.devices = this.convertValues(source["devices"], ResourceSliceDeviceDetail);
+	        this.labels = source["labels"];
+	        this.annotations = source["annotations"];
+	        this.createdAt = source["createdAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class ResourceSliceInfo {
+	    name: string;
+	    driver: string;
+	    pool: string;
+	    nodeName: string;
+	    devices: number;
+	    allNodes: boolean;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResourceSliceInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.driver = source["driver"];
+	        this.pool = source["pool"];
+	        this.nodeName = source["nodeName"];
+	        this.devices = source["devices"];
+	        this.allNodes = source["allNodes"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}

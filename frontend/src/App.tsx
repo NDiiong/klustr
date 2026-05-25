@@ -42,6 +42,10 @@ import { ValidatingAdmissionPoliciesView } from '@/features/validatingadmissionp
 import { ValidatingAdmissionPolicyBindingsView } from '@/features/validatingadmissionpolicybindings/ValidatingAdmissionPolicyBindingsView'
 import { MutatingAdmissionPoliciesView } from '@/features/mutatingadmissionpolicies/MutatingAdmissionPoliciesView'
 import { MutatingAdmissionPolicyBindingsView } from '@/features/mutatingadmissionpolicybindings/MutatingAdmissionPolicyBindingsView'
+import { DeviceClassesView } from '@/features/deviceclasses/DeviceClassesView'
+import { ResourceSlicesView } from '@/features/resourceslices/ResourceSlicesView'
+import { ResourceClaimsView } from '@/features/resourceclaims/ResourceClaimsView'
+import { ResourceClaimTemplatesView } from '@/features/resourceclaimtemplates/ResourceClaimTemplatesView'
 import { EndpointsView } from '@/features/endpoints/EndpointsView'
 import { ReplicationControllersView } from '@/features/replicationcontrollers/ReplicationControllersView'
 import { EventsView } from '@/features/events/EventsView'
@@ -182,6 +186,14 @@ function MainView() {
       return <MutatingAdmissionPoliciesView />
     case 'mutatingadmissionpolicybindings':
       return <MutatingAdmissionPolicyBindingsView />
+    case 'deviceclasses':
+      return <DeviceClassesView />
+    case 'resourceslices':
+      return <ResourceSlicesView />
+    case 'resourceclaims':
+      return <ResourceClaimsView />
+    case 'resourceclaimtemplates':
+      return <ResourceClaimTemplatesView />
     case 'endpoints':
       return <EndpointsView />
     case 'replicationcontrollers':

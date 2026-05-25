@@ -306,6 +306,18 @@ func (w *contextWatcher) registerHandlers() error {
 		{"MutatingAdmissionPolicyBinding", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
 			return f.Admissionregistration().V1().MutatingAdmissionPolicyBindings().Informer()
 		}},
+		{"DeviceClass", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Resource().V1().DeviceClasses().Informer()
+		}},
+		{"ResourceClaim", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Resource().V1().ResourceClaims().Informer()
+		}},
+		{"ResourceClaimTemplate", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Resource().V1().ResourceClaimTemplates().Informer()
+		}},
+		{"ResourceSlice", func(f informers.SharedInformerFactory) cache.SharedIndexInformer {
+			return f.Resource().V1().ResourceSlices().Informer()
+		}},
 	}
 
 	for _, b := range bindings {

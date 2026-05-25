@@ -57,6 +57,10 @@ import { LeaseDetailBody } from '@/features/leases/LeaseDetailBody'
 import { WebhookConfigurationDetailBody } from '@/features/webhooks/WebhookConfigurationDetailBody'
 import { AdmissionPolicyDetailBody } from '@/features/validatingadmissionpolicies/AdmissionPolicyDetailBody'
 import { AdmissionPolicyBindingDetailBody } from '@/features/validatingadmissionpolicybindings/AdmissionPolicyBindingDetailBody'
+import { DeviceClassDetailBody } from '@/features/deviceclasses/DeviceClassDetailBody'
+import { ResourceSliceDetailBody } from '@/features/resourceslices/ResourceSliceDetailBody'
+import { ResourceClaimDetailBody } from '@/features/resourceclaims/ResourceClaimDetailBody'
+import { ResourceClaimTemplateDetailBody } from '@/features/resourceclaimtemplates/ResourceClaimTemplateDetailBody'
 import { EndpointsDetailBody } from '@/features/endpoints/EndpointsDetailBody'
 import { ReplicationControllerDetailBody } from '@/features/replicationcontrollers/ReplicationControllerDetailBody'
 import { JobDetailBody } from '@/features/jobs/JobDetailBody'
@@ -619,6 +623,26 @@ function OverviewByKind({ contextName, resource }: { contextName: string | null;
           contextName={contextName}
           kind="MutatingAdmissionPolicyBinding"
           loader={(ctx) => api.getMutatingAdmissionPolicyBinding(ctx, resource.name)}
+        />
+      )
+    case 'DeviceClass':
+      return <DeviceClassDetailBody contextName={contextName} name={resource.name} />
+    case 'ResourceSlice':
+      return <ResourceSliceDetailBody contextName={contextName} name={resource.name} />
+    case 'ResourceClaim':
+      return (
+        <ResourceClaimDetailBody
+          contextName={contextName}
+          namespace={resource.namespace}
+          name={resource.name}
+        />
+      )
+    case 'ResourceClaimTemplate':
+      return (
+        <ResourceClaimTemplateDetailBody
+          contextName={contextName}
+          namespace={resource.namespace}
+          name={resource.name}
         />
       )
     case 'Endpoints':

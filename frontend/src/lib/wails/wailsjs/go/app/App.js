@@ -94,6 +94,10 @@ export function GetDeployment(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetDeployment'](arg1, arg2, arg3);
 }
 
+export function GetDeviceClass(arg1, arg2) {
+  return window['go']['app']['App']['GetDeviceClass'](arg1, arg2);
+}
+
 export function GetEndpointSlice(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetEndpointSlice'](arg1, arg2, arg3);
 }
@@ -210,8 +214,20 @@ export function GetReplicationController(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetReplicationController'](arg1, arg2, arg3);
 }
 
+export function GetResourceClaim(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetResourceClaim'](arg1, arg2, arg3);
+}
+
+export function GetResourceClaimTemplate(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetResourceClaimTemplate'](arg1, arg2, arg3);
+}
+
 export function GetResourceQuota(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetResourceQuota'](arg1, arg2, arg3);
+}
+
+export function GetResourceSlice(arg1, arg2) {
+  return window['go']['app']['App']['GetResourceSlice'](arg1, arg2);
 }
 
 export function GetResourceYAML(arg1, arg2, arg3, arg4) {
@@ -378,6 +394,10 @@ export function ListDeployments(arg1, arg2) {
   return window['go']['app']['App']['ListDeployments'](arg1, arg2);
 }
 
+export function ListDeviceClasses(arg1) {
+  return window['go']['app']['App']['ListDeviceClasses'](arg1);
+}
+
 export function ListEndpointSlices(arg1, arg2) {
   return window['go']['app']['App']['ListEndpointSlices'](arg1, arg2);
 }
@@ -522,8 +542,20 @@ export function ListReplicationControllers(arg1, arg2) {
   return window['go']['app']['App']['ListReplicationControllers'](arg1, arg2);
 }
 
+export function ListResourceClaimTemplates(arg1, arg2) {
+  return window['go']['app']['App']['ListResourceClaimTemplates'](arg1, arg2);
+}
+
+export function ListResourceClaims(arg1, arg2) {
+  return window['go']['app']['App']['ListResourceClaims'](arg1, arg2);
+}
+
 export function ListResourceQuotas(arg1, arg2) {
   return window['go']['app']['App']['ListResourceQuotas'](arg1, arg2);
+}
+
+export function ListResourceSlices(arg1) {
+  return window['go']['app']['App']['ListResourceSlices'](arg1);
 }
 
 export function ListRoleBindings(arg1, arg2) {
