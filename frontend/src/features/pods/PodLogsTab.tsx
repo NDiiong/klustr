@@ -9,6 +9,7 @@ import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { api, type PodDetail } from '@/lib/api'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { highlightLogContent } from '@/features/_shared/logHighlight'
+import { InlinePicker } from '@/features/_shared/InlinePicker'
 import { useUIStore } from '@/store/ui'
 
 const TAIL_LINES = 200
@@ -209,17 +210,14 @@ export function PodLogsTab({ detail, contextName }: Props) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs">
         <label className="text-muted-foreground">Container</label>
-        <select
+        <InlinePicker
           value={container}
-          onChange={(e) => setContainer(e.target.value)}
-          className="rounded border border-border bg-background px-2 py-0.5 text-xs"
-        >
-          {containerNames.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+          options={containerNames}
+          onChange={setContainer}
+          ariaLabel="Select container"
+          minWidth={140}
+        />
+
         <Button
           type="button"
           size="xs"

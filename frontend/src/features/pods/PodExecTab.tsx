@@ -3,8 +3,10 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
+import { Button } from '@/components/ui/button'
 import { api, type PodDetail } from '@/lib/api'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
+import { InlinePicker } from '@/features/_shared/InlinePicker'
 import { useUIStore } from '@/store/ui'
 
 const SHELLS = ['/bin/sh', '/bin/bash']
@@ -145,36 +147,30 @@ export function PodExecTab({ detail, contextName }: Props) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs">
         <label className="text-muted-foreground">Container</label>
-        <select
+        <InlinePicker
           value={container}
-          onChange={(e) => setContainer(e.target.value)}
-          className="rounded border border-border bg-background px-2 py-0.5 text-xs"
-        >
-          {containerNames.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+          options={containerNames}
+          onChange={setContainer}
+          ariaLabel="Select container"
+          minWidth={140}
+        />
         <label className="ml-2 text-muted-foreground">Shell</label>
-        <select
+        <InlinePicker
           value={shell}
-          onChange={(e) => setShell(e.target.value)}
-          className="rounded border border-border bg-background px-2 py-0.5 text-xs"
-        >
-          {SHELLS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <button
+          options={SHELLS}
+          onChange={setShell}
+          ariaLabel="Select shell"
+          minWidth={120}
+        />
+        <Button
           type="button"
+          size="xs"
+          variant="outline"
           onClick={() => setNonce((n) => n + 1)}
-          className="ml-auto rounded border border-border px-2 py-0.5 text-xs hover:bg-muted"
+          className="ml-auto"
         >
           Reattach
-        </button>
+        </Button>
         <span className={running ? 'text-emerald-500' : 'text-muted-foreground'}>
           {running ? '● running' : '○ idle'}
         </span>
