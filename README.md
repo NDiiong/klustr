@@ -22,8 +22,8 @@
 </p>
 
 <p align="center">
-  <video src="https://github.com/SametKUM/klustr/raw/main/docs/hero.mp4" autoplay loop muted playsinline width="900" poster="docs/hero-poster.png">
-    <a href="docs/hero.mp4"><img src="docs/hero.gif" alt="Klustr tour — Welcome screen, multi-cluster, HPA, Argo CD sync, log streaming, Helm upgrade" width="900"></a>
+  <video src="https://cdn.jsdelivr.net/gh/SametKUM/klustr@main/docs/hero.mp4" autoplay loop muted playsinline width="900" poster="docs/hero-poster.png">
+    <a href="https://cdn.jsdelivr.net/gh/SametKUM/klustr@main/docs/hero.mp4"><img src="docs/hero.gif" alt="Klustr tour — Welcome screen, multi-cluster, HPA, Argo CD sync, log streaming, Helm upgrade" width="900"></a>
   </video>
 </p>
 
