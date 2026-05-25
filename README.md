@@ -22,7 +22,12 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.png" alt="Klustr main window" width="900">
+  <a href="https://github.com/SametKUM/klustr/raw/main/docs/hero.mp4">
+    <img src="docs/hero.gif" alt="Klustr tour — Welcome screen, multi-cluster, HPA, Argo CD sync, log streaming, Helm upgrade" width="900">
+  </a>
+</p>
+<p align="center">
+  <sub><a href="https://github.com/SametKUM/klustr/raw/main/docs/hero.mp4">▶ Full-quality MP4 (1920×1200, 9 MB)</a></sub>
 </p>
 
 ## What is Klustr?
