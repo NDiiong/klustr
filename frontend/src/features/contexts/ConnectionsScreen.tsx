@@ -712,62 +712,178 @@ function GroupChipRow({
   onDelete: (id: string) => void
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         <Layers className="size-3" />
         Groups
       </div>
-      <ul className="flex flex-wrap gap-1.5">
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {groups.map((g) => {
-          const members = g.contexts.filter((m) => contexts.some((c) => c.name === m))
-          const palette = COLOR_PALETTE[g.color] ?? COLOR_PALETTE.sky
+          const members = g.contexts
+            .map((name) => contexts.find((c) => c.name === name))
+            .filter((c): c is ContextInfo => c !== undefined)
           const missing = g.contexts.length - members.length
+          const palette = COLOR_PALETTE[g.color] ?? COLOR_PALETTE.sky
           return (
             <li key={g.id}>
-              <span
-                className="group inline-flex items-center overflow-hidden rounded-full border border-border bg-card text-xs transition-colors hover:border-ring"
-              >
-                <button
-                  type="button"
-                  aria-label={`Connect to ${g.name}`}
-                  onClick={() => onConnect(g)}
-                  className="inline-flex items-center gap-1.5 py-1 pl-2 pr-2.5 hover:bg-accent"
-                >
-                  <span aria-hidden className={`size-2 rounded-full ${palette.dotClass}`} />
-                  <span className="max-w-[16rem] truncate font-medium">{g.name}</span>
-                  <span className="text-muted-foreground">
-                    {members.length}
-                    {missing > 0 && (
-                      <span className="ml-0.5 text-amber-500" title={`${missing} missing`}>
-                        −{missing}
-                      </span>
-                    )}
-                  </span>
-                </button>
-                <span className="flex items-center border-l border-border opacity-0 transition-opacity group-hover:opacity-100">
-                  <button
-                    type="button"
-                    aria-label="Edit group"
-                    onClick={() => onEdit(g)}
-                    className="inline-flex size-6 items-center justify-center text-muted-foreground hover:bg-muted"
-                  >
-                    <Pencil className="size-3" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Delete group"
-                    onClick={() => onDelete(g.id)}
-                    className="inline-flex size-6 items-center justify-center text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="size-3" />
-                  </button>
-                </span>
-              </span>
+              <GroupCard
+                group={g}
+                palette={palette}
+                members={members}
+                missing={missing}
+                onConnect={() => onConnect(g)}
+                onEdit={() => onEdit(g)}
+                onDelete={() => onDelete(g.id)}
+              />
             </li>
           )
         })}
       </ul>
     </div>
+  )
+}
+
+function GroupCard({
+  group,
+  palette,
+  members,
+  missing,
+  onConnect,
+  onEdit,
+  onDelete,
+}: {
+  group: ContextGroup
+  palette: { dotClass: string; barClass: string }
+  members: ContextInfo[]
+  missing: number
+  onConnect: () => void
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const providerLabels: string[] = []
+  const seen = new Set<string>()
+  for (const c of members) {
+    const meta = providerMeta(c)
+    if (seen.has(meta.id)) continue
+    seen.add(meta.id)
+    providerLabels.push(meta.label)
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Connect to ${group.name}`}
+      onClick={onConnect}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onConnect()
+        }
+      }}
+      className="group relative flex h-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg border border-border bg-card/60 pl-4 pr-3 py-3 text-left transition-colors hover:border-ring hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span aria-hidden className={`absolute left-0 top-0 h-full w-[3px] ${palette.barClass}`} />
+      <ProviderIconBadge members={members} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <span aria-hidden className={`size-1.5 rounded-full ${palette.dotClass}`} />
+          <span>Group</span>
+          <span className="text-muted-foreground/40">·</span>
+          <span className="font-normal normal-case tracking-normal">
+            {members.length} cluster{members.length === 1 ? '' : 's'}
+          </span>
+          {missing > 0 && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="font-normal normal-case tracking-normal text-amber-500">
+                {missing} missing
+              </span>
+            </>
+          )}
+        </div>
+        <div className="mt-0.5 truncate text-base font-semibold" title={group.name}>
+          {group.name}
+        </div>
+        {providerLabels.length > 0 && (
+          <div
+            className="mt-0.5 truncate text-xs text-muted-foreground"
+            title={providerLabels.join(' · ')}
+          >
+            {providerLabels.slice(0, 3).join(' · ')}
+            {providerLabels.length > 3 && ` +${providerLabels.length - 3}`}
+          </div>
+        )}
+      </div>
+      <div className="absolute right-2 top-2 hidden gap-1 group-hover:flex">
+        <button
+          type="button"
+          aria-label="Edit group"
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit()
+          }}
+          className="inline-flex size-6 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-muted"
+        >
+          <Pencil className="size-3" />
+        </button>
+        <button
+          type="button"
+          aria-label="Delete group"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete()
+          }}
+          className="inline-flex size-6 items-center justify-center rounded-md border border-destructive/40 bg-background text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <Trash2 className="size-3" />
+        </button>
+      </div>
+      <ArrowRight className="ml-1 size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+    </div>
+  )
+}
+
+function ProviderIconBadge({ members }: { members: ContextInfo[] }) {
+  if (members.length === 0) {
+    return (
+      <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
+        <Layers className="size-5" />
+      </span>
+    )
+  }
+  if (members.length === 1) {
+    return (
+      <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
+        <ProviderIcon context={members[0]} className="size-7" />
+      </span>
+    )
+  }
+  // Overlapping avatar stack — the universal "group of things" signal you
+  // see in Linear/Slack/Notion. Cap at 3 visible avatars + a "+N" pip so
+  // the stack stays a fixed three-circle width regardless of group size.
+  const visible = members.slice(0, 3)
+  const overflow = members.length - visible.length
+  return (
+    <span className="flex h-12 shrink-0 items-center -space-x-3 pl-0.5">
+      {visible.map((c, i) => (
+        <span
+          key={`${c.name}-${i}`}
+          style={{ zIndex: visible.length - i }}
+          className="relative inline-flex size-9 items-center justify-center rounded-full border-2 border-card bg-muted shadow-sm"
+        >
+          <ProviderIcon context={c} className="size-4" />
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span
+          style={{ zIndex: 0 }}
+          className="relative inline-flex size-9 items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-semibold tabular-nums text-muted-foreground shadow-sm"
+        >
+          +{overflow}
+        </span>
+      )}
+    </span>
   )
 }
 
