@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ThemePicker } from '@/features/_shared/ThemePicker'
-import { ProviderIcon, providerMeta } from '@/features/_shared/providerIcons'
+import { ProviderIcon, ProviderIconStack, providerMeta } from '@/features/_shared/providerIcons'
 import { api, type ContextInfo } from '@/lib/api'
 import {
   useUIStore,
@@ -562,6 +562,32 @@ function formatRelativeTime(ts: number): string {
 
 type ResolvedLastSession = LastSession & { missing: number }
 
+function SessionBadge({
+  isAggregated,
+  primaryCtx,
+  sessionContexts,
+}: {
+  isAggregated: boolean
+  primaryCtx: ContextInfo | null
+  sessionContexts: ContextInfo[]
+}) {
+  if (isAggregated && sessionContexts.length > 0) {
+    return <ProviderIconStack contexts={sessionContexts} size="sm" borderClass="border-card" />
+  }
+  if (!isAggregated && primaryCtx) {
+    return (
+      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted leading-none shadow-sm">
+        <ProviderIcon context={primaryCtx} className="block size-4 shrink-0" />
+      </span>
+    )
+  }
+  return (
+    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted leading-none text-muted-foreground shadow-sm">
+      {isAggregated ? <Layers className="block size-4" /> : <Clock className="block size-4" />}
+    </span>
+  )
+}
+
 function LastSessionCard({
   session,
   contexts,
@@ -640,9 +666,13 @@ function LastSessionCard({
           }`}
         />
       )}
-      <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
-        {isAggregated ? <Layers className="size-4" /> : <Clock className="size-4" />}
-      </span>
+      <SessionBadge
+        isAggregated={isAggregated}
+        primaryCtx={primaryCtx}
+        sessionContexts={session.contexts
+          .map((n) => contexts.find((c) => c.name === n))
+          .filter((c): c is ContextInfo => c !== undefined)}
+      />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Last session
@@ -660,12 +690,6 @@ function LastSessionCard({
           )}
         </div>
         <div className="mt-0.5 flex items-center gap-2">
-          {!isAggregated && primaryCtx && (
-            <ProviderIcon context={primaryCtx} className="size-4 shrink-0" />
-          )}
-          {isAggregated && groupPalette && (
-            <span aria-hidden className={`size-2.5 rounded-full ${groupPalette.dotClass}`} />
-          )}
           <span className="truncate text-sm font-medium">{title}</span>
           {primaryTagMeta && !isAggregated && (
             <span
@@ -847,42 +871,21 @@ function GroupCard({
 function ProviderIconBadge({ members }: { members: ContextInfo[] }) {
   if (members.length === 0) {
     return (
-      <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground">
-        <Layers className="size-5" />
+      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-muted leading-none text-muted-foreground shadow-sm">
+        <Layers className="block size-5" />
       </span>
     )
   }
   if (members.length === 1) {
     return (
-      <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
-        <ProviderIcon context={members[0]} className="size-7" />
+      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-muted leading-none shadow-sm">
+        <ProviderIcon context={members[0]} className="block size-7 shrink-0" />
       </span>
     )
   }
-  // Overlapping avatar stack — the universal "group of things" signal you
-  // see in Linear/Slack/Notion. Cap at 3 visible avatars + a "+N" pip so
-  // the stack stays a fixed three-circle width regardless of group size.
-  const visible = members.slice(0, 3)
-  const overflow = members.length - visible.length
   return (
-    <span className="flex h-12 shrink-0 items-center -space-x-3 pl-0.5">
-      {visible.map((c, i) => (
-        <span
-          key={`${c.name}-${i}`}
-          style={{ zIndex: visible.length - i }}
-          className="relative inline-flex size-9 items-center justify-center rounded-full border-2 border-card bg-muted shadow-sm"
-        >
-          <ProviderIcon context={c} className="size-4" />
-        </span>
-      ))}
-      {overflow > 0 && (
-        <span
-          style={{ zIndex: 0 }}
-          className="relative inline-flex size-9 items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-semibold tabular-nums text-muted-foreground shadow-sm"
-        >
-          +{overflow}
-        </span>
-      )}
+    <span className="flex h-12 shrink-0 items-center pl-0.5">
+      <ProviderIconStack contexts={members} size="md" />
     </span>
   )
 }
@@ -1262,8 +1265,8 @@ function ContextCard({
         <div className="relative shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex size-11 items-center justify-center rounded-lg border border-border/70 bg-background/60 transition-colors group-hover:bg-background">
-                <ProviderIcon context={context} className="size-6" />
+              <div className="grid size-11 shrink-0 place-items-center rounded-full bg-muted leading-none shadow-sm transition-colors group-hover:bg-muted/80">
+                <ProviderIcon context={context} className="block size-6 shrink-0" />
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="start" className="max-w-[20rem] text-xs">

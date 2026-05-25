@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { api, type ContextInfo } from '@/lib/api'
-import { ProviderIcon } from '@/features/_shared/providerIcons'
+import { ProviderIcon, ProviderIconStack } from '@/features/_shared/providerIcons'
 import { useActiveContexts, useUIStore } from '@/store/ui'
 import { COLOR_PALETTE, resolveTagMeta } from './contextTagMeta'
 
@@ -60,8 +60,9 @@ export function ContextSwitcher() {
         : activeContexts.length === 1
           ? activeContexts[0]
           : `${activeContexts.length} contexts`
-  const singleCtx =
-    activeContexts.length === 1 ? contexts.find((c) => c.name === activeContexts[0]) : null
+  const activeContextInfos = activeContexts
+    .map((name) => contexts.find((c) => c.name === name))
+    .filter((c): c is ContextInfo => c !== undefined)
   const activeSet = new Set(activeContexts)
 
   return (
@@ -69,16 +70,42 @@ export function ContextSwitcher() {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
           disabled={loading || !!error}
           title={activeContexts.length > 1 ? activeContexts.join(', ') : undefined}
         >
-          {singleCtx && <ProviderIcon context={singleCtx} className="size-3.5" />}
+          {activeContextInfos.length > 0 && (
+            <ProviderIconStack
+              contexts={activeContextInfos}
+              size="sm"
+              borderClass="border-background"
+            />
+          )}
           <span className="max-w-[18rem] truncate">{label}</span>
           <ChevronDown />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[22rem] max-w-[90vw] p-0" align="start">
+        {activeContexts.length > 0 && (
+          <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/30 px-3 py-1.5">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
+              {activeContexts.length} active
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                clearAggregated()
+                setOpen(false)
+              }}
+              title="Disconnect all"
+              aria-label="Disconnect all"
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="size-3" />
+              Disconnect
+            </button>
+          </div>
+        )}
         <Command>
           <CommandInput placeholder="Filter contexts…" />
           <CommandList className="max-h-[24rem]">
@@ -88,7 +115,11 @@ export function ContextSwitcher() {
                 <CommandGroup heading="Groups">
                   {contextGroups.map((g) => {
                     const isActive = g.id === activeGroupId
-                    const dotClass = COLOR_PALETTE[g.color]?.barClass ?? 'bg-slate-500'
+                    const palette = COLOR_PALETTE[g.color] ?? COLOR_PALETTE.sky
+                    const members = g.contexts
+                      .map((name) => contexts.find((c) => c.name === name))
+                      .filter((c): c is ContextInfo => c !== undefined)
+                    const missing = g.contexts.length - members.length
                     return (
                       <CommandItem
                         key={g.id}
@@ -97,14 +128,28 @@ export function ContextSwitcher() {
                           setAggregatedContexts(g.contexts, g.id)
                           setOpen(false)
                         }}
-                        className="items-center gap-2 py-2"
+                        className="items-center gap-2.5 py-2"
                       >
                         <Checkbox checked={isActive} />
-                        <span className={`inline-block size-2 shrink-0 rounded-full ${dotClass}`} />
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium">{g.name}</span>
-                        <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
-                          {g.contexts.length}
-                        </span>
+                        <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${palette.dotClass}`} />
+                        {members.length > 0 && (
+                          <ProviderIconStack
+                            contexts={members}
+                            size="sm"
+                            borderClass="border-popover"
+                          />
+                        )}
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="truncate text-sm font-medium" title={g.name}>
+                            {g.name}
+                          </span>
+                          <span className="truncate text-[11px] text-muted-foreground">
+                            {g.contexts.length} cluster{g.contexts.length === 1 ? '' : 's'}
+                            {missing > 0 && (
+                              <span className="ml-1 text-amber-500">· {missing} missing</span>
+                            )}
+                          </span>
+                        </div>
                       </CommandItem>
                     )
                   })}
@@ -129,10 +174,12 @@ export function ContextSwitcher() {
                       key={c.name}
                       value={c.name}
                       onSelect={() => toggleAggregated(c.name)}
-                      className="items-start gap-2 py-2"
+                      className="items-center gap-2.5 py-2"
                     >
                       <Checkbox checked={isActive} />
-                      <ProviderIcon context={c} className="mt-0.5 size-3.5 shrink-0" />
+                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-muted leading-none shadow-sm">
+                        <ProviderIcon context={c} className="block size-4 shrink-0" />
+                      </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
@@ -141,6 +188,15 @@ export function ContextSwitcher() {
                           >
                             {c.name}
                           </span>
+                          {tagMetas.map((m) => (
+                            <span
+                              key={m.id}
+                              className={`shrink-0 rounded border px-1 py-px text-[9px] font-semibold leading-tight tracking-wider ${m.badgeClass}`}
+                              aria-label={m.label}
+                            >
+                              {m.shortLabel}
+                            </span>
+                          ))}
                           {isAutoConnect && (
                             <span className="shrink-0 rounded bg-muted px-1 py-px text-[10px] uppercase tracking-wide text-muted-foreground">
                               auto
@@ -155,35 +211,11 @@ export function ContextSwitcher() {
                             {c.server || c.cluster}
                           </div>
                         )}
-                        {tagMetas.length > 0 && (
-                          <div className="mt-0.5 flex flex-wrap items-center gap-1">
-                            {tagMetas.map((m) => (
-                              <span
-                                key={m.id}
-                                className={`rounded border px-1 py-px text-[9px] font-semibold leading-tight tracking-wider ${m.badgeClass}`}
-                                aria-label={m.label}
-                              >
-                                {m.shortLabel}
-                              </span>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     </CommandItem>
                   )
                 })}
               </CommandGroup>
-            )}
-            {activeContexts.length > 0 && (
-              <>
-                <CommandSeparator />
-                <CommandGroup>
-                  <CommandItem value="__disconnect__" onSelect={() => clearAggregated()}>
-                    <LogOut className="size-3.5" />
-                    <span className="text-sm">Disconnect all</span>
-                  </CommandItem>
-                </CommandGroup>
-              </>
             )}
           </CommandList>
         </Command>
