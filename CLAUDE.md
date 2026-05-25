@@ -22,7 +22,7 @@ Cross-platform Kubernetes desktop client. Multi-context cluster management with 
 | Lint / format | golangci-lint (Go) + ESLint (frontend) |
 | Tests | `go test` (backend) + Vitest + jsdom (frontend) |
 | CI release builds | GitHub Actions matrix on hosted runners (macOS, Windows, Linux) |
-| Release publishing | `softprops/action-gh-release` (macOS .tar.gz + Linux .tar.gz + .deb assets today), Homebrew cask auto-bump for macOS |
+| Release publishing | `softprops/action-gh-release` (macOS .tar.gz + Linux .tar.gz + .deb assets today), Homebrew cask auto-bump for macOS + AUR `klustr-bin` auto-bump for Arch |
 
 ## Project Structure
 
@@ -100,7 +100,8 @@ klustr/
 │       ├── lib/api.ts            ergonomic wrappers over wails bindings
 │       └── lib/events.ts         onKubeChange / onPFUpdate Wails event subscriptions
 ├── build/                        Wails build artifacts (icons, Info.plist) +
-│                                 linux/ (nfpm.yaml + klustr.desktop for the .deb)
+│                                 linux/ (nfpm.yaml + klustr.desktop for the .deb) +
+│                                 aur/PKGBUILD.tmpl (rendered each release by CI)
 ├── docs/
 │   ├── hero.mp4 / hero.gif         README hero — MP4 embedded inline via
 │   │                               github.com/user-attachments/assets URL
@@ -346,7 +347,7 @@ Klustr is pre-1.0 and ships from `main`. The flow per release:
    gh release edit vX.Y.Z --notes-file release-notes.md
    ```
    `--notes-file` is required — inline heredocs (`--notes "$(cat <<EOF…EOF)"`) silently break triple-backtick code fences inside the body. Keep the **Install** block at the bottom of the file verbatim (Homebrew + Manual `curl` snippet, with the tag pinned in the URL).
-7. **Publish**: `gh release edit vX.Y.Z --draft=false`. The same workflow run automatically bumps the Homebrew cask in the tap repo (`HOMEBREW_TAP_TOKEN`).
+7. **Publish**: `gh release edit vX.Y.Z --draft=false`. The same workflow run automatically bumps the Homebrew cask in the tap repo (`HOMEBREW_TAP_TOKEN`) and the AUR `klustr-bin` package (`AUR_SSH_PRIVATE_KEY`). Both bumps are skipped for prerelease tags (those containing a `-`).
 
 Notes on the workflow:
 - `prerelease: true` is set automatically when the tag contains a `-` (e.g. `v0.15.0-rc1`).

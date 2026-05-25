@@ -1,0 +1,26 @@
+# Maintainer: Samet Kum <kumsamet@gmail.com>
+pkgname=klustr-bin
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="Native Kubernetes desktop client — multi-context cluster management with live updates, logs, exec, port-forward, RBAC, CRDs, Helm, Argo CD and Gateway API support"
+arch=('x86_64')
+url="https://github.com/SametKUM/klustr"
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3')
+provides=('klustr')
+conflicts=('klustr')
+source=("klustr-v${pkgver}-linux-amd64.tar.gz::${url}/releases/download/v${pkgver}/klustr-v${pkgver}-linux-amd64.tar.gz"
+        "klustr.desktop::${url}/raw/v${pkgver}/build/linux/klustr.desktop"
+        "klustr.png::${url}/raw/v${pkgver}/build/appicon.png"
+        "klustr.svg::${url}/raw/v${pkgver}/build/appicon.svg")
+sha256sums=('@SHA_TARBALL@'
+            '@SHA_DESKTOP@'
+            '@SHA_PNG@'
+            '@SHA_SVG@')
+
+package() {
+  install -Dm755 "${srcdir}/klustr" "${pkgdir}/usr/bin/klustr"
+  install -Dm644 "${srcdir}/klustr.desktop" "${pkgdir}/usr/share/applications/klustr.desktop"
+  install -Dm644 "${srcdir}/klustr.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/klustr.png"
+  install -Dm644 "${srcdir}/klustr.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/klustr.svg"
+}

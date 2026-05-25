@@ -101,6 +101,16 @@ open /Applications/klustr.app
 
 The Linux binary links against `webkit2gtk-4.1` + `gtk-3`. Ubuntu 24.04+, Fedora 39+, Arch and most other modern distros ship those runtime libraries by default; on Ubuntu 22.04 install `libwebkit2gtk-4.1-0 libgtk-3-0` first.
 
+#### Arch / CachyOS / Manjaro / Endeavour (AUR)
+
+```bash
+paru -S klustr-bin
+# or
+yay -S klustr-bin
+```
+
+The [`klustr-bin`](https://aur.archlinux.org/packages/klustr-bin) PKGBUILD uses the prebuilt release tarball, so install completes in seconds. `paru -Syu` keeps it up to date.
+
 #### Debian / Ubuntu (.deb)
 
 The .deb pulls in the runtime dependencies automatically and registers a `klustr` desktop entry.
