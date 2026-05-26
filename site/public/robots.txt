@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sametkum.github.io/klustr/sitemap.xml
