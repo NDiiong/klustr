@@ -150,6 +150,12 @@ import {
   GetFluxHelmRelease,
   ListFluxGitRepositories,
   GetFluxGitRepository,
+  ListFluxHelmRepositories,
+  GetFluxHelmRepository,
+  ListFluxOCIRepositories,
+  GetFluxOCIRepository,
+  ListFluxBuckets,
+  GetFluxBucket,
   ReconcileFluxResource,
   SetFluxResourceSuspended,
   ListNamespaces,
@@ -407,7 +413,19 @@ export type FluxHelmReleaseInfo = kube.FluxHelmReleaseInfo
 export type FluxHelmReleaseDetail = kube.FluxHelmReleaseDetail
 export type FluxGitRepositoryInfo = kube.FluxGitRepositoryInfo
 export type FluxGitRepositoryDetail = kube.FluxGitRepositoryDetail
-export type FluxKind = 'FluxKustomization' | 'FluxHelmRelease' | 'FluxGitRepository'
+export type FluxHelmRepositoryInfo = kube.FluxHelmRepositoryInfo
+export type FluxHelmRepositoryDetail = kube.FluxHelmRepositoryDetail
+export type FluxOCIRepositoryInfo = kube.FluxOCIRepositoryInfo
+export type FluxOCIRepositoryDetail = kube.FluxOCIRepositoryDetail
+export type FluxBucketInfo = kube.FluxBucketInfo
+export type FluxBucketDetail = kube.FluxBucketDetail
+export type FluxKind =
+  | 'FluxKustomization'
+  | 'FluxHelmRelease'
+  | 'FluxGitRepository'
+  | 'FluxHelmRepository'
+  | 'FluxOCIRepository'
+  | 'FluxBucket'
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -900,6 +918,33 @@ export const api = {
     namespace: string,
     name: string,
   ): Promise<FluxGitRepositoryDetail> => GetFluxGitRepository(contextName, namespace, name),
+  listFluxHelmRepositories: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxHelmRepositoryInfo[]> => ListFluxHelmRepositories(contextName, namespace),
+  getFluxHelmRepository: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxHelmRepositoryDetail> => GetFluxHelmRepository(contextName, namespace, name),
+  listFluxOCIRepositories: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxOCIRepositoryInfo[]> => ListFluxOCIRepositories(contextName, namespace),
+  getFluxOCIRepository: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxOCIRepositoryDetail> => GetFluxOCIRepository(contextName, namespace, name),
+  listFluxBuckets: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxBucketInfo[]> => ListFluxBuckets(contextName, namespace),
+  getFluxBucket: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxBucketDetail> => GetFluxBucket(contextName, namespace, name),
   reconcileFluxResource: (
     contextName: string,
     kind: FluxKind,

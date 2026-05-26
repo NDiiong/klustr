@@ -12,6 +12,9 @@ export const FLUX_SOURCE_GROUP = 'source.toolkit.fluxcd.io'
 export const FLUX_KUSTOMIZATION_RESOURCE = 'kustomizations'
 export const FLUX_HELMRELEASE_RESOURCE = 'helmreleases'
 export const FLUX_GITREPOSITORY_RESOURCE = 'gitrepositories'
+export const FLUX_HELMREPOSITORY_RESOURCE = 'helmrepositories'
+export const FLUX_OCIREPOSITORY_RESOURCE = 'ocirepositories'
+export const FLUX_BUCKET_RESOURCE = 'buckets'
 
 // fluxKind label used in the detail dialog header, distinct from the
 // Klustr-internal "FluxKustomization" identifier so the UI reads naturally.
@@ -19,9 +22,19 @@ export const FLUX_KIND_LABEL: Record<FluxKind, string> = {
   FluxKustomization: 'Kustomization',
   FluxHelmRelease: 'HelmRelease',
   FluxGitRepository: 'GitRepository',
+  FluxHelmRepository: 'HelmRepository',
+  FluxOCIRepository: 'OCIRepository',
+  FluxBucket: 'Bucket',
 }
 
-const FLUX_KINDS = new Set<string>(['FluxKustomization', 'FluxHelmRelease', 'FluxGitRepository'])
+const FLUX_KINDS = new Set<string>([
+  'FluxKustomization',
+  'FluxHelmRelease',
+  'FluxGitRepository',
+  'FluxHelmRepository',
+  'FluxOCIRepository',
+  'FluxBucket',
+])
 
 export function isFluxResource(resource: SelectedResource | null): resource is SelectedResource & { kind: FluxKind } {
   return resource !== null && FLUX_KINDS.has(resource.kind as string)

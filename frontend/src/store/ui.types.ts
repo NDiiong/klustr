@@ -122,6 +122,9 @@ export type ResourceView =
   | 'fluxkustomizations'
   | 'fluxhelmreleases'
   | 'fluxgitrepositories'
+  | 'fluxhelmrepositories'
+  | 'fluxocirepositories'
+  | 'fluxbuckets'
 
 export type ResourceKind =
   | 'Pod'
