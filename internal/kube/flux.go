@@ -22,6 +22,9 @@ var (
 	fluxKustomizationGVR  = schema.GroupVersionResource{Group: "kustomize.toolkit.fluxcd.io", Version: "v1", Resource: "kustomizations"}
 	fluxHelmReleaseGVR    = schema.GroupVersionResource{Group: "helm.toolkit.fluxcd.io", Version: "v2", Resource: "helmreleases"}
 	fluxGitRepositoryGVR  = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "gitrepositories"}
+	fluxHelmRepositoryGVR = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "helmrepositories"}
+	fluxOCIRepositoryGVR  = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "ocirepositories"}
+	fluxBucketGVR         = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "buckets"}
 )
 
 // fluxKindGVR maps the Klustr-side Flux kind identifiers (used by the
@@ -30,9 +33,12 @@ var (
 // ResourceDetailPanel and disambiguates dispatch in the UI without a
 // special-case for every site.
 var fluxKindGVR = map[string]schema.GroupVersionResource{
-	"FluxKustomization": fluxKustomizationGVR,
-	"FluxHelmRelease":   fluxHelmReleaseGVR,
-	"FluxGitRepository": fluxGitRepositoryGVR,
+	"FluxKustomization":  fluxKustomizationGVR,
+	"FluxHelmRelease":    fluxHelmReleaseGVR,
+	"FluxGitRepository":  fluxGitRepositoryGVR,
+	"FluxHelmRepository": fluxHelmRepositoryGVR,
+	"FluxOCIRepository":  fluxOCIRepositoryGVR,
+	"FluxBucket":         fluxBucketGVR,
 }
 
 // fluxReconcileAnnotation is the trigger Flux controllers watch for to
@@ -391,6 +397,318 @@ func extractGitRef(obj *unstructured.Unstructured) string {
 		return "name: " + v
 	}
 	return ""
+}
+
+// ---------------------------------------------------------------------------
+// HelmRepository
+// ---------------------------------------------------------------------------
+
+// FluxHelmRepositoryInfo is the row shape for the HelmRepositories view.
+// Type collapses .spec.type (default | oci) into a single column the user
+// can scan; for OCI repos the same .spec.url is still rendered as-is so
+// the registry host is visible.
+type FluxHelmRepositoryInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Ready     string `json:"ready"`
+	Status    string `json:"status"`
+	Suspended bool   `json:"suspended"`
+	Type      string `json:"type"`
+	Provider  string `json:"provider"`
+	URL       string `json:"url"`
+	Revision  string `json:"revision"`
+	Interval  string `json:"interval"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type FluxHelmRepositoryDetail struct {
+	FluxHelmRepositoryInfo
+	Conditions []FluxCondition `json:"conditions"`
+	SecretRef  string          `json:"secretRef"`
+	Timeout    string          `json:"timeout"`
+	PassCreds  bool            `json:"passCredentials"`
+}
+
+func (m *ClientManager) ListFluxHelmRepositories(contextName, namespace string) []FluxHelmRepositoryInfo {
+	objs := listCachedCRs(m, contextName, fluxHelmRepositoryGVR, namespace)
+	out := make([]FluxHelmRepositoryInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxHelmRepository(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxHelmRepository(ctx context.Context, contextName, namespace, name string) (*FluxHelmRepositoryDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxHelmRepositoryGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxHelmRepository(obj)
+	timeout, _, _ := unstructured.NestedString(obj.Object, "spec", "timeout")
+	passCreds, _, _ := unstructured.NestedBool(obj.Object, "spec", "passCredentials")
+	secretRef := ""
+	if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+		secretRef, _ = sr["name"].(string)
+	}
+	return &FluxHelmRepositoryDetail{
+		FluxHelmRepositoryInfo: info,
+		Conditions:             extractFluxConditions(obj),
+		SecretRef:              secretRef,
+		Timeout:                timeout,
+		PassCreds:              passCreds,
+	}, nil
+}
+
+func extractFluxHelmRepository(obj *unstructured.Unstructured) FluxHelmRepositoryInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	url, _, _ := unstructured.NestedString(obj.Object, "spec", "url")
+	repoType, _, _ := unstructured.NestedString(obj.Object, "spec", "type")
+	provider, _, _ := unstructured.NestedString(obj.Object, "spec", "provider")
+	interval, _, _ := unstructured.NestedString(obj.Object, "spec", "interval")
+	// OCI HelmRepositories never produce an artifact (the chart pull happens
+	// on HelmRelease side), so this field is only meaningful for the
+	// default-type Helm index path.
+	revision, _, _ := unstructured.NestedString(obj.Object, "status", "artifact", "revision")
+	if repoType == "" {
+		repoType = "default"
+	}
+	return FluxHelmRepositoryInfo{
+		Name:      obj.GetName(),
+		Namespace: obj.GetNamespace(),
+		Ready:     readyStatus,
+		Status:    readyMsg,
+		Suspended: suspended,
+		Type:      repoType,
+		Provider:  provider,
+		URL:       url,
+		Revision:  revision,
+		Interval:  interval,
+		CreatedAt: obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
+}
+
+// ---------------------------------------------------------------------------
+// OCIRepository
+// ---------------------------------------------------------------------------
+
+// FluxOCIRepositoryInfo is the row shape for the OCIRepositories view.
+// Unlike HelmRepository, an OCIRepository always produces an artifact —
+// surface the resolved digest/tag/semver in Revision so the user can tell
+// whether source-controller already pulled the new push.
+type FluxOCIRepositoryInfo struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Ready     string `json:"ready"`
+	Status    string `json:"status"`
+	Suspended bool   `json:"suspended"`
+	URL       string `json:"url"`
+	Ref       string `json:"ref"`
+	Provider  string `json:"provider"`
+	Revision  string `json:"revision"`
+	Interval  string `json:"interval"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type FluxOCIRepositoryDetail struct {
+	FluxOCIRepositoryInfo
+	Conditions  []FluxCondition `json:"conditions"`
+	SecretRef   string          `json:"secretRef"`
+	ServiceAcct string          `json:"serviceAccountName"`
+	CertSecret  string          `json:"certSecretRef"`
+	Timeout     string          `json:"timeout"`
+	Verify      string          `json:"verify"`
+	Insecure    bool            `json:"insecure"`
+}
+
+func (m *ClientManager) ListFluxOCIRepositories(contextName, namespace string) []FluxOCIRepositoryInfo {
+	objs := listCachedCRs(m, contextName, fluxOCIRepositoryGVR, namespace)
+	out := make([]FluxOCIRepositoryInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxOCIRepository(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxOCIRepository(ctx context.Context, contextName, namespace, name string) (*FluxOCIRepositoryDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxOCIRepositoryGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxOCIRepository(obj)
+	timeout, _, _ := unstructured.NestedString(obj.Object, "spec", "timeout")
+	insecure, _, _ := unstructured.NestedBool(obj.Object, "spec", "insecure")
+	sa, _, _ := unstructured.NestedString(obj.Object, "spec", "serviceAccountName")
+	secretRef := ""
+	if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+		secretRef, _ = sr["name"].(string)
+	}
+	certSecret := ""
+	if cs, _, _ := unstructured.NestedMap(obj.Object, "spec", "certSecretRef"); cs != nil {
+		certSecret, _ = cs["name"].(string)
+	}
+	verifyMode, _, _ := unstructured.NestedString(obj.Object, "spec", "verify", "provider")
+	return &FluxOCIRepositoryDetail{
+		FluxOCIRepositoryInfo: info,
+		Conditions:            extractFluxConditions(obj),
+		SecretRef:             secretRef,
+		ServiceAcct:           sa,
+		CertSecret:            certSecret,
+		Timeout:               timeout,
+		Verify:                verifyMode,
+		Insecure:              insecure,
+	}, nil
+}
+
+func extractFluxOCIRepository(obj *unstructured.Unstructured) FluxOCIRepositoryInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	url, _, _ := unstructured.NestedString(obj.Object, "spec", "url")
+	provider, _, _ := unstructured.NestedString(obj.Object, "spec", "provider")
+	interval, _, _ := unstructured.NestedString(obj.Object, "spec", "interval")
+	revision, _, _ := unstructured.NestedString(obj.Object, "status", "artifact", "revision")
+	return FluxOCIRepositoryInfo{
+		Name:      obj.GetName(),
+		Namespace: obj.GetNamespace(),
+		Ready:     readyStatus,
+		Status:    readyMsg,
+		Suspended: suspended,
+		URL:       url,
+		Ref:       extractOCIRef(obj),
+		Provider:  provider,
+		Revision:  revision,
+		Interval:  interval,
+		CreatedAt: obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
+}
+
+// extractOCIRef collapses .spec.ref into a single human label. Like
+// GitRepository's ref block, OCI accepts digest/semver/tag as alternative
+// one-of fields — pick the most specific the CR actually carries.
+func extractOCIRef(obj *unstructured.Unstructured) string {
+	ref, _, _ := unstructured.NestedMap(obj.Object, "spec", "ref")
+	if ref == nil {
+		return ""
+	}
+	if v, _ := ref["digest"].(string); v != "" {
+		return "digest: " + v
+	}
+	if v, _ := ref["semver"].(string); v != "" {
+		return "semver: " + v
+	}
+	if v, _ := ref["tag"].(string); v != "" {
+		return "tag: " + v
+	}
+	return ""
+}
+
+// ---------------------------------------------------------------------------
+// Bucket
+// ---------------------------------------------------------------------------
+
+// FluxBucketInfo is the row shape for the Buckets view. Buckets connect
+// Flux to S3-API-compatible object storage (AWS S3, GCS via interop,
+// MinIO, …) — Provider tells the operator which auth path was configured.
+type FluxBucketInfo struct {
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace"`
+	Ready      string `json:"ready"`
+	Status     string `json:"status"`
+	Suspended  bool   `json:"suspended"`
+	Provider   string `json:"provider"`
+	BucketName string `json:"bucketName"`
+	Endpoint   string `json:"endpoint"`
+	Region     string `json:"region"`
+	Revision   string `json:"revision"`
+	Interval   string `json:"interval"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+type FluxBucketDetail struct {
+	FluxBucketInfo
+	Conditions []FluxCondition `json:"conditions"`
+	SecretRef  string          `json:"secretRef"`
+	Timeout    string          `json:"timeout"`
+	Insecure   bool            `json:"insecure"`
+	Prefix     string          `json:"prefix"`
+}
+
+func (m *ClientManager) ListFluxBuckets(contextName, namespace string) []FluxBucketInfo {
+	objs := listCachedCRs(m, contextName, fluxBucketGVR, namespace)
+	out := make([]FluxBucketInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxBucket(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxBucket(ctx context.Context, contextName, namespace, name string) (*FluxBucketDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxBucketGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxBucket(obj)
+	timeout, _, _ := unstructured.NestedString(obj.Object, "spec", "timeout")
+	insecure, _, _ := unstructured.NestedBool(obj.Object, "spec", "insecure")
+	prefix, _, _ := unstructured.NestedString(obj.Object, "spec", "prefix")
+	secretRef := ""
+	if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+		secretRef, _ = sr["name"].(string)
+	}
+	return &FluxBucketDetail{
+		FluxBucketInfo: info,
+		Conditions:     extractFluxConditions(obj),
+		SecretRef:      secretRef,
+		Timeout:        timeout,
+		Insecure:       insecure,
+		Prefix:         prefix,
+	}, nil
+}
+
+func extractFluxBucket(obj *unstructured.Unstructured) FluxBucketInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	provider, _, _ := unstructured.NestedString(obj.Object, "spec", "provider")
+	bucket, _, _ := unstructured.NestedString(obj.Object, "spec", "bucketName")
+	endpoint, _, _ := unstructured.NestedString(obj.Object, "spec", "endpoint")
+	region, _, _ := unstructured.NestedString(obj.Object, "spec", "region")
+	interval, _, _ := unstructured.NestedString(obj.Object, "spec", "interval")
+	revision, _, _ := unstructured.NestedString(obj.Object, "status", "artifact", "revision")
+	if provider == "" {
+		provider = "generic"
+	}
+	return FluxBucketInfo{
+		Name:       obj.GetName(),
+		Namespace:  obj.GetNamespace(),
+		Ready:      readyStatus,
+		Status:     readyMsg,
+		Suspended:  suspended,
+		Provider:   provider,
+		BucketName: bucket,
+		Endpoint:   endpoint,
+		Region:     region,
+		Revision:   revision,
+		Interval:   interval,
+		CreatedAt:  obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
 }
 
 // ---------------------------------------------------------------------------

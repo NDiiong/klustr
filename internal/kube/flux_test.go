@@ -195,6 +195,101 @@ func TestFormatSourceRef(t *testing.T) {
 	}
 }
 
+func TestExtractFluxHelmRepository(t *testing.T) {
+	t.Run("OCI type with provider", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "bitnami", "namespace": "flux-system"},
+			"spec": map[string]any{
+				"type":     "oci",
+				"url":      "oci://registry-1.docker.io/bitnamicharts",
+				"interval": "10m",
+				"provider": "generic",
+			},
+			"status": map[string]any{
+				"conditions": []any{
+					map[string]any{"type": "Ready", "status": "True", "reason": "Succeeded"},
+				},
+			},
+		}}
+		got := extractFluxHelmRepository(obj)
+		if got.Type != "oci" || got.Provider != "generic" {
+			t.Errorf("type/provider wrong: %+v", got)
+		}
+		if got.URL != "oci://registry-1.docker.io/bitnamicharts" {
+			t.Errorf("url wrong: %q", got.URL)
+		}
+		if got.Ready != "True" {
+			t.Errorf("ready wrong: %q", got.Ready)
+		}
+	})
+	t.Run("default type when .spec.type empty", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "bare"},
+			"spec":     map[string]any{"url": "https://charts.example.com"},
+		}}
+		got := extractFluxHelmRepository(obj)
+		if got.Type != "default" {
+			t.Errorf("missing .spec.type should default to %q, got %q", "default", got.Type)
+		}
+	})
+}
+
+func TestExtractOCIRefPrecedence(t *testing.T) {
+	cases := []struct {
+		name string
+		ref  map[string]any
+		want string
+	}{
+		{"digest beats semver", map[string]any{"digest": "sha256:abc", "semver": ">=1"}, "digest: sha256:abc"},
+		{"semver beats tag", map[string]any{"semver": ">=1.2", "tag": "v1"}, "semver: >=1.2"},
+		{"tag only", map[string]any{"tag": "v1"}, "tag: v1"},
+		{"empty", map[string]any{}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			obj := &unstructured.Unstructured{Object: map[string]any{
+				"spec": map[string]any{"ref": tc.ref},
+			}}
+			got := extractOCIRef(obj)
+			if got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestExtractFluxBucket(t *testing.T) {
+	t.Run("aws provider with region", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "manifests", "namespace": "flux-system"},
+			"spec": map[string]any{
+				"provider":   "aws",
+				"bucketName": "fleet-manifests",
+				"endpoint":   "s3.amazonaws.com",
+				"region":     "eu-central-1",
+				"interval":   "5m",
+			},
+		}}
+		got := extractFluxBucket(obj)
+		if got.Provider != "aws" || got.BucketName != "fleet-manifests" {
+			t.Errorf("provider/bucket wrong: %+v", got)
+		}
+		if got.Region != "eu-central-1" {
+			t.Errorf("region wrong: %q", got.Region)
+		}
+	})
+	t.Run("missing provider defaults to generic", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "bare"},
+			"spec":     map[string]any{"bucketName": "x"},
+		}}
+		got := extractFluxBucket(obj)
+		if got.Provider != "generic" {
+			t.Errorf("missing provider should default to generic, got %q", got.Provider)
+		}
+	})
+}
+
 func TestExtractDependsOnRefs(t *testing.T) {
 	in := []any{
 		map[string]any{"name": "a"},
