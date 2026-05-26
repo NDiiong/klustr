@@ -91,6 +91,9 @@ import { HelmUninstallDialog } from '@/features/helm/HelmUninstallDialog'
 import { FluxKustomizationDetailBody } from '@/features/flux/FluxKustomizationDetailBody'
 import { FluxHelmReleaseDetailBody } from '@/features/flux/FluxHelmReleaseDetailBody'
 import { FluxGitRepositoryDetailBody } from '@/features/flux/FluxGitRepositoryDetailBody'
+import { FluxHelmRepositoryDetailBody } from '@/features/flux/FluxHelmRepositoryDetailBody'
+import { FluxOCIRepositoryDetailBody } from '@/features/flux/FluxOCIRepositoryDetailBody'
+import { FluxBucketDetailBody } from '@/features/flux/FluxBucketDetailBody'
 import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
 import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
 import {
@@ -347,6 +350,9 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
   const isFluxKustomization = resource.kind === 'FluxKustomization'
   const isFluxHelmRelease = resource.kind === 'FluxHelmRelease'
   const isFluxGitRepository = resource.kind === 'FluxGitRepository'
+  const isFluxHelmRepository = resource.kind === 'FluxHelmRepository'
+  const isFluxOCIRepository = resource.kind === 'FluxOCIRepository'
+  const isFluxBucket = resource.kind === 'FluxBucket'
   const hasOverview = isArgoAppProject || isArgoAppSet || isFlux
   const hasEvents = isFlux
   const initialTab = isArgoApp ? 'resources' : hasOverview ? 'overview' : 'yaml'
@@ -399,6 +405,33 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
       {isFluxGitRepository && (
         <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           <FluxGitRepositoryDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxHelmRepository && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxHelmRepositoryDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxOCIRepository && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxOCIRepositoryDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxBucket && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxBucketDetailBody
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}
