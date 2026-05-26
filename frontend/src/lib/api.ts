@@ -144,6 +144,14 @@ import {
   ListJobs,
   ListKarpenterNodePools,
   ListKarpenterNodeClaims,
+  ListFluxKustomizations,
+  GetFluxKustomization,
+  ListFluxHelmReleases,
+  GetFluxHelmRelease,
+  ListFluxGitRepositories,
+  GetFluxGitRepository,
+  ReconcileFluxResource,
+  SetFluxResourceSuspended,
   ListNamespaces,
   ListNodes,
   ListServiceAccounts,
@@ -392,6 +400,14 @@ export type ReferenceGrantFromDetail = kube.ReferenceGrantFromDetail
 export type ReferenceGrantToDetail = kube.ReferenceGrantToDetail
 export type KarpenterNodePoolInfo = kube.KarpenterNodePoolInfo
 export type KarpenterNodeClaimInfo = kube.KarpenterNodeClaimInfo
+export type FluxCondition = kube.FluxCondition
+export type FluxKustomizationInfo = kube.FluxKustomizationInfo
+export type FluxKustomizationDetail = kube.FluxKustomizationDetail
+export type FluxHelmReleaseInfo = kube.FluxHelmReleaseInfo
+export type FluxHelmReleaseDetail = kube.FluxHelmReleaseDetail
+export type FluxGitRepositoryInfo = kube.FluxGitRepositoryInfo
+export type FluxGitRepositoryDetail = kube.FluxGitRepositoryDetail
+export type FluxKind = 'FluxKustomization' | 'FluxHelmRelease' | 'FluxGitRepository'
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -857,5 +873,45 @@ export const api = {
     ListKarpenterNodePools(contextName),
   listKarpenterNodeClaims: (contextName: string): Promise<KarpenterNodeClaimInfo[]> =>
     ListKarpenterNodeClaims(contextName),
+  listFluxKustomizations: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxKustomizationInfo[]> => ListFluxKustomizations(contextName, namespace),
+  getFluxKustomization: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxKustomizationDetail> => GetFluxKustomization(contextName, namespace, name),
+  listFluxHelmReleases: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxHelmReleaseInfo[]> => ListFluxHelmReleases(contextName, namespace),
+  getFluxHelmRelease: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxHelmReleaseDetail> => GetFluxHelmRelease(contextName, namespace, name),
+  listFluxGitRepositories: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxGitRepositoryInfo[]> => ListFluxGitRepositories(contextName, namespace),
+  getFluxGitRepository: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxGitRepositoryDetail> => GetFluxGitRepository(contextName, namespace, name),
+  reconcileFluxResource: (
+    contextName: string,
+    kind: FluxKind,
+    namespace: string,
+    name: string,
+  ): Promise<void> => ReconcileFluxResource(contextName, kind, namespace, name),
+  setFluxResourceSuspended: (
+    contextName: string,
+    kind: FluxKind,
+    namespace: string,
+    name: string,
+    suspended: boolean,
+  ): Promise<void> => SetFluxResourceSuspended(contextName, kind, namespace, name, suspended),
   version: (): Promise<string> => Version(),
 }

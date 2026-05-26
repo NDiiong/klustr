@@ -119,6 +119,9 @@ export type ResourceView =
   | 'referencegrants'
   | 'karpenternodepools'
   | 'karpenternodeclaims'
+  | 'fluxkustomizations'
+  | 'fluxhelmreleases'
+  | 'fluxgitrepositories'
 
 export type ResourceKind =
   | 'Pod'
@@ -191,6 +194,10 @@ export type SelectedResource = {
   name: string
   gvr?: SelectedResourceGVR
   context?: string
+  // suspended carries the Flux .spec.suspend snapshot from the row click so
+  // the detail dialog's Suspend/Resume button knows which label to render
+  // without having to wait for the body to fetch the full detail object.
+  suspended?: boolean
 }
 
 export type DetailTab = 'overview' | 'logs' | 'exec' | 'events' | 'history' | 'yaml'
