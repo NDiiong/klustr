@@ -25,6 +25,12 @@ var (
 	fluxHelmRepositoryGVR = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "helmrepositories"}
 	fluxOCIRepositoryGVR  = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "ocirepositories"}
 	fluxBucketGVR         = schema.GroupVersionResource{Group: "source.toolkit.fluxcd.io", Version: "v1", Resource: "buckets"}
+	// Notification toolkit hasn't graduated Provider and Alert to v1 yet —
+	// Receiver did. The storage version on the cluster is what we serve, so
+	// pin each to the right one rather than guessing a single shared version.
+	fluxProviderGVR = schema.GroupVersionResource{Group: "notification.toolkit.fluxcd.io", Version: "v1beta3", Resource: "providers"}
+	fluxAlertGVR    = schema.GroupVersionResource{Group: "notification.toolkit.fluxcd.io", Version: "v1beta3", Resource: "alerts"}
+	fluxReceiverGVR = schema.GroupVersionResource{Group: "notification.toolkit.fluxcd.io", Version: "v1", Resource: "receivers"}
 )
 
 // fluxKindGVR maps the Klustr-side Flux kind identifiers (used by the
@@ -39,6 +45,9 @@ var fluxKindGVR = map[string]schema.GroupVersionResource{
 	"FluxHelmRepository": fluxHelmRepositoryGVR,
 	"FluxOCIRepository":  fluxOCIRepositoryGVR,
 	"FluxBucket":         fluxBucketGVR,
+	"FluxProvider":       fluxProviderGVR,
+	"FluxAlert":          fluxAlertGVR,
+	"FluxReceiver":       fluxReceiverGVR,
 }
 
 // fluxReconcileAnnotation is the trigger Flux controllers watch for to
@@ -709,6 +718,379 @@ func extractFluxBucket(obj *unstructured.Unstructured) FluxBucketInfo {
 		Interval:   interval,
 		CreatedAt:  obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Provider (notification.toolkit)
+// ---------------------------------------------------------------------------
+
+// FluxProviderInfo is the row shape for the Providers view. Address is
+// elided when it comes from a Secret — leaks of webhook URLs (Slack
+// incoming hook = bearer auth) are a bad surprise to discover from a
+// screenshot.
+type FluxProviderInfo struct {
+	Name             string `json:"name"`
+	Namespace        string `json:"namespace"`
+	Ready            string `json:"ready"`
+	Status           string `json:"status"`
+	Suspended        bool   `json:"suspended"`
+	Type             string `json:"type"`
+	Channel          string `json:"channel"`
+	Username         string `json:"username"`
+	Address          string `json:"address"`
+	AddressFromSecret bool  `json:"addressFromSecret"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+type FluxProviderDetail struct {
+	FluxProviderInfo
+	Conditions []FluxCondition `json:"conditions"`
+	SecretRef  string          `json:"secretRef"`
+	CertSecret string          `json:"certSecretRef"`
+	Proxy      string          `json:"proxy"`
+	Timeout    string          `json:"timeout"`
+}
+
+func (m *ClientManager) ListFluxProviders(contextName, namespace string) []FluxProviderInfo {
+	objs := listCachedCRs(m, contextName, fluxProviderGVR, namespace)
+	out := make([]FluxProviderInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxProvider(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxProvider(ctx context.Context, contextName, namespace, name string) (*FluxProviderDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxProviderGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxProvider(obj)
+	timeout, _, _ := unstructured.NestedString(obj.Object, "spec", "timeout")
+	proxy, _, _ := unstructured.NestedString(obj.Object, "spec", "proxy")
+	secretRef := ""
+	if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+		secretRef, _ = sr["name"].(string)
+	}
+	certSecret := ""
+	if cs, _, _ := unstructured.NestedMap(obj.Object, "spec", "certSecretRef"); cs != nil {
+		certSecret, _ = cs["name"].(string)
+	}
+	return &FluxProviderDetail{
+		FluxProviderInfo: info,
+		Conditions:       extractFluxConditions(obj),
+		SecretRef:        secretRef,
+		CertSecret:       certSecret,
+		Proxy:            proxy,
+		Timeout:          timeout,
+	}, nil
+}
+
+func extractFluxProvider(obj *unstructured.Unstructured) FluxProviderInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	provType, _, _ := unstructured.NestedString(obj.Object, "spec", "type")
+	channel, _, _ := unstructured.NestedString(obj.Object, "spec", "channel")
+	username, _, _ := unstructured.NestedString(obj.Object, "spec", "username")
+	address, _, _ := unstructured.NestedString(obj.Object, "spec", "address")
+	// When address comes from a Secret the spec.address is empty; surface
+	// that explicitly so the UI can render "(from Secret)" instead of an
+	// awkward dash.
+	fromSecret := false
+	if address == "" {
+		if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+			fromSecret = true
+		}
+	}
+	return FluxProviderInfo{
+		Name:              obj.GetName(),
+		Namespace:         obj.GetNamespace(),
+		Ready:             readyStatus,
+		Status:            readyMsg,
+		Suspended:         suspended,
+		Type:              provType,
+		Channel:           channel,
+		Username:          username,
+		Address:           address,
+		AddressFromSecret: fromSecret,
+		CreatedAt:         obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Alert (notification.toolkit)
+// ---------------------------------------------------------------------------
+
+// FluxAlertInfo is the row shape for the Alerts view. EventSources is
+// flattened into a Sources string so the table cell stays scannable; the
+// detail dialog still renders the full list.
+type FluxAlertInfo struct {
+	Name        string `json:"name"`
+	Namespace   string `json:"namespace"`
+	Ready       string `json:"ready"`
+	Status      string `json:"status"`
+	Suspended   bool   `json:"suspended"`
+	Provider    string `json:"provider"`
+	Severity    string `json:"severity"`
+	Summary     string `json:"summary"`
+	Sources     string `json:"sources"`
+	SourceCount int    `json:"sourceCount"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+// FluxAlertSource is one row of .spec.eventSources, kept verbose enough
+// for the detail dialog to render a clickable cross-reference to the
+// referenced Flux resource.
+type FluxAlertSource struct {
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
+type FluxAlertDetail struct {
+	FluxAlertInfo
+	Conditions     []FluxCondition   `json:"conditions"`
+	EventSources   []FluxAlertSource `json:"eventSources"`
+	InclusionList  []string          `json:"inclusionList"`
+	ExclusionList  []string          `json:"exclusionList"`
+	EventMetadata  map[string]string `json:"eventMetadata"`
+}
+
+func (m *ClientManager) ListFluxAlerts(contextName, namespace string) []FluxAlertInfo {
+	objs := listCachedCRs(m, contextName, fluxAlertGVR, namespace)
+	out := make([]FluxAlertInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxAlert(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxAlert(ctx context.Context, contextName, namespace, name string) (*FluxAlertDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxAlertGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxAlert(obj)
+	inclusion, _, _ := unstructured.NestedStringSlice(obj.Object, "spec", "inclusionList")
+	exclusion, _, _ := unstructured.NestedStringSlice(obj.Object, "spec", "exclusionList")
+	metadata, _, _ := unstructured.NestedStringMap(obj.Object, "spec", "eventMetadata")
+	if metadata == nil {
+		metadata = map[string]string{}
+	}
+	return &FluxAlertDetail{
+		FluxAlertInfo: info,
+		Conditions:    extractFluxConditions(obj),
+		EventSources:  extractFluxAlertSources(obj, obj.GetNamespace()),
+		InclusionList: append([]string{}, inclusion...),
+		ExclusionList: append([]string{}, exclusion...),
+		EventMetadata: metadata,
+	}, nil
+}
+
+func extractFluxAlert(obj *unstructured.Unstructured) FluxAlertInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	provider := ""
+	if pr, _, _ := unstructured.NestedMap(obj.Object, "spec", "providerRef"); pr != nil {
+		provider, _ = pr["name"].(string)
+	}
+	severity, _, _ := unstructured.NestedString(obj.Object, "spec", "eventSeverity")
+	summary, _, _ := unstructured.NestedString(obj.Object, "spec", "summary")
+	sources := extractFluxAlertSources(obj, obj.GetNamespace())
+	return FluxAlertInfo{
+		Name:        obj.GetName(),
+		Namespace:   obj.GetNamespace(),
+		Ready:       readyStatus,
+		Status:      readyMsg,
+		Suspended:   suspended,
+		Provider:    provider,
+		Severity:    severity,
+		Summary:     summary,
+		Sources:     summariseAlertSources(sources),
+		SourceCount: len(sources),
+		CreatedAt:   obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
+}
+
+func extractFluxAlertSources(obj *unstructured.Unstructured, parentNS string) []FluxAlertSource {
+	raw, found, _ := unstructured.NestedSlice(obj.Object, "spec", "eventSources")
+	if !found {
+		return []FluxAlertSource{}
+	}
+	out := make([]FluxAlertSource, 0, len(raw))
+	for _, item := range raw {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		kind, _ := m["kind"].(string)
+		name, _ := m["name"].(string)
+		ns, _ := m["namespace"].(string)
+		if ns == "" {
+			ns = parentNS
+		}
+		if kind == "" {
+			continue
+		}
+		out = append(out, FluxAlertSource{Kind: kind, Name: name, Namespace: ns})
+	}
+	return out
+}
+
+// summariseAlertSources collapses up to two sources into "Kind/name" form
+// for the list cell. More than two get a "+N more" suffix so the column
+// stays a fixed width.
+func summariseAlertSources(sources []FluxAlertSource) string {
+	if len(sources) == 0 {
+		return ""
+	}
+	out := ""
+	for i, s := range sources {
+		if i >= 2 {
+			break
+		}
+		if out != "" {
+			out += ", "
+		}
+		label := s.Kind
+		if s.Name != "" && s.Name != "*" {
+			label += "/" + s.Name
+		} else {
+			label += "/*"
+		}
+		out += label
+	}
+	if len(sources) > 2 {
+		out += fmt.Sprintf(" +%d more", len(sources)-2)
+	}
+	return out
+}
+
+// ---------------------------------------------------------------------------
+// Receiver (notification.toolkit)
+// ---------------------------------------------------------------------------
+
+// FluxReceiverInfo is the row shape for the Receivers view. WebhookPath
+// is the cluster-internal URL fragment notification-controller publishes
+// once the receiver is reconciled — the user combines it with their
+// ingress hostname to form the public webhook URL.
+type FluxReceiverInfo struct {
+	Name          string `json:"name"`
+	Namespace     string `json:"namespace"`
+	Ready         string `json:"ready"`
+	Status        string `json:"status"`
+	Suspended     bool   `json:"suspended"`
+	Type          string `json:"type"`
+	WebhookPath   string `json:"webhookPath"`
+	ResourceCount int    `json:"resourceCount"`
+	SecretRef     string `json:"secretRef"`
+	CreatedAt     string `json:"createdAt"`
+}
+
+type FluxReceiverDetail struct {
+	FluxReceiverInfo
+	Conditions []FluxCondition   `json:"conditions"`
+	Events     []string          `json:"events"`
+	Resources  []FluxAlertSource `json:"resources"`
+	Interval   string            `json:"interval"`
+}
+
+func (m *ClientManager) ListFluxReceivers(contextName, namespace string) []FluxReceiverInfo {
+	objs := listCachedCRs(m, contextName, fluxReceiverGVR, namespace)
+	out := make([]FluxReceiverInfo, 0, len(objs))
+	for _, obj := range objs {
+		out = append(out, extractFluxReceiver(obj))
+	}
+	sortFluxRows(out, func(i int) (string, string) { return out[i].Namespace, out[i].Name })
+	return out
+}
+
+func (m *ClientManager) GetFluxReceiver(ctx context.Context, contextName, namespace, name string) (*FluxReceiverDetail, error) {
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := dyn.Resource(fluxReceiverGVR).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	info := extractFluxReceiver(obj)
+	events, _, _ := unstructured.NestedStringSlice(obj.Object, "spec", "events")
+	interval, _, _ := unstructured.NestedString(obj.Object, "spec", "interval")
+	return &FluxReceiverDetail{
+		FluxReceiverInfo: info,
+		Conditions:       extractFluxConditions(obj),
+		Events:           append([]string{}, events...),
+		Resources:        extractFluxReceiverResources(obj, obj.GetNamespace()),
+		Interval:         interval,
+	}, nil
+}
+
+func extractFluxReceiver(obj *unstructured.Unstructured) FluxReceiverInfo {
+	conds := extractFluxConditions(obj)
+	readyStatus, readyMsg := readySummary(conds)
+	suspended, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
+	recvType, _, _ := unstructured.NestedString(obj.Object, "spec", "type")
+	// .status.webhookPath shows up only after the receiver becomes Ready
+	// — that's by design: the path is derived from the receiver's token.
+	webhookPath, _, _ := unstructured.NestedString(obj.Object, "status", "webhookPath")
+	secretRef := ""
+	if sr, _, _ := unstructured.NestedMap(obj.Object, "spec", "secretRef"); sr != nil {
+		secretRef, _ = sr["name"].(string)
+	}
+	resources := extractFluxReceiverResources(obj, obj.GetNamespace())
+	return FluxReceiverInfo{
+		Name:          obj.GetName(),
+		Namespace:     obj.GetNamespace(),
+		Ready:         readyStatus,
+		Status:        readyMsg,
+		Suspended:     suspended,
+		Type:          recvType,
+		WebhookPath:   webhookPath,
+		ResourceCount: len(resources),
+		SecretRef:     secretRef,
+		CreatedAt:     obj.GetCreationTimestamp().UTC().Format(time.RFC3339),
+	}
+}
+
+// extractFluxReceiverResources reuses FluxAlertSource — the shape is
+// identical (kind+name+namespace), and rendering them through the same
+// component avoids two near-identical UI pieces.
+func extractFluxReceiverResources(obj *unstructured.Unstructured, parentNS string) []FluxAlertSource {
+	raw, found, _ := unstructured.NestedSlice(obj.Object, "spec", "resources")
+	if !found {
+		return []FluxAlertSource{}
+	}
+	out := make([]FluxAlertSource, 0, len(raw))
+	for _, item := range raw {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		kind, _ := m["kind"].(string)
+		name, _ := m["name"].(string)
+		ns, _ := m["namespace"].(string)
+		if ns == "" {
+			ns = parentNS
+		}
+		if kind == "" {
+			continue
+		}
+		out = append(out, FluxAlertSource{Kind: kind, Name: name, Namespace: ns})
+	}
+	return out
 }
 
 // ---------------------------------------------------------------------------

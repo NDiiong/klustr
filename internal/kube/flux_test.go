@@ -290,6 +290,101 @@ func TestExtractFluxBucket(t *testing.T) {
 	})
 }
 
+func TestExtractFluxProviderAddressFromSecret(t *testing.T) {
+	t.Run("inline address", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "slack", "namespace": "flux-system"},
+			"spec": map[string]any{
+				"type":    "slack",
+				"channel": "#alerts",
+				"address": "https://hooks.slack.com/services/T/B/X",
+			},
+		}}
+		got := extractFluxProvider(obj)
+		if got.Type != "slack" || got.Channel != "#alerts" {
+			t.Errorf("identity wrong: %+v", got)
+		}
+		if got.AddressFromSecret {
+			t.Errorf("inline address should not be marked as from-Secret")
+		}
+	})
+	t.Run("address provided via Secret", func(t *testing.T) {
+		obj := &unstructured.Unstructured{Object: map[string]any{
+			"metadata": map[string]any{"name": "slack", "namespace": "flux-system"},
+			"spec": map[string]any{
+				"type":      "slack",
+				"secretRef": map[string]any{"name": "slack-webhook"},
+			},
+		}}
+		got := extractFluxProvider(obj)
+		if got.Address != "" {
+			t.Errorf("Address should be empty when delivered via Secret, got %q", got.Address)
+		}
+		if !got.AddressFromSecret {
+			t.Error("AddressFromSecret should be true when only secretRef is set")
+		}
+	})
+}
+
+func TestSummariseAlertSources(t *testing.T) {
+	cases := []struct {
+		name string
+		in   []FluxAlertSource
+		want string
+	}{
+		{"empty", nil, ""},
+		{"single", []FluxAlertSource{{Kind: "Kustomization", Name: "podinfo"}}, "Kustomization/podinfo"},
+		{"two", []FluxAlertSource{
+			{Kind: "GitRepository", Name: "podinfo"},
+			{Kind: "Kustomization", Name: "podinfo"},
+		}, "GitRepository/podinfo, Kustomization/podinfo"},
+		{"wildcard name", []FluxAlertSource{{Kind: "Kustomization", Name: "*"}}, "Kustomization/*"},
+		{"more than two", []FluxAlertSource{
+			{Kind: "GitRepository", Name: "a"},
+			{Kind: "GitRepository", Name: "b"},
+			{Kind: "GitRepository", Name: "c"},
+			{Kind: "GitRepository", Name: "d"},
+		}, "GitRepository/a, GitRepository/b +2 more"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := summariseAlertSources(tc.in)
+			if got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestExtractFluxReceiverWebhookPath(t *testing.T) {
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"metadata": map[string]any{"name": "github", "namespace": "flux-system"},
+		"spec": map[string]any{
+			"type":      "github",
+			"secretRef": map[string]any{"name": "webhook-token"},
+			"resources": []any{
+				map[string]any{"kind": "GitRepository", "name": "podinfo"},
+			},
+		},
+		"status": map[string]any{
+			"webhookPath": "/hook/abc123",
+		},
+	}}
+	got := extractFluxReceiver(obj)
+	if got.Type != "github" {
+		t.Errorf("type wrong: %q", got.Type)
+	}
+	if got.WebhookPath != "/hook/abc123" {
+		t.Errorf("webhook path wrong: %q", got.WebhookPath)
+	}
+	if got.SecretRef != "webhook-token" {
+		t.Errorf("secretRef wrong: %q", got.SecretRef)
+	}
+	if got.ResourceCount != 1 {
+		t.Errorf("resource count wrong: %d", got.ResourceCount)
+	}
+}
+
 func TestExtractDependsOnRefs(t *testing.T) {
 	in := []any{
 		map[string]any{"name": "a"},
