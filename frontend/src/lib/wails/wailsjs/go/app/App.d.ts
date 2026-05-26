@@ -56,6 +56,8 @@ export function GetEndpoints(arg1:string,arg2:string,arg3:string):Promise<kube.E
 
 export function GetFlowSchema(arg1:string,arg2:string):Promise<kube.FlowSchemaDetail>;
 
+export function GetFluxAlert(arg1:string,arg2:string,arg3:string):Promise<kube.FluxAlertDetail>;
+
 export function GetFluxBucket(arg1:string,arg2:string,arg3:string):Promise<kube.FluxBucketDetail>;
 
 export function GetFluxGitRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxGitRepositoryDetail>;
@@ -67,6 +69,10 @@ export function GetFluxHelmRepository(arg1:string,arg2:string,arg3:string):Promi
 export function GetFluxKustomization(arg1:string,arg2:string,arg3:string):Promise<kube.FluxKustomizationDetail>;
 
 export function GetFluxOCIRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxOCIRepositoryDetail>;
+
+export function GetFluxProvider(arg1:string,arg2:string,arg3:string):Promise<kube.FluxProviderDetail>;
+
+export function GetFluxReceiver(arg1:string,arg2:string,arg3:string):Promise<kube.FluxReceiverDetail>;
 
 export function GetGRPCRoute(arg1:string,arg2:string,arg3:string):Promise<kube.GRPCRouteDetail>;
 
@@ -224,6 +230,8 @@ export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Prom
 
 export function ListFlowSchemas(arg1:string):Promise<Array<kube.FlowSchemaInfo>>;
 
+export function ListFluxAlerts(arg1:string,arg2:string):Promise<Array<kube.FluxAlertInfo>>;
+
 export function ListFluxBuckets(arg1:string,arg2:string):Promise<Array<kube.FluxBucketInfo>>;
 
 export function ListFluxGitRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxGitRepositoryInfo>>;
@@ -235,6 +243,10 @@ export function ListFluxHelmRepositories(arg1:string,arg2:string):Promise<Array<
 export function ListFluxKustomizations(arg1:string,arg2:string):Promise<Array<kube.FluxKustomizationInfo>>;
 
 export function ListFluxOCIRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxOCIRepositoryInfo>>;
+
+export function ListFluxProviders(arg1:string,arg2:string):Promise<Array<kube.FluxProviderInfo>>;
+
+export function ListFluxReceivers(arg1:string,arg2:string):Promise<Array<kube.FluxReceiverInfo>>;
 
 export function ListGRPCRoutes(arg1:string,arg2:string):Promise<Array<kube.GRPCRouteInfo>>;
 

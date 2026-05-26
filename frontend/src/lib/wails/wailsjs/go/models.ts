@@ -2388,6 +2388,22 @@ export namespace kube {
 	    }
 	}
 	
+	export class FluxAlertSource {
+	    kind: string;
+	    name: string;
+	    namespace: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxAlertSource(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	    }
+	}
 	export class FluxCondition {
 	    type: string;
 	    status: string;
@@ -2408,6 +2424,99 @@ export namespace kube {
 	        this.lastTransitionTime = source["lastTransitionTime"];
 	    }
 	}
+	export class FluxAlertDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    provider: string;
+	    severity: string;
+	    summary: string;
+	    sources: string;
+	    sourceCount: number;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    eventSources: FluxAlertSource[];
+	    inclusionList: string[];
+	    exclusionList: string[];
+	    eventMetadata: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxAlertDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.provider = source["provider"];
+	        this.severity = source["severity"];
+	        this.summary = source["summary"];
+	        this.sources = source["sources"];
+	        this.sourceCount = source["sourceCount"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.eventSources = this.convertValues(source["eventSources"], FluxAlertSource);
+	        this.inclusionList = source["inclusionList"];
+	        this.exclusionList = source["exclusionList"];
+	        this.eventMetadata = source["eventMetadata"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxAlertInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    provider: string;
+	    severity: string;
+	    summary: string;
+	    sources: string;
+	    sourceCount: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxAlertInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.provider = source["provider"];
+	        this.severity = source["severity"];
+	        this.summary = source["summary"];
+	        this.sources = source["sources"];
+	        this.sourceCount = source["sourceCount"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
 	export class FluxBucketDetail {
 	    name: string;
 	    namespace: string;
@@ -2972,6 +3081,184 @@ export namespace kube {
 	        this.provider = source["provider"];
 	        this.revision = source["revision"];
 	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class FluxProviderDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    channel: string;
+	    username: string;
+	    address: string;
+	    addressFromSecret: boolean;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    secretRef: string;
+	    certSecretRef: string;
+	    proxy: string;
+	    timeout: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxProviderDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.channel = source["channel"];
+	        this.username = source["username"];
+	        this.address = source["address"];
+	        this.addressFromSecret = source["addressFromSecret"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.secretRef = source["secretRef"];
+	        this.certSecretRef = source["certSecretRef"];
+	        this.proxy = source["proxy"];
+	        this.timeout = source["timeout"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxProviderInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    channel: string;
+	    username: string;
+	    address: string;
+	    addressFromSecret: boolean;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxProviderInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.channel = source["channel"];
+	        this.username = source["username"];
+	        this.address = source["address"];
+	        this.addressFromSecret = source["addressFromSecret"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class FluxReceiverDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    webhookPath: string;
+	    resourceCount: number;
+	    secretRef: string;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    events: string[];
+	    resources: FluxAlertSource[];
+	    interval: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxReceiverDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.webhookPath = source["webhookPath"];
+	        this.resourceCount = source["resourceCount"];
+	        this.secretRef = source["secretRef"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.events = source["events"];
+	        this.resources = this.convertValues(source["resources"], FluxAlertSource);
+	        this.interval = source["interval"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxReceiverInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    webhookPath: string;
+	    resourceCount: number;
+	    secretRef: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxReceiverInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.webhookPath = source["webhookPath"];
+	        this.resourceCount = source["resourceCount"];
+	        this.secretRef = source["secretRef"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}

@@ -941,6 +941,30 @@ func (a *App) GetFluxBucket(contextName, namespace, name string) (*kube.FluxBuck
 	return a.clients.GetFluxBucket(a.ctx, contextName, namespace, name)
 }
 
+func (a *App) ListFluxProviders(contextName, namespace string) []kube.FluxProviderInfo {
+	return a.clients.ListFluxProviders(contextName, namespace)
+}
+
+func (a *App) GetFluxProvider(contextName, namespace, name string) (*kube.FluxProviderDetail, error) {
+	return a.clients.GetFluxProvider(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxAlerts(contextName, namespace string) []kube.FluxAlertInfo {
+	return a.clients.ListFluxAlerts(contextName, namespace)
+}
+
+func (a *App) GetFluxAlert(contextName, namespace, name string) (*kube.FluxAlertDetail, error) {
+	return a.clients.GetFluxAlert(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxReceivers(contextName, namespace string) []kube.FluxReceiverInfo {
+	return a.clients.ListFluxReceivers(contextName, namespace)
+}
+
+func (a *App) GetFluxReceiver(contextName, namespace, name string) (*kube.FluxReceiverDetail, error) {
+	return a.clients.GetFluxReceiver(a.ctx, contextName, namespace, name)
+}
+
 func (a *App) ReconcileFluxResource(contextName, kind, namespace, name string) error {
 	return a.clients.ReconcileFluxResource(a.ctx, contextName, kind, namespace, name)
 }
