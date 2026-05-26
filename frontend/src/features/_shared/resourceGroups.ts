@@ -268,5 +268,8 @@ export const FLUX_GROUP: ResourceGroup = {
     { label: 'Kustomizations', view: 'fluxkustomizations', icon: Layers3 },
     { label: 'HelmReleases', view: 'fluxhelmreleases', icon: Package },
     { label: 'GitRepositories', view: 'fluxgitrepositories', icon: GitBranch },
+    { label: 'HelmRepositories', view: 'fluxhelmrepositories', icon: Library },
+    { label: 'OCIRepositories', view: 'fluxocirepositories', icon: Ship },
+    { label: 'Buckets', view: 'fluxbuckets', icon: Archive },
   ],
 }

@@ -81,6 +81,9 @@ import { KarpenterNodeClaimsView } from '@/features/karpenter-nodeclaims/Karpent
 import { FluxKustomizationsView } from '@/features/flux/FluxKustomizationsView'
 import { FluxHelmReleasesView } from '@/features/flux/FluxHelmReleasesView'
 import { FluxGitRepositoriesView } from '@/features/flux/FluxGitRepositoriesView'
+import { FluxHelmRepositoriesView } from '@/features/flux/FluxHelmRepositoriesView'
+import { FluxOCIRepositoriesView } from '@/features/flux/FluxOCIRepositoriesView'
+import { FluxBucketsView } from '@/features/flux/FluxBucketsView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
@@ -267,6 +270,12 @@ function MainView() {
       return <FluxHelmReleasesView />
     case 'fluxgitrepositories':
       return <FluxGitRepositoriesView />
+    case 'fluxhelmrepositories':
+      return <FluxHelmRepositoriesView />
+    case 'fluxocirepositories':
+      return <FluxOCIRepositoriesView />
+    case 'fluxbuckets':
+      return <FluxBucketsView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">
