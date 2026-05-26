@@ -84,6 +84,9 @@ import { FluxGitRepositoriesView } from '@/features/flux/FluxGitRepositoriesView
 import { FluxHelmRepositoriesView } from '@/features/flux/FluxHelmRepositoriesView'
 import { FluxOCIRepositoriesView } from '@/features/flux/FluxOCIRepositoriesView'
 import { FluxBucketsView } from '@/features/flux/FluxBucketsView'
+import { FluxProvidersView } from '@/features/flux/FluxProvidersView'
+import { FluxAlertsView } from '@/features/flux/FluxAlertsView'
+import { FluxReceiversView } from '@/features/flux/FluxReceiversView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
@@ -276,6 +279,12 @@ function MainView() {
       return <FluxOCIRepositoriesView />
     case 'fluxbuckets':
       return <FluxBucketsView />
+    case 'fluxproviders':
+      return <FluxProvidersView />
+    case 'fluxalerts':
+      return <FluxAlertsView />
+    case 'fluxreceivers':
+      return <FluxReceiversView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">

@@ -271,5 +271,8 @@ export const FLUX_GROUP: ResourceGroup = {
     { label: 'HelmRepositories', view: 'fluxhelmrepositories', icon: Library },
     { label: 'OCIRepositories', view: 'fluxocirepositories', icon: Ship },
     { label: 'Buckets', view: 'fluxbuckets', icon: Archive },
+    { label: 'Providers', view: 'fluxproviders', icon: Plug },
+    { label: 'Alerts', view: 'fluxalerts', icon: BellRing },
+    { label: 'Receivers', view: 'fluxreceivers', icon: Webhook },
   ],
 }
