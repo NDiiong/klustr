@@ -8,6 +8,7 @@ import type { SelectedResource } from '@/store/ui'
 export const FLUX_KUSTOMIZATION_GROUP = 'kustomize.toolkit.fluxcd.io'
 export const FLUX_HELMRELEASE_GROUP = 'helm.toolkit.fluxcd.io'
 export const FLUX_SOURCE_GROUP = 'source.toolkit.fluxcd.io'
+export const FLUX_NOTIFICATION_GROUP = 'notification.toolkit.fluxcd.io'
 
 export const FLUX_KUSTOMIZATION_RESOURCE = 'kustomizations'
 export const FLUX_HELMRELEASE_RESOURCE = 'helmreleases'
@@ -15,6 +16,9 @@ export const FLUX_GITREPOSITORY_RESOURCE = 'gitrepositories'
 export const FLUX_HELMREPOSITORY_RESOURCE = 'helmrepositories'
 export const FLUX_OCIREPOSITORY_RESOURCE = 'ocirepositories'
 export const FLUX_BUCKET_RESOURCE = 'buckets'
+export const FLUX_PROVIDER_RESOURCE = 'providers'
+export const FLUX_ALERT_RESOURCE = 'alerts'
+export const FLUX_RECEIVER_RESOURCE = 'receivers'
 
 // fluxKind label used in the detail dialog header, distinct from the
 // Klustr-internal "FluxKustomization" identifier so the UI reads naturally.
@@ -25,6 +29,9 @@ export const FLUX_KIND_LABEL: Record<FluxKind, string> = {
   FluxHelmRepository: 'HelmRepository',
   FluxOCIRepository: 'OCIRepository',
   FluxBucket: 'Bucket',
+  FluxProvider: 'Provider',
+  FluxAlert: 'Alert',
+  FluxReceiver: 'Receiver',
 }
 
 const FLUX_KINDS = new Set<string>([
@@ -34,6 +41,9 @@ const FLUX_KINDS = new Set<string>([
   'FluxHelmRepository',
   'FluxOCIRepository',
   'FluxBucket',
+  'FluxProvider',
+  'FluxAlert',
+  'FluxReceiver',
 ])
 
 export function isFluxResource(resource: SelectedResource | null): resource is SelectedResource & { kind: FluxKind } {

@@ -125,6 +125,9 @@ export type ResourceView =
   | 'fluxhelmrepositories'
   | 'fluxocirepositories'
   | 'fluxbuckets'
+  | 'fluxproviders'
+  | 'fluxalerts'
+  | 'fluxreceivers'
 
 export type ResourceKind =
   | 'Pod'

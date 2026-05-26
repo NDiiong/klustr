@@ -156,6 +156,12 @@ import {
   GetFluxOCIRepository,
   ListFluxBuckets,
   GetFluxBucket,
+  ListFluxProviders,
+  GetFluxProvider,
+  ListFluxAlerts,
+  GetFluxAlert,
+  ListFluxReceivers,
+  GetFluxReceiver,
   ReconcileFluxResource,
   SetFluxResourceSuspended,
   ListNamespaces,
@@ -419,6 +425,13 @@ export type FluxOCIRepositoryInfo = kube.FluxOCIRepositoryInfo
 export type FluxOCIRepositoryDetail = kube.FluxOCIRepositoryDetail
 export type FluxBucketInfo = kube.FluxBucketInfo
 export type FluxBucketDetail = kube.FluxBucketDetail
+export type FluxProviderInfo = kube.FluxProviderInfo
+export type FluxProviderDetail = kube.FluxProviderDetail
+export type FluxAlertInfo = kube.FluxAlertInfo
+export type FluxAlertDetail = kube.FluxAlertDetail
+export type FluxAlertSource = kube.FluxAlertSource
+export type FluxReceiverInfo = kube.FluxReceiverInfo
+export type FluxReceiverDetail = kube.FluxReceiverDetail
 export type FluxKind =
   | 'FluxKustomization'
   | 'FluxHelmRelease'
@@ -426,6 +439,9 @@ export type FluxKind =
   | 'FluxHelmRepository'
   | 'FluxOCIRepository'
   | 'FluxBucket'
+  | 'FluxProvider'
+  | 'FluxAlert'
+  | 'FluxReceiver'
 
 export const api = {
   listContexts: (): Promise<Kubeconfig> => ListContexts(),
@@ -945,6 +961,31 @@ export const api = {
     namespace: string,
     name: string,
   ): Promise<FluxBucketDetail> => GetFluxBucket(contextName, namespace, name),
+  listFluxProviders: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxProviderInfo[]> => ListFluxProviders(contextName, namespace),
+  getFluxProvider: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxProviderDetail> => GetFluxProvider(contextName, namespace, name),
+  listFluxAlerts: (contextName: string, namespace: string): Promise<FluxAlertInfo[]> =>
+    ListFluxAlerts(contextName, namespace),
+  getFluxAlert: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxAlertDetail> => GetFluxAlert(contextName, namespace, name),
+  listFluxReceivers: (
+    contextName: string,
+    namespace: string,
+  ): Promise<FluxReceiverInfo[]> => ListFluxReceivers(contextName, namespace),
+  getFluxReceiver: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<FluxReceiverDetail> => GetFluxReceiver(contextName, namespace, name),
   reconcileFluxResource: (
     contextName: string,
     kind: FluxKind,
