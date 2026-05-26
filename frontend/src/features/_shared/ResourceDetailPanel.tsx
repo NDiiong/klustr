@@ -94,6 +94,9 @@ import { FluxGitRepositoryDetailBody } from '@/features/flux/FluxGitRepositoryDe
 import { FluxHelmRepositoryDetailBody } from '@/features/flux/FluxHelmRepositoryDetailBody'
 import { FluxOCIRepositoryDetailBody } from '@/features/flux/FluxOCIRepositoryDetailBody'
 import { FluxBucketDetailBody } from '@/features/flux/FluxBucketDetailBody'
+import { FluxProviderDetailBody } from '@/features/flux/FluxProviderDetailBody'
+import { FluxAlertDetailBody } from '@/features/flux/FluxAlertDetailBody'
+import { FluxReceiverDetailBody } from '@/features/flux/FluxReceiverDetailBody'
 import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
 import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
 import {
@@ -353,6 +356,9 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
   const isFluxHelmRepository = resource.kind === 'FluxHelmRepository'
   const isFluxOCIRepository = resource.kind === 'FluxOCIRepository'
   const isFluxBucket = resource.kind === 'FluxBucket'
+  const isFluxProvider = resource.kind === 'FluxProvider'
+  const isFluxAlert = resource.kind === 'FluxAlert'
+  const isFluxReceiver = resource.kind === 'FluxReceiver'
   const hasOverview = isArgoAppProject || isArgoAppSet || isFlux
   const hasEvents = isFlux
   const initialTab = isArgoApp ? 'resources' : hasOverview ? 'overview' : 'yaml'
@@ -432,6 +438,33 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
       {isFluxBucket && (
         <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           <FluxBucketDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxProvider && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxProviderDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxAlert && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxAlertDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxReceiver && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxReceiverDetailBody
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}
