@@ -257,3 +257,16 @@ export const KARPENTER_GROUP: ResourceGroup = {
     { label: 'NodeClaims', view: 'karpenternodeclaims', icon: Server },
   ],
 }
+
+// Flux CD CRs are watched via the dynamic CR informer (same path Argo CD
+// uses). The group is rendered conditionally when the
+// kustomize.toolkit.fluxcd.io CRDs are present in App.tsx.
+export const FLUX_GROUP: ResourceGroup = {
+  label: 'Flux CD',
+  icon: GitBranch,
+  items: [
+    { label: 'Kustomizations', view: 'fluxkustomizations', icon: Layers3 },
+    { label: 'HelmReleases', view: 'fluxhelmreleases', icon: Package },
+    { label: 'GitRepositories', view: 'fluxgitrepositories', icon: GitBranch },
+  ],
+}

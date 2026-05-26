@@ -78,8 +78,11 @@ import { GatewayClassesView } from '@/features/gatewayclasses/GatewayClassesView
 import { ReferenceGrantsView } from '@/features/referencegrants/ReferenceGrantsView'
 import { KarpenterNodePoolsView } from '@/features/karpenter-nodepools/KarpenterNodePoolsView'
 import { KarpenterNodeClaimsView } from '@/features/karpenter-nodeclaims/KarpenterNodeClaimsView'
+import { FluxKustomizationsView } from '@/features/flux/FluxKustomizationsView'
+import { FluxHelmReleasesView } from '@/features/flux/FluxHelmReleasesView'
+import { FluxGitRepositoriesView } from '@/features/flux/FluxGitRepositoriesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
-import { ARGO_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
+import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
 import { SidebarGroup } from '@/features/_shared/SidebarGroup'
 import { SidebarResizeHandle } from '@/features/_shared/SidebarResizeHandle'
@@ -258,6 +261,12 @@ function MainView() {
       return <KarpenterNodePoolsView />
     case 'karpenternodeclaims':
       return <KarpenterNodeClaimsView />
+    case 'fluxkustomizations':
+      return <FluxKustomizationsView />
+    case 'fluxhelmreleases':
+      return <FluxHelmReleasesView />
+    case 'fluxgitrepositories':
+      return <FluxGitRepositoriesView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">
@@ -325,12 +334,16 @@ function App() {
     !isAggregated &&
     crds.some((c) => c.group === 'argoproj.io' && c.resource === 'applications')
   const hasKarpenter = !isAggregated && crds.some((c) => c.group === 'karpenter.sh')
+  const hasFluxCD =
+    !isAggregated &&
+    crds.some((c) => c.group === 'kustomize.toolkit.fluxcd.io' && c.resource === 'kustomizations')
   const visibleGroups = useMemo<ResourceGroup[]>(() => {
     const allGroups: ResourceGroup[] = [
       ...RESOURCE_GROUPS,
       ...(hasGatewayAPI ? [GATEWAY_GROUP] : []),
       ...(hasArgoApplications ? [ARGO_GROUP] : []),
       ...(hasKarpenter ? [KARPENTER_GROUP] : []),
+      ...(hasFluxCD ? [FLUX_GROUP] : []),
       HELM_GROUP,
     ]
     // Filter each group's items by per-context RBAC reach. Items without a
@@ -353,6 +366,7 @@ function App() {
     hasGatewayAPI,
     hasArgoApplications,
     hasKarpenter,
+    hasFluxCD,
     accessByContext,
     activeContexts,
     hiddenSidebarItems,
