@@ -917,6 +917,30 @@ func (a *App) GetFluxGitRepository(contextName, namespace, name string) (*kube.F
 	return a.clients.GetFluxGitRepository(a.ctx, contextName, namespace, name)
 }
 
+func (a *App) ListFluxHelmRepositories(contextName, namespace string) []kube.FluxHelmRepositoryInfo {
+	return a.clients.ListFluxHelmRepositories(contextName, namespace)
+}
+
+func (a *App) GetFluxHelmRepository(contextName, namespace, name string) (*kube.FluxHelmRepositoryDetail, error) {
+	return a.clients.GetFluxHelmRepository(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxOCIRepositories(contextName, namespace string) []kube.FluxOCIRepositoryInfo {
+	return a.clients.ListFluxOCIRepositories(contextName, namespace)
+}
+
+func (a *App) GetFluxOCIRepository(contextName, namespace, name string) (*kube.FluxOCIRepositoryDetail, error) {
+	return a.clients.GetFluxOCIRepository(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxBuckets(contextName, namespace string) []kube.FluxBucketInfo {
+	return a.clients.ListFluxBuckets(contextName, namespace)
+}
+
+func (a *App) GetFluxBucket(contextName, namespace, name string) (*kube.FluxBucketDetail, error) {
+	return a.clients.GetFluxBucket(a.ctx, contextName, namespace, name)
+}
+
 func (a *App) ReconcileFluxResource(contextName, kind, namespace, name string) error {
 	return a.clients.ReconcileFluxResource(a.ctx, contextName, kind, namespace, name)
 }

@@ -2408,6 +2408,103 @@ export namespace kube {
 	        this.lastTransitionTime = source["lastTransitionTime"];
 	    }
 	}
+	export class FluxBucketDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    provider: string;
+	    bucketName: string;
+	    endpoint: string;
+	    region: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    secretRef: string;
+	    timeout: string;
+	    insecure: boolean;
+	    prefix: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxBucketDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.provider = source["provider"];
+	        this.bucketName = source["bucketName"];
+	        this.endpoint = source["endpoint"];
+	        this.region = source["region"];
+	        this.revision = source["revision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.secretRef = source["secretRef"];
+	        this.timeout = source["timeout"];
+	        this.insecure = source["insecure"];
+	        this.prefix = source["prefix"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxBucketInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    provider: string;
+	    bucketName: string;
+	    endpoint: string;
+	    region: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxBucketInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.provider = source["provider"];
+	        this.bucketName = source["bucketName"];
+	        this.endpoint = source["endpoint"];
+	        this.region = source["region"];
+	        this.revision = source["revision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
 	export class FluxGitRepositoryDetail {
 	    name: string;
 	    namespace: string;
@@ -2592,6 +2689,96 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class FluxHelmRepositoryDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    provider: string;
+	    url: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    secretRef: string;
+	    timeout: string;
+	    passCredentials: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxHelmRepositoryDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.provider = source["provider"];
+	        this.url = source["url"];
+	        this.revision = source["revision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.secretRef = source["secretRef"];
+	        this.timeout = source["timeout"];
+	        this.passCredentials = source["passCredentials"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxHelmRepositoryInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    type: string;
+	    provider: string;
+	    url: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxHelmRepositoryInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.type = source["type"];
+	        this.provider = source["provider"];
+	        this.url = source["url"];
+	        this.revision = source["revision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class FluxKustomizationDetail {
 	    name: string;
 	    namespace: string;
@@ -2688,6 +2875,102 @@ export namespace kube {
 	        this.sourceRef = source["sourceRef"];
 	        this.revision = source["revision"];
 	        this.lastAppliedRevision = source["lastAppliedRevision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class FluxOCIRepositoryDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    url: string;
+	    ref: string;
+	    provider: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	    conditions: FluxCondition[];
+	    secretRef: string;
+	    serviceAccountName: string;
+	    certSecretRef: string;
+	    timeout: string;
+	    verify: string;
+	    insecure: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxOCIRepositoryDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.url = source["url"];
+	        this.ref = source["ref"];
+	        this.provider = source["provider"];
+	        this.revision = source["revision"];
+	        this.interval = source["interval"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], FluxCondition);
+	        this.secretRef = source["secretRef"];
+	        this.serviceAccountName = source["serviceAccountName"];
+	        this.certSecretRef = source["certSecretRef"];
+	        this.timeout = source["timeout"];
+	        this.verify = source["verify"];
+	        this.insecure = source["insecure"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FluxOCIRepositoryInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    suspended: boolean;
+	    url: string;
+	    ref: string;
+	    provider: string;
+	    revision: string;
+	    interval: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FluxOCIRepositoryInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.suspended = source["suspended"];
+	        this.url = source["url"];
+	        this.ref = source["ref"];
+	        this.provider = source["provider"];
+	        this.revision = source["revision"];
 	        this.interval = source["interval"];
 	        this.createdAt = source["createdAt"];
 	    }

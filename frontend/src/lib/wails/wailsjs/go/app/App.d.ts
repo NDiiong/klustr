@@ -56,11 +56,17 @@ export function GetEndpoints(arg1:string,arg2:string,arg3:string):Promise<kube.E
 
 export function GetFlowSchema(arg1:string,arg2:string):Promise<kube.FlowSchemaDetail>;
 
+export function GetFluxBucket(arg1:string,arg2:string,arg3:string):Promise<kube.FluxBucketDetail>;
+
 export function GetFluxGitRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxGitRepositoryDetail>;
 
 export function GetFluxHelmRelease(arg1:string,arg2:string,arg3:string):Promise<kube.FluxHelmReleaseDetail>;
 
+export function GetFluxHelmRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxHelmRepositoryDetail>;
+
 export function GetFluxKustomization(arg1:string,arg2:string,arg3:string):Promise<kube.FluxKustomizationDetail>;
+
+export function GetFluxOCIRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxOCIRepositoryDetail>;
 
 export function GetGRPCRoute(arg1:string,arg2:string,arg3:string):Promise<kube.GRPCRouteDetail>;
 
@@ -218,11 +224,17 @@ export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Prom
 
 export function ListFlowSchemas(arg1:string):Promise<Array<kube.FlowSchemaInfo>>;
 
+export function ListFluxBuckets(arg1:string,arg2:string):Promise<Array<kube.FluxBucketInfo>>;
+
 export function ListFluxGitRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxGitRepositoryInfo>>;
 
 export function ListFluxHelmReleases(arg1:string,arg2:string):Promise<Array<kube.FluxHelmReleaseInfo>>;
 
+export function ListFluxHelmRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxHelmRepositoryInfo>>;
+
 export function ListFluxKustomizations(arg1:string,arg2:string):Promise<Array<kube.FluxKustomizationInfo>>;
+
+export function ListFluxOCIRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxOCIRepositoryInfo>>;
 
 export function ListGRPCRoutes(arg1:string,arg2:string):Promise<Array<kube.GRPCRouteInfo>>;
 

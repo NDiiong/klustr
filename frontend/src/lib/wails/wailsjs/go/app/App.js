@@ -110,6 +110,10 @@ export function GetFlowSchema(arg1, arg2) {
   return window['go']['app']['App']['GetFlowSchema'](arg1, arg2);
 }
 
+export function GetFluxBucket(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxBucket'](arg1, arg2, arg3);
+}
+
 export function GetFluxGitRepository(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetFluxGitRepository'](arg1, arg2, arg3);
 }
@@ -118,8 +122,16 @@ export function GetFluxHelmRelease(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetFluxHelmRelease'](arg1, arg2, arg3);
 }
 
+export function GetFluxHelmRepository(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxHelmRepository'](arg1, arg2, arg3);
+}
+
 export function GetFluxKustomization(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetFluxKustomization'](arg1, arg2, arg3);
+}
+
+export function GetFluxOCIRepository(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxOCIRepository'](arg1, arg2, arg3);
 }
 
 export function GetGRPCRoute(arg1, arg2, arg3) {
@@ -434,6 +446,10 @@ export function ListFlowSchemas(arg1) {
   return window['go']['app']['App']['ListFlowSchemas'](arg1);
 }
 
+export function ListFluxBuckets(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxBuckets'](arg1, arg2);
+}
+
 export function ListFluxGitRepositories(arg1, arg2) {
   return window['go']['app']['App']['ListFluxGitRepositories'](arg1, arg2);
 }
@@ -442,8 +458,16 @@ export function ListFluxHelmReleases(arg1, arg2) {
   return window['go']['app']['App']['ListFluxHelmReleases'](arg1, arg2);
 }
 
+export function ListFluxHelmRepositories(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxHelmRepositories'](arg1, arg2);
+}
+
 export function ListFluxKustomizations(arg1, arg2) {
   return window['go']['app']['App']['ListFluxKustomizations'](arg1, arg2);
+}
+
+export function ListFluxOCIRepositories(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxOCIRepositories'](arg1, arg2);
 }
 
 export function ListGRPCRoutes(arg1, arg2) {
