@@ -88,7 +88,16 @@ import { HelmInstallDialog } from '@/features/helm/HelmInstallDialog'
 import { HelmRollbackDialog } from '@/features/helm/HelmRollbackDialog'
 import { HelmRollbackPickerDialog } from '@/features/helm/HelmRollbackPickerDialog'
 import { HelmUninstallDialog } from '@/features/helm/HelmUninstallDialog'
-import type { HelmReleaseDetail } from '@/lib/api'
+import { FluxKustomizationDetailBody } from '@/features/flux/FluxKustomizationDetailBody'
+import { FluxHelmReleaseDetailBody } from '@/features/flux/FluxHelmReleaseDetailBody'
+import { FluxGitRepositoryDetailBody } from '@/features/flux/FluxGitRepositoryDetailBody'
+import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
+import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
+import {
+  isFluxResource,
+  stripFluxKindPrefix,
+} from '@/features/flux/fluxKinds'
+import type { FluxKind, HelmReleaseDetail } from '@/lib/api'
 
 type Props = {
   contextName: string | null
@@ -161,6 +170,23 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
               )}
               {isArgoApplication(resource) && (
                 <SyncArgoApplicationButton contextName={contextName} resource={resource} />
+              )}
+              {isFluxResource(resource) && (
+                <>
+                  <ReconcileFluxResourceButton
+                    contextName={contextName}
+                    kind={resource.kind as FluxKind}
+                    namespace={resource.namespace}
+                    name={resource.name}
+                  />
+                  <SuspendResumeFluxResourceButton
+                    contextName={contextName}
+                    kind={resource.kind as FluxKind}
+                    namespace={resource.namespace}
+                    name={resource.name}
+                    suspended={resource.suspended ?? false}
+                  />
+                </>
               )}
               {isArgoApplication(resource) ? (
                 <DeleteArgoApplicationButton contextName={contextName} resource={resource} />
@@ -317,7 +343,12 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
     resource.kind === 'AppProject' && resource.gvr?.group === 'argoproj.io'
   const isArgoAppSet =
     resource.kind === 'ApplicationSet' && resource.gvr?.group === 'argoproj.io'
-  const hasOverview = isArgoAppProject || isArgoAppSet
+  const isFlux = isFluxResource(resource)
+  const isFluxKustomization = resource.kind === 'FluxKustomization'
+  const isFluxHelmRelease = resource.kind === 'FluxHelmRelease'
+  const isFluxGitRepository = resource.kind === 'FluxGitRepository'
+  const hasOverview = isArgoAppProject || isArgoAppSet || isFlux
+  const hasEvents = isFlux
   const initialTab = isArgoApp ? 'resources' : hasOverview ? 'overview' : 'yaml'
   const [tab, setTab] = useState<string>(initialTab)
   return (
@@ -326,6 +357,7 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
         {hasOverview && <TabsTrigger value="overview">Overview</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="resources">Resources</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="history">History</TabsTrigger>}
+        {hasEvents && <TabsTrigger value="events">Events</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
       {isArgoAppProject && (
@@ -346,6 +378,33 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
           />
         </TabsContent>
       )}
+      {isFluxKustomization && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxKustomizationDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxHelmRelease && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxHelmReleaseDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isFluxGitRepository && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <FluxGitRepositoryDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
       {isArgoApp && (
         <TabsContent value="resources" className="min-h-0 flex-1 p-0">
           <ApplicationResourcesTab
@@ -360,6 +419,16 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
           <ApplicationHistoryTab
             contextName={contextName}
             namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {hasEvents && (
+        <TabsContent value="events" className="min-h-0 flex-1 p-0">
+          <EventsTab
+            contextName={contextName}
+            namespace={resource.namespace}
+            kind={stripFluxKindPrefix(resource.kind)}
             name={resource.name}
           />
         </TabsContent>
