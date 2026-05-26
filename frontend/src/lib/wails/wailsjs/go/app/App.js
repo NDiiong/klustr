@@ -110,6 +110,18 @@ export function GetFlowSchema(arg1, arg2) {
   return window['go']['app']['App']['GetFlowSchema'](arg1, arg2);
 }
 
+export function GetFluxGitRepository(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxGitRepository'](arg1, arg2, arg3);
+}
+
+export function GetFluxHelmRelease(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxHelmRelease'](arg1, arg2, arg3);
+}
+
+export function GetFluxKustomization(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetFluxKustomization'](arg1, arg2, arg3);
+}
+
 export function GetGRPCRoute(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetGRPCRoute'](arg1, arg2, arg3);
 }
@@ -422,6 +434,18 @@ export function ListFlowSchemas(arg1) {
   return window['go']['app']['App']['ListFlowSchemas'](arg1);
 }
 
+export function ListFluxGitRepositories(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxGitRepositories'](arg1, arg2);
+}
+
+export function ListFluxHelmReleases(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxHelmReleases'](arg1, arg2);
+}
+
+export function ListFluxKustomizations(arg1, arg2) {
+  return window['go']['app']['App']['ListFluxKustomizations'](arg1, arg2);
+}
+
 export function ListGRPCRoutes(arg1, arg2) {
   return window['go']['app']['App']['ListGRPCRoutes'](arg1, arg2);
 }
@@ -650,6 +674,10 @@ export function RecommendInsecureKubeletTLS(arg1) {
   return window['go']['app']['App']['RecommendInsecureKubeletTLS'](arg1);
 }
 
+export function ReconcileFluxResource(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['ReconcileFluxResource'](arg1, arg2, arg3, arg4);
+}
+
 export function RefreshArgoApplication(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['RefreshArgoApplication'](arg1, arg2, arg3, arg4);
 }
@@ -708,6 +736,10 @@ export function SendExecInput(arg1, arg2) {
 
 export function SetArgoApplicationAutomation(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['SetArgoApplicationAutomation'](arg1, arg2, arg3, arg4);
+}
+
+export function SetFluxResourceSuspended(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['SetFluxResourceSuspended'](arg1, arg2, arg3, arg4, arg5);
 }
 
 export function StartExec(arg1, arg2, arg3, arg4, arg5) {

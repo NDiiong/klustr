@@ -890,6 +890,42 @@ func (a *App) GetReferenceGrant(contextName, namespace, name string) (*kube.Refe
 }
 
 // ---------------------------------------------------------------------------
+// Flux CD bindings.
+// ---------------------------------------------------------------------------
+
+func (a *App) ListFluxKustomizations(contextName, namespace string) []kube.FluxKustomizationInfo {
+	return a.clients.ListFluxKustomizations(contextName, namespace)
+}
+
+func (a *App) GetFluxKustomization(contextName, namespace, name string) (*kube.FluxKustomizationDetail, error) {
+	return a.clients.GetFluxKustomization(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxHelmReleases(contextName, namespace string) []kube.FluxHelmReleaseInfo {
+	return a.clients.ListFluxHelmReleases(contextName, namespace)
+}
+
+func (a *App) GetFluxHelmRelease(contextName, namespace, name string) (*kube.FluxHelmReleaseDetail, error) {
+	return a.clients.GetFluxHelmRelease(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListFluxGitRepositories(contextName, namespace string) []kube.FluxGitRepositoryInfo {
+	return a.clients.ListFluxGitRepositories(contextName, namespace)
+}
+
+func (a *App) GetFluxGitRepository(contextName, namespace, name string) (*kube.FluxGitRepositoryDetail, error) {
+	return a.clients.GetFluxGitRepository(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ReconcileFluxResource(contextName, kind, namespace, name string) error {
+	return a.clients.ReconcileFluxResource(a.ctx, contextName, kind, namespace, name)
+}
+
+func (a *App) SetFluxResourceSuspended(contextName, kind, namespace, name string, suspended bool) error {
+	return a.clients.SetFluxResourceSuspended(a.ctx, contextName, kind, namespace, name, suspended)
+}
+
+// ---------------------------------------------------------------------------
 // Karpenter bindings.
 // ---------------------------------------------------------------------------
 

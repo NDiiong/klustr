@@ -56,6 +56,12 @@ export function GetEndpoints(arg1:string,arg2:string,arg3:string):Promise<kube.E
 
 export function GetFlowSchema(arg1:string,arg2:string):Promise<kube.FlowSchemaDetail>;
 
+export function GetFluxGitRepository(arg1:string,arg2:string,arg3:string):Promise<kube.FluxGitRepositoryDetail>;
+
+export function GetFluxHelmRelease(arg1:string,arg2:string,arg3:string):Promise<kube.FluxHelmReleaseDetail>;
+
+export function GetFluxKustomization(arg1:string,arg2:string,arg3:string):Promise<kube.FluxKustomizationDetail>;
+
 export function GetGRPCRoute(arg1:string,arg2:string,arg3:string):Promise<kube.GRPCRouteDetail>;
 
 export function GetGateway(arg1:string,arg2:string,arg3:string):Promise<kube.GatewayDetail>;
@@ -212,6 +218,12 @@ export function ListEvents(arg1:string,arg2:string,arg3:string,arg4:string):Prom
 
 export function ListFlowSchemas(arg1:string):Promise<Array<kube.FlowSchemaInfo>>;
 
+export function ListFluxGitRepositories(arg1:string,arg2:string):Promise<Array<kube.FluxGitRepositoryInfo>>;
+
+export function ListFluxHelmReleases(arg1:string,arg2:string):Promise<Array<kube.FluxHelmReleaseInfo>>;
+
+export function ListFluxKustomizations(arg1:string,arg2:string):Promise<Array<kube.FluxKustomizationInfo>>;
+
 export function ListGRPCRoutes(arg1:string,arg2:string):Promise<Array<kube.GRPCRouteInfo>>;
 
 export function ListGatewayClasses(arg1:string):Promise<Array<kube.GatewayClassInfo>>;
@@ -326,6 +338,8 @@ export function PodsForOwner(arg1:string,arg2:string,arg3:string,arg4:string):Pr
 
 export function RecommendInsecureKubeletTLS(arg1:string):Promise<boolean>;
 
+export function ReconcileFluxResource(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function RefreshArgoApplication(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
 export function RemoveHelmRepo(arg1:string):Promise<void>;
@@ -355,6 +369,8 @@ export function SearchHelmCharts(arg1:string):Promise<Array<kube.HelmChartSearch
 export function SendExecInput(arg1:string,arg2:string):Promise<void>;
 
 export function SetArgoApplicationAutomation(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
+
+export function SetFluxResourceSuspended(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean):Promise<void>;
 
 export function StartExec(arg1:string,arg2:string,arg3:string,arg4:string,arg5:Array<string>):Promise<string>;
 
