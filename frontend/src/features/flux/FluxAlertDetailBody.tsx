@@ -27,13 +27,16 @@ export function FluxAlertDetailBody({ contextName, namespace, name }: Props) {
     'FluxAlert',
     load,
   )
-  const setSelectedResource = useUIStore((s) => s.setSelectedResource)
+  // openResource pushes the current resource onto Klustr's detail nav stack
+  // before replacing it, so the dialog's back-arrow returns to the Alert.
+  // setSelectedResource would clear the stack and trap the user.
+  const openResource = useUIStore((s) => s.openResource)
   if (error) return <ErrorBox>{error}</ErrorBox>
   if (!detail) return null
 
   const openProvider = () => {
     if (!detail.provider) return
-    setSelectedResource({
+    openResource({
       kind: 'FluxProvider',
       namespace: detail.namespace,
       name: detail.provider,
