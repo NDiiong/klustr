@@ -94,9 +94,26 @@ func resourceForKind(kind string) (schema.GroupVersionResource, error) {
 // resolveKind looks up a Kind first in the built-in table and then in the
 // per-context CRD cache. Apply/Delete/YAML paths use this so they work
 // uniformly for both core and custom resources.
+//
+// Klustr-internal kind aliases (e.g. "FluxKustomization") are checked in
+// fluxKindGVR before the CRD cache so a Delete on a Flux resource resolves
+// without the caller having to know about the real CR kind ("Kustomization").
+// The ResourceTable's table-prefs key for CR views also leaks through here
+// as "cr:<group>/<resource>" when the bulk-delete dialog reuses that key
+// as the kind label — splitting it into a GVR keeps the bulk path working.
 func (m *ClientManager) resolveKind(contextName, kind string) (schema.GroupVersionResource, error) {
 	if gvr, ok := kindToGVR[kind]; ok {
 		return gvr, nil
+	}
+	if gvr, ok := fluxKindGVR[kind]; ok {
+		return gvr, nil
+	}
+	if gvr, ok := SplitCRChangeKind(kind); ok {
+		if w, ok := m.watcher(contextName); ok && w.crd != nil {
+			if info, found := w.crd.LookupCRDByGVR(gvr); found {
+				return info.GVR(), nil
+			}
+		}
 	}
 	if w, ok := m.watcher(contextName); ok && w.crd != nil {
 		if info, found := w.crd.LookupCRDByKind(kind); found {
