@@ -36,29 +36,30 @@
 
 ## What is Klustr?
 
-Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://wails.io/) (Go + native webview) and React. It uses your existing `~/.kube/config` and speaks the standard Kubernetes API directly — **nothing is deployed in the cluster**. Drop the binary in, point at any context, and you're looking at a live view of everything you have permission to see — built-in resources, full **RBAC** with a **subject → effective-permissions** review, **Custom Resources (CRDs)**, **Helm releases**, **Argo CD Applications**, and **Gateway API** routes included. No extra logins, no `argocd` or `helm` CLI required — only your kubeconfig.
+Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://wails.io/) (Go + native webview) and React. It uses your existing `~/.kube/config` and speaks the standard Kubernetes API directly — **nothing is deployed in the cluster**. Drop the binary in, point at any context, and you're looking at a live view of everything you have permission to see — built-in resources, full **RBAC** with a **subject → effective-permissions** review, **Custom Resources (CRDs)**, **Helm releases**, **Argo CD Applications**, **Flux CD reconcilers**, and **Gateway API** routes included. No extra logins, no `argocd`, `flux` or `helm` CLI required — only your kubeconfig.
 
 ## Features
 
-- 🔌 **Pure client.** No CRDs, no in-cluster components, no extra RBAC. Works with whatever your kubeconfig already grants.
-- 🔁 **Live updates everywhere.** Resources stay fresh via `client-go` informers — never polled.
-- 🌐 **Multi-context, multi-cluster.** Switch clusters in one click, or pick two-plus contexts and view them **aggregated** — every table, the cluster overview, workloads health, and events fan out across all selected clusters with a Context column. Pin a default for autoconnect. Each active context is **pinged every ~25 s** in the status bar with its own coloured dot, latency, and tooltip — slow pings turn amber, failures (timeout, 401, refused) light up red with the real error.
-- 👥 **Context groups & tags.** Save named multi-context groups (e.g. `prod-fleet`) and color-tag contexts (prod / staging / dev) so the top bar reminds you which environment you're touching.
-- 📋 **Every built-in resource kind.** Pods, Deployments, StatefulSets, DaemonSets, ReplicaSets, ReplicationControllers, Jobs, CronJobs, HPAs, PDBs, Services, Endpoints, EndpointSlices, Ingresses, NetworkPolicies, ConfigMaps, Secrets, ResourceQuotas, LimitRanges, Leases, Mutating/ValidatingWebhookConfigurations, PVCs, PVs, StorageClasses, Nodes, Namespaces, IngressClasses, PriorityClasses, RuntimeClasses, Events, and the full **RBAC** set (ServiceAccounts, Roles, RoleBindings, ClusterRoles, ClusterRoleBindings) under a dedicated Access Control sidebar group.
-- 🔎 **Access Review — "who can do what?".** Pick any subject (ServiceAccount / User / Group) and see its effective permissions as a **GVR × verb matrix**, split by namespace and cluster-wide scope. Every ✓ traces back to the **binding → role** chain that granted it, including implicit groups like `system:serviceaccount:<ns>:<name>`, `system:serviceaccounts:<ns>` and `system:authenticated`. Wildcards (`*`) and `cluster-admin` light up with explicit badges so an over-privileged subject is impossible to miss. Live-updates as bindings change. In aggregated mode the same subject is checked across every active context — spot a missing binding in one cluster at a glance. **Zero extra API traffic** — runs entirely off the RBAC informer cache, the UI answer to `kubectl auth can-i --list` with no `--as` impersonation needed.
-- 🧩 **Custom Resources (CRDs).** CRDs are auto-discovered from the cluster on connect and slot into the sidebar grouped by API group. Browse instances live (watch-backed, no polling), inspect their YAML, and drill in from any owner reference — the same flow as built-in kinds, no per-CRD configuration.
-- ⎈ **Helm.** First-class Helm v3 support, talking to release Secrets directly through the informer cache so the list stays live without shelling out to `helm`. Browse releases, view revision history with diffs, install / upgrade / rollback / uninstall with a **dry-run preview** before any change hits the cluster, plus repo management and chart search across configured repositories.
-- 🚢 **Argo CD.** A dedicated sidebar section (auto-detected from the `applications.argoproj.io` CRD) with colored Sync / Health pills, an **Auto-sync** indicator, shortened revision SHA and a **clickable repo URL** that opens in your browser. Per-row **Sync** and **Refresh** buttons hit the Application directly through the Kubernetes API — same triggers `argocd app sync` uses — so you don't need an Argo CD login, an exposed `argocd-server` or the `argocd` CLI on PATH. The Application detail dialog opens on a **Resources** tab listing every managed object; click any row to drill into its detail and use the back-arrow to return.
-- 🌉 **Gateway API.** Auto-detected from the `gateway.networking.k8s.io` CRDs and slotted into a dedicated sidebar group: **Gateways, HTTPRoutes, GRPCRoutes, GatewayClasses, ReferenceGrants**. Backed by the typed `sigs.k8s.io/gateway-api` informer factory (not the dynamic client) so lists update live without polling. Tables surface colored **Programmed / Accepted** pills sourced from status conditions; detail dialogs render the full **listener table**, per-rule **match → backend → weight** matrix and the **RouteParentStatus** block, so a misrouted parent or `ResolvedRefs=False / RefNotPermitted` backend is one click away. Vendor-neutral — works with Envoy Gateway, Cilium Gateway, Istio, Contour, NGINX Gateway Fabric, or whatever conformant implementation the cluster runs.
-- 📜 **Logs and aggregated logs.** Stern-style multi-pod log streaming with per-pod ANSI colors, follow, save and regex.
-- 🖥️ **In-app exec.** Open a shell into any container over SPDY.
-- 🔧 **YAML edit with diff.** Monaco editor with a server-side dry-run diff before apply.
-- 🚀 **Scale, restart, pause/resume.** Replica controls with the current value pre-filled, +/- buttons and ↑/↓ keys; one-click rolling restart for Deployments / StatefulSets / DaemonSets; inline **pause / resume** with a `Paused` badge for Deployments; **HPA min/max replicas** editable straight on the HPA detail page.
-- ⏪ **Rollout history & rollback.** A **History** tab on Deployments / StatefulSets / DaemonSets lists revisions with author, time and change cause; pick any past revision for a side-by-side template diff and roll back with one click — same path `kubectl rollout undo` uses, no CLI required.
-- 🔄 **Port-forwarding manager.** Suggested local ports, persistent header indicator, click-to-open in browser.
-- 🗺️ **Cluster overviews.** CPU / memory / pod donuts, workloads health bars, recent warnings at a glance — single-cluster or fanned out across an aggregate.
-- 🧭 **Cross-resource navigation.** Drill from a workload into a related pod, jump to its node or controlling ReplicaSet, and back-arrow your way home.
-- 🎨 **Themes, command palette (`⌘P`), namespace search (`⌘N`), keyboard cheatsheet (`?`).** The palette is derived from the sidebar groups so every kind (RBAC, Helm, Argo CD, CRDs …) shows up automatically, and it can search pods across **all active contexts** and toggle contexts in and out of aggregated mode without leaving the keyboard.
+- 🔌 **Pure client.** No CRDs, no in-cluster components — works with whatever your kubeconfig already grants.
+- 🔁 **Live everywhere.** `client-go` informers, never polled.
+- 🌐 **Multi-context aggregation.** View 2+ clusters in one table, per-context status pings with latency in the status bar.
+- 👥 **Context groups & tags.** Named multi-context groups; color tags on the top bar so you always know which environment you're touching.
+- 📋 **Every built-in resource.** Workloads, networking, storage, config, admission, autoscaling, and the full **RBAC** set under a dedicated Access Control sidebar group.
+- 🔎 **Access Review.** Subject → effective-permissions **GVR × verb matrix** with the binding → role chain behind every ✓, wildcards and `cluster-admin` flagged. Live, no `--as` impersonation, no extra API traffic.
+- 🧩 **Custom Resources (CRDs).** Auto-discovered on connect, grouped by API group, watch-backed.
+- ⎈ **Helm.** First-class Helm v3: install / upgrade / rollback / uninstall with a **dry-run preview** before any change, plus repo management and chart search.
+- 🚢 **Argo CD.** Sync, Refresh, Rollback and cascade-aware Delete through the Kubernetes API — no `argocd-server`, no `argocd` CLI, no Argo login.
+- 🚀 **Flux CD.** Kustomization · HelmRelease · GitRepository · HelmRepository · OCIRepository · Bucket · Provider · Alert · Receiver — each with Reconcile + Suspend/Resume buttons that hit the standard Flux annotations, no `flux` CLI.
+- 🌉 **Gateway API.** Typed informers; **listener table**, per-rule **match → backend → weight** matrix and `RouteParentStatus` so a misrouted parent or `RefNotPermitted` backend is one click away. Vendor-neutral.
+- 📜 **Logs.** Stern-style multi-pod streaming with per-pod ANSI colors, follow, save and regex.
+- 🖥️ **In-app exec.** SPDY shell into any container.
+- 🔧 **YAML edit.** Monaco editor with a server-side dry-run diff before apply.
+- 🚀 **Scale, restart, pause/resume.** Replica controls, one-click rolling restart, inline pause/resume, HPA min/max editable inline.
+- ⏪ **Rollout history & rollback.** Side-by-side template diff and one-click revert on Deployments / StatefulSets / DaemonSets.
+- 🔄 **Port-forwarding.** Suggested local ports, persistent header indicator, click-to-open in browser.
+- 🗺️ **Cluster overviews.** CPU / memory / pod donuts, workloads health, recent warnings — single-cluster or aggregated.
+- 🧭 **Cross-resource navigation.** Drill from workload to pod to node and back.
+- 🎨 **Themes & shortcuts.** Command palette (`⌘P`), namespace search (`⌘N`), keyboard cheatsheet (`?`).
 
 ## Screenshots
 
