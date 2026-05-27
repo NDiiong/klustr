@@ -9,6 +9,7 @@ import { Chips, Field, MaybeSection, Section, Td, Th } from '@/features/_shared/
 import { Copyable } from '@/features/_shared/Copyable'
 import { NodeLink } from '@/features/_shared/NodeLink'
 import { OwnerLink } from '@/features/_shared/OwnerLink'
+import { ServiceAccountLink } from '@/features/_shared/ServiceAccountLink'
 
 export function PodOverviewBody({
   contextName,
@@ -40,7 +41,9 @@ export function PodOverviewBody({
               '—'
             )}
           </Field>
-          <Field label="Service Account">{detail.serviceAccount || 'default'}</Field>
+          <Field label="Service Account">
+            <ServiceAccountLink namespace={detail.namespace} name={detail.serviceAccount || 'default'} />
+          </Field>
           {detail.priorityClassName && <Field label="Priority Class">{detail.priorityClassName}</Field>}
         </Section>
 
