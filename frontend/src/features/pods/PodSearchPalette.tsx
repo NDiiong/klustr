@@ -13,7 +13,10 @@ import { onKubeChange } from '@/lib/events'
 import { useResources } from '@/store/resources'
 import { useActiveContexts, useIsAggregated, useUIStore } from '@/store/ui'
 
-type Hit = PodInfo & { __ctx: string }
+// Spreading a PodInfo (a generated class) into a plain object drops its
+// convertValues method, so omit it — hits are plain display rows, not
+// round-trippable bindings.
+type Hit = Omit<PodInfo, 'convertValues'> & { __ctx: string }
 
 export function PodSearchPalette() {
   const [open, setOpen] = useState(false)

@@ -10,6 +10,7 @@ import { useActiveContexts, useUIStore } from '@/store/ui'
 import { selectMetricsAvailable, selectPodMetric, useMetrics } from '@/store/metrics'
 import { usePodMetricsPoll } from './usePodMetricsPoll'
 import { PodResourceBars } from './PodResourceBars'
+import { PodContainerSquares } from './PodContainerSquares'
 
 const columnHelper = createColumnHelper<PodInfo & { __klustrCtx?: string }>()
 
@@ -95,7 +96,21 @@ export function PodsView() {
             }),
           ]
         : []),
-      columnHelper.accessor('ready', { header: 'Ready', size: COL_XS }),
+      columnHelper.accessor('ready', {
+        header: 'Ready',
+        size: COL_SM,
+        cell: (info) => {
+          const row = info.row.original
+          return (
+            <PodContainerSquares
+              containers={row.containers}
+              namespace={row.namespace}
+              name={row.name}
+              context={row.__klustrCtx ?? ''}
+            />
+          )
+        },
+      }),
       columnHelper.accessor('status', {
         header: 'Status',
         size: COL_SM,

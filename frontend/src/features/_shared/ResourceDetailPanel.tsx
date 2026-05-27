@@ -629,6 +629,7 @@ function PodTabs({
   const load = useCallback((ctx: string) => api.getPod(ctx, namespace, name), [namespace, name])
   const { detail, error } = useResourceDetail<PodDetail>(contextName, 'Pod', load)
   const requestedTab = useUIStore((s) => s.requestedTab)
+  const requestedContainer = useUIStore((s) => s.selectedResource?.logContainer)
   const [tab, setTab] = useState<DetailTab>(requestedTab ?? 'overview')
 
   useEffect(() => {
@@ -649,7 +650,7 @@ function PodTabs({
         {detail && <PodOverviewBody contextName={contextName} detail={detail} />}
       </TabsContent>
       <TabsContent value="logs" className="min-h-0 flex-1 p-0">
-        {detail && <PodLogsTab detail={detail} contextName={contextName} />}
+        {detail && <PodLogsTab detail={detail} contextName={contextName} initialContainer={requestedContainer} />}
       </TabsContent>
       <TabsContent value="exec" className="min-h-0 flex-1 p-0">
         {detail && <PodExecTab detail={detail} contextName={contextName} />}

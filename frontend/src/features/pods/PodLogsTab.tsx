@@ -17,9 +17,10 @@ const TAIL_LINES = 200
 type Props = {
   detail: PodDetail
   contextName?: string | null
+  initialContainer?: string
 }
 
-export function PodLogsTab({ detail, contextName }: Props) {
+export function PodLogsTab({ detail, contextName, initialContainer }: Props) {
   const fallbackContext = useUIStore((s) => s.selectedContext)
   const selectedContext = contextName ?? fallbackContext
   const themeId = useUIStore((s) => s.themeId)
@@ -28,7 +29,9 @@ export function PodLogsTab({ detail, contextName }: Props) {
     [detail.initContainers, detail.containers],
   )
   const defaultContainer = detail.containers[0]?.name ?? detail.initContainers[0]?.name ?? ''
-  const [container, setContainer] = useState(defaultContainer)
+  const [container, setContainer] = useState(
+    initialContainer && containerNames.includes(initialContainer) ? initialContainer : defaultContainer,
+  )
   const [error, setError] = useState<string | null>(null)
   const [streaming, setStreaming] = useState(false)
   const [paused, setPaused] = useState(false)

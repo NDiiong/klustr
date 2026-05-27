@@ -217,6 +217,7 @@ export type Kubeconfig = kube.Kubeconfig
 export type ServerVersion = kube.ServerVersion
 export type NamespaceInfo = kube.NamespaceInfo
 export type PodInfo = kube.PodInfo
+export type PodContainerBrief = kube.PodContainerBrief
 export type DeploymentInfo = kube.DeploymentInfo
 export type ServiceInfo = kube.ServiceInfo
 export type ConfigMapInfo = kube.ConfigMapInfo

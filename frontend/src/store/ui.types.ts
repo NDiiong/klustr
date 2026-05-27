@@ -204,6 +204,10 @@ export type SelectedResource = {
   // the detail dialog's Suspend/Resume button knows which label to render
   // without having to wait for the body to fetch the full detail object.
   suspended?: boolean
+  // logContainer preselects a container in the Pod Logs tab when the pod is
+  // opened from a per-container affordance (e.g. the Pods list container
+  // squares), so the click lands straight on that container's stream.
+  logContainer?: string
 }
 
 export type DetailTab = 'overview' | 'logs' | 'exec' | 'events' | 'history' | 'yaml'
