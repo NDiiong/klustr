@@ -1,5 +1,5 @@
 import type { HPAMetricTarget } from '@/lib/api'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 
 type Props = {
   metrics: HPAMetricTarget[]
@@ -14,21 +14,21 @@ export function HPATargetBars({ metrics }: Props) {
   const otherMetrics = metrics.filter((m) => m.source !== 'keda')
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <HoverCard openDelay={120} closeDelay={80}>
+      <HoverCardTrigger asChild>
         <div className="flex w-32 flex-col gap-1">
           {kedaMetrics.length > 0 && <KEDARowBadge count={kedaMetrics.length} />}
           {otherMetrics.map((m, i) => (
             <MiniBar key={`row#${i}`} metric={m} />
           ))}
         </div>
-      </TooltipTrigger>
-      <TooltipContent
+      </HoverCardTrigger>
+      <HoverCardContent
         side="right"
         align="start"
         sideOffset={8}
         collisionPadding={24}
-        className="max-h-[min(80vh,520px)] max-w-[min(640px,calc(100vw-3rem))] overflow-y-auto p-0 font-mono text-[11px]"
+        className="min-w-0 max-h-[min(80vh,520px)] max-w-[min(640px,calc(100vw-3rem))] overflow-y-auto p-0 font-mono text-[11px]"
       >
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
           {kedaMetrics.length > 0 && (
@@ -49,8 +49,8 @@ export function HPATargetBars({ metrics }: Props) {
             <MetricRow key={`o${i}`} metric={m} />
           ))}
         </div>
-      </TooltipContent>
-    </Tooltip>
+      </HoverCardContent>
+    </HoverCard>
   )
 }
 
@@ -58,7 +58,7 @@ function MetricRow({ metric }: { metric: HPAMetricTarget }) {
   const reading = readingFor(metric)
   return (
     <>
-      <span className="whitespace-nowrap">{metric.name}</span>
+      <MetricName name={metric.name} />
       <span className="min-w-0 break-words text-muted-foreground">
         {metric.text || ''}
       </span>
@@ -66,6 +66,27 @@ function MetricRow({ metric }: { metric: HPAMetricTarget }) {
         {reading || '—'}
       </span>
     </>
+  )
+}
+
+// MetricName badges cpu/memory with the same chips the Pods CPU/Mem popup uses,
+// so the two hover popups read as one design. Other metric kinds (pods, object,
+// external) keep their plain name.
+function MetricName({ name }: { name: string }) {
+  if (name === 'cpu') {
+    return <ResourceBadge label="CPU" className="bg-sky-500/15 text-sky-400" />
+  }
+  if (name === 'memory') {
+    return <ResourceBadge label="MEM" className="bg-emerald-500/15 text-emerald-400" />
+  }
+  return <span className="whitespace-nowrap">{name}</span>
+}
+
+function ResourceBadge({ label, className }: { label: string; className: string }) {
+  return (
+    <span className={`inline-flex w-fit items-center rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${className}`}>
+      {label}
+    </span>
   )
 }
 

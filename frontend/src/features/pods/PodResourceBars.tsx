@@ -1,4 +1,4 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 
 type Props = {
   cpuUsageMC: number
@@ -25,18 +25,18 @@ export function PodResourceBars({
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <HoverCard openDelay={120} closeDelay={80}>
+      <HoverCardTrigger asChild>
         <div className="flex w-28 flex-col gap-1">
           <MiniBar label="C" value={cpu} usageColorClass={usageColor(cpu)} />
           <MiniBar label="M" value={mem} usageColorClass={usageColor(mem)} />
         </div>
-      </TooltipTrigger>
-      <TooltipContent
+      </HoverCardTrigger>
+      <HoverCardContent
         side="right"
         align="start"
         sideOffset={8}
-        className="max-w-none p-0 font-mono text-[11px]"
+        className="min-w-0 max-w-none p-0 font-mono text-[11px]"
       >
         <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1 px-3 py-2.5">
           <ResourceBlock
@@ -55,8 +55,8 @@ export function PodResourceBars({
             limit={memLimitB > 0 ? formatMem(memLimitB) : '—'}
           />
         </div>
-      </TooltipContent>
-    </Tooltip>
+      </HoverCardContent>
+    </HoverCard>
   )
 }
 
