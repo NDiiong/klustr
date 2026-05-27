@@ -140,8 +140,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.2 // indirect
 )
 
-// replace github.com/wailsapp/wails/v2 v2.12.0 => /Users/samet.kum/go/pkg/mod
-
 // Helm v3.21 pulls in kubectl v0.35.x, which still imports the long-removed
 // scheduling/v1alpha1 group that k8s.io/api v0.36+ no longer ships. Pin the
 // kubectl + cli-runtime that match the rest of our k8s.io/* modules.
