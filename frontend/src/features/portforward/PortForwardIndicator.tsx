@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { ExternalLink, Network, X } from 'lucide-react'
+import { ExternalLink, Network, Unplug, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { api } from '@/lib/api'
@@ -13,8 +13,14 @@ export function PortForwardIndicator() {
       await api.stopPortForward(id)
     },
   })
+  const stopAll = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => api.stopPortForward(id)))
+    },
+  })
 
   const active = list.length > 0
+  const busy = stop.isPending || stopAll.isPending
 
   return (
     <Popover>
@@ -27,8 +33,22 @@ export function PortForwardIndicator() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-96 p-0">
-        <div className="border-b border-border px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Active port-forwards
+        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Active port-forwards
+          </span>
+          {list.length > 1 && (
+            <Button
+              size="xs"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => stopAll.mutate(list.map((pf) => pf.id))}
+              className="-my-1 h-auto gap-1 py-1 text-destructive hover:text-destructive"
+            >
+              <Unplug />
+              Disconnect all
+            </Button>
+          )}
         </div>
         {!active && (
           <div className="px-3 py-4 text-xs text-muted-foreground">
@@ -58,7 +78,7 @@ export function PortForwardIndicator() {
                 size="icon-xs"
                 variant="ghost"
                 aria-label="Stop port-forward"
-                disabled={stop.isPending}
+                disabled={busy}
                 onClick={() => stop.mutate(pf.id)}
                 className="shrink-0"
               >
