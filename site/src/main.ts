@@ -143,46 +143,85 @@ const heroTabs = document.querySelector<HTMLElement>('[data-tabs="hero"]')
 if (heroTabs) selectTab(heroTabs, detectTab())
 
 // ── Copy-to-clipboard ────────────────────────────────────────────────
-// Inject a copy button into each standalone command block.
-document.querySelectorAll<HTMLElement>('[data-block]').forEach((block) => {
-  const btn = document.createElement('button')
-  btn.setAttribute('data-copy', '')
-  btn.setAttribute('aria-label', 'Copy command')
-  btn.className =
-    'absolute right-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-md border border-border-strong bg-[oklch(1_0_0/0.04)] px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground'
-  btn.innerHTML = '<i data-lucide="copy"></i><span data-copy-label>Copy</span>'
-  block.appendChild(btn)
-})
+// Each command block is split into one row per command, and every command
+// gets its own copy button. Sequenced installs (e.g. the .deb flow) must be
+// run one step at a time, so a single block-level copy would be misleading.
+// A prompt line ("$ ") starts a command; an unprompted line is a continuation
+// only when the previous line ends in a backslash, otherwise it is a free
+// comment row (e.g. "# or") with no copy button.
+type Command = { lines: string[]; copyable: boolean }
 
-function commandText(pre: HTMLElement): string {
-  return pre.innerText
-    .split('\n')
-    .map((line) => line.replace(/^\$\s/, ''))
-    .join('\n')
-    .trim()
+function isPromptLine(html: string): boolean {
+  return /^\s*<span class="prompt">/.test(html)
 }
 
-document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
-  btn.addEventListener('click', async () => {
-    const container = btn.parentElement
-    const pre =
-      container?.querySelector<HTMLElement>('.panel:not([hidden]) pre.cmd') ??
-      container?.querySelector<HTMLElement>('pre.cmd')
-    if (!pre) return
-    try {
-      await navigator.clipboard.writeText(commandText(pre))
-    } catch {
-      return
+function endsWithBackslash(html: string): boolean {
+  const probe = document.createElement('div')
+  probe.innerHTML = html
+  return (probe.textContent ?? '').trimEnd().endsWith('\\')
+}
+
+function splitCommands(html: string): Command[] {
+  const out: Command[] = []
+  for (const line of html.split('\n')) {
+    const last = out[out.length - 1]
+    if (isPromptLine(line)) {
+      out.push({ lines: [line], copyable: true })
+    } else if (last?.copyable && endsWithBackslash(last.lines[last.lines.length - 1])) {
+      last.lines.push(line)
+    } else {
+      out.push({ lines: [line], copyable: false })
     }
-    const label = btn.querySelector<HTMLElement>('[data-copy-label]')
-    btn.classList.add('copied')
-    if (label) label.textContent = 'Copied'
-    window.setTimeout(() => {
-      btn.classList.remove('copied')
-      if (label) label.textContent = 'Copy'
-    }, 1600)
+  }
+  return out
+}
+
+function makeCopyButton(text: string): HTMLButtonElement {
+  const btn = document.createElement('button')
+  btn.type = 'button'
+  btn.className = 'cmd-copy'
+  btn.setAttribute('aria-label', 'Copy command')
+  btn.innerHTML =
+    '<i data-lucide="copy" class="cmd-copy-i"></i><i data-lucide="check" class="cmd-copy-check"></i>'
+  btn.addEventListener('click', () => {
+    void navigator.clipboard.writeText(text).then(
+      () => {
+        btn.classList.add('copied')
+        window.setTimeout(() => btn.classList.remove('copied'), 1600)
+      },
+      () => {},
+    )
   })
-})
+  return btn
+}
+
+function enhanceCommandBlock(pre: HTMLElement) {
+  const list = document.createElement('div')
+  list.className = 'cmd-list'
+  for (const cmd of splitCommands(pre.innerHTML)) {
+    const row = document.createElement('div')
+    row.className = 'cmd-row'
+    const code = document.createElement('pre')
+    code.className = 'cmd-code'
+    code.innerHTML = cmd.lines.join('\n')
+    row.appendChild(code)
+    if (cmd.copyable) {
+      // Copy the runnable command only: drop inline comments (# …) and the
+      // trailing whitespace they leave behind, so it pastes-and-runs as-is.
+      const runnable = code.cloneNode(true) as HTMLElement
+      runnable.querySelectorAll('.comment').forEach((c) => c.remove())
+      const text = (runnable.textContent ?? '')
+        .replace(/^\$\s/, '')
+        .replace(/[ \t]+$/gm, '')
+        .trim()
+      row.appendChild(makeCopyButton(text))
+    }
+    list.appendChild(row)
+  }
+  pre.replaceWith(list)
+}
+
+document.querySelectorAll<HTMLElement>('pre.cmd').forEach(enhanceCommandBlock)
 
 // ── Live data from GitHub (version + stars), best-effort ─────────────
 async function hydrateFromGitHub() {

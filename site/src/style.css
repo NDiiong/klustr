@@ -201,17 +201,68 @@
 }
 .panel[hidden] { display: none; }
 
-pre.cmd {
+pre.cmd,
+.cmd-code {
   font-family: var(--font-mono);
   font-size: 0.82rem;
   line-height: 1.7;
   color: var(--color-foreground);
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre;
   margin: 0;
 }
-pre.cmd .prompt { color: var(--color-primary); user-select: none; }
-pre.cmd .comment { color: var(--color-muted-foreground); }
+pre.cmd { overflow-x: auto; }
+pre.cmd .prompt,
+.cmd-code .prompt { color: var(--color-primary); user-select: none; }
+pre.cmd .comment,
+.cmd-code .comment { color: var(--color-muted-foreground); }
+
+/* Per-command rows: hairline-separated steps, a left accent on hover, and a
+   ghost copy button that brightens on hover and flips to a check on copy.
+   Long commands fade out at the right edge instead of showing a scrollbar. */
+.cmd-list { display: flex; flex-direction: column; }
+.cmd-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 7px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cmd-row + .cmd-row { border-top: 1px solid var(--color-border); }
+.cmd-row:hover {
+  background: oklch(1 0 0 / 0.025);
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.cmd-code {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.6rem), transparent);
+}
+.cmd-code::-webkit-scrollbar { display: none; }
+
+.cmd-copy {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  color: var(--color-muted-foreground);
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.cmd-row:hover .cmd-copy { opacity: 1; }
+.cmd-copy:hover { color: var(--color-foreground); background: oklch(1 0 0 / 0.06); }
+.cmd-copy :is(i, svg) { width: 0.95rem; height: 0.95rem; }
+.cmd-copy-check { display: none; }
+.cmd-copy.copied { color: var(--color-ok); opacity: 1; }
+.cmd-copy.copied .cmd-copy-i { display: none; }
+.cmd-copy.copied .cmd-copy-check { display: inline-flex; }
 
 .install-block {
   position: relative;
