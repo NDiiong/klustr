@@ -3,9 +3,11 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 
 type Props = {
   metrics: HPAMetricTarget[]
+  name?: string
+  reference?: string
 }
 
-export function HPATargetBars({ metrics }: Props) {
+export function HPATargetBars({ metrics, name, reference }: Props) {
   if (!metrics || metrics.length === 0) {
     return <span className="text-muted-foreground">—</span>
   }
@@ -16,11 +18,11 @@ export function HPATargetBars({ metrics }: Props) {
   return (
     <HoverCard openDelay={120} closeDelay={80}>
       <HoverCardTrigger asChild>
-        <div className="flex w-32 flex-col gap-1">
-          {kedaMetrics.length > 0 && <KEDARowBadge count={kedaMetrics.length} />}
+        <div className="-mx-1 flex w-32 flex-col gap-1 rounded-sm px-1 transition-colors data-[state=open]:bg-muted/60">
           {otherMetrics.map((m, i) => (
             <MiniBar key={`row#${i}`} metric={m} />
           ))}
+          {kedaMetrics.length > 0 && <KEDARowBadge count={kedaMetrics.length} />}
         </div>
       </HoverCardTrigger>
       <HoverCardContent
@@ -28,11 +30,25 @@ export function HPATargetBars({ metrics }: Props) {
         align="start"
         sideOffset={8}
         collisionPadding={24}
-        className="min-w-0 max-h-[min(80vh,520px)] max-w-[min(640px,calc(100vw-3rem))] overflow-y-auto p-0 font-mono text-[11px]"
+        className="max-h-[min(80vh,520px)] w-[min(24rem,calc(100vw-3rem))] overflow-y-auto p-0 font-mono text-[11px]"
       >
-        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-1 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-2 px-4 py-3">
+          {name && (
+            <div className="border-b border-border/60 pb-2">
+              <div className="truncate font-semibold text-foreground">{name}</div>
+              {reference && (
+                <div className="truncate text-[10px] text-muted-foreground">{reference}</div>
+              )}
+            </div>
+          )}
+          {otherMetrics.map((m, i) => (
+            <MetricRow key={`o${i}`} metric={m} />
+          ))}
+          {kedaMetrics.length > 0 && otherMetrics.length > 0 && (
+            <div className="h-px bg-border/60" />
+          )}
           {kedaMetrics.length > 0 && (
-            <div className="col-span-3 mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
               <span className="inline-flex items-center rounded-sm bg-sky-500/15 px-1.5 py-0.5 font-semibold text-sky-400">
                 KEDA
               </span>
@@ -41,12 +57,6 @@ export function HPATargetBars({ metrics }: Props) {
           )}
           {kedaMetrics.map((m, i) => (
             <MetricRow key={`k${i}`} metric={m} />
-          ))}
-          {kedaMetrics.length > 0 && otherMetrics.length > 0 && (
-            <div className="col-span-3 my-1 h-px bg-border/60" />
-          )}
-          {otherMetrics.map((m, i) => (
-            <MetricRow key={`o${i}`} metric={m} />
           ))}
         </div>
       </HoverCardContent>
@@ -57,15 +67,21 @@ export function HPATargetBars({ metrics }: Props) {
 function MetricRow({ metric }: { metric: HPAMetricTarget }) {
   const reading = readingFor(metric)
   return (
-    <>
-      <MetricName name={metric.name} />
-      <span className="min-w-0 break-words text-muted-foreground">
-        {metric.text || ''}
-      </span>
-      <span className="whitespace-nowrap text-right tabular-nums">
-        {reading || '—'}
-      </span>
-    </>
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-baseline gap-3">
+        <div className="min-w-0 flex-1">
+          <MetricName name={metric.name} />
+        </div>
+        <span className="shrink-0 whitespace-nowrap tabular-nums text-muted-foreground">
+          {reading || '—'}
+        </span>
+      </div>
+      {metric.text && (
+        <span className="break-words leading-snug text-muted-foreground">
+          {metric.text}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -79,7 +95,7 @@ function MetricName({ name }: { name: string }) {
   if (name === 'memory') {
     return <ResourceBadge label="MEM" className="bg-emerald-500/15 text-emerald-400" />
   }
-  return <span className="whitespace-nowrap">{name}</span>
+  return <span className="break-words text-foreground">{name}</span>
 }
 
 function ResourceBadge({ label, className }: { label: string; className: string }) {

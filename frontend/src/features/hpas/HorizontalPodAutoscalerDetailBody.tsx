@@ -33,6 +33,9 @@ export function HorizontalPodAutoscalerDetailBody({
   const { detail, error } = useResourceDetail<HorizontalPodAutoscalerDetail>(contextName, 'HorizontalPodAutoscaler', load)
   if (error) return <ErrorBox>{error}</ErrorBox>
   if (!detail) return null
+  const metrics = [...detail.metrics].sort(
+    (a, b) => Number(a.source === 'keda') - Number(b.source === 'keda'),
+  )
   return (
     <div className="space-y-6">
       <Section title="Status">
@@ -48,10 +51,10 @@ export function HorizontalPodAutoscalerDetailBody({
         <Field label="Desired Replicas">{detail.desiredReplicas}</Field>
         <Field label="Age">{formatAge(detail.createdAt)}</Field>
       </Section>
-      {detail.metrics.length > 0 && (
+      {metrics.length > 0 && (
         <Section title="Metrics">
           <div className="space-y-2">
-            {detail.metrics.map((m, i) => (
+            {metrics.map((m, i) => (
               <MetricBar key={`${m.name}-${i}`} metric={m} />
             ))}
           </div>

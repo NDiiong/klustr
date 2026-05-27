@@ -22,7 +22,13 @@ export function HorizontalPodAutoscalersView() {
       columnHelper.accessor('reference', { header: 'Reference' }),
       columnHelper.accessor('metrics', {
         header: 'Targets',
-        cell: (info) => <HPATargetBars metrics={info.getValue() ?? []} />,
+        cell: (info) => (
+          <HPATargetBars
+            metrics={info.getValue() ?? []}
+            name={info.row.original.name}
+            reference={info.row.original.reference}
+          />
+        ),
         enableSorting: false,
       }),
       columnHelper.accessor('minReplicas', { header: 'Min', size: COL_XS }),
