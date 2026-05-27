@@ -318,6 +318,32 @@ func TestDerivePodStatus(t *testing.T) {
 	}
 }
 
+func TestControllerOwnerRef(t *testing.T) {
+	ctrl := true
+	notCtrl := false
+
+	if got := controllerOwnerRef(nil); got != nil {
+		t.Errorf("no refs: got %+v, want nil", got)
+	}
+
+	onlyNonController := []metav1.OwnerReference{
+		{Kind: "Foo", Name: "foo", Controller: &notCtrl},
+		{Kind: "Bar", Name: "bar"},
+	}
+	if got := controllerOwnerRef(onlyNonController); got != nil {
+		t.Errorf("no controller: got %+v, want nil", got)
+	}
+
+	refs := []metav1.OwnerReference{
+		{Kind: "Bar", Name: "bar", Controller: &notCtrl},
+		{Kind: "Deployment", Name: "web", Controller: &ctrl},
+	}
+	got := controllerOwnerRef(refs)
+	if got == nil || got.Kind != "Deployment" || got.Name != "web" {
+		t.Errorf("got %+v, want Deployment/web", got)
+	}
+}
+
 func TestSortByNamespaceName(t *testing.T) {
 	items := []struct {
 		ns, name string

@@ -28,6 +28,17 @@ type OwnerRef struct {
 	Name string `json:"name"`
 }
 
+// controllerOwnerRef returns the controlling OwnerReference (Controller=true)
+// trimmed to OwnerRef, or nil when none of the refs is a controller.
+func controllerOwnerRef(refs []metav1.OwnerReference) *OwnerRef {
+	for _, o := range refs {
+		if o.Controller != nil && *o.Controller {
+			return &OwnerRef{Kind: o.Kind, Name: o.Name}
+		}
+	}
+	return nil
+}
+
 // ConditionDetail is the per-condition shape used across PodDetail,
 // DeploymentDetail, PDB/HPA/PVC/ReplicaSet/Node detail bodies.
 type ConditionDetail struct {

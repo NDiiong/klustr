@@ -104,6 +104,11 @@ func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
 	owners := make([]OwnerRef, 0, len(p.OwnerReferences))
 	for _, o := range p.OwnerReferences {
 		owners = append(owners, OwnerRef{Kind: o.Kind, Name: o.Name})
+		if o.Kind == "ReplicaSet" {
+			if grandparent := w.replicaSetController(p.Namespace, o.Name); grandparent != nil {
+				owners = append(owners, *grandparent)
+			}
+		}
 	}
 	return &PodDetail{
 		Name:              p.Name,
@@ -126,6 +131,22 @@ func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
 		Containers:        w.containerDetails(p, p.Spec.Containers, p.Status.ContainerStatuses),
 		Conditions:        podConditions(p.Status.Conditions),
 	}, nil
+}
+
+// replicaSetController resolves the controller that owns the named ReplicaSet
+// (a Deployment for the common case) so a Pod's "Controlled By" can surface the
+// full Deployment → ReplicaSet → Pod chain. Returns nil when the ReplicaSet is
+// not in the cache or has no controller owner.
+func (w *contextWatcher) replicaSetController(namespace, name string) *OwnerRef {
+	f := w.factoryFor("ReplicaSet")
+	if f == nil {
+		return nil
+	}
+	rs, err := f.Apps().V1().ReplicaSets().Lister().ReplicaSets(namespace).Get(name)
+	if err != nil {
+		return nil
+	}
+	return controllerOwnerRef(rs.OwnerReferences)
 }
 
 func (w *contextWatcher) containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
