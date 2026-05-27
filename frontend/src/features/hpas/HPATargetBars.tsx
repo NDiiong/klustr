@@ -1,5 +1,6 @@
 import type { HPAMetricTarget } from '@/lib/api'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import { humanizeTrigger } from './triggers'
 
 type Props = {
   metrics: HPAMetricTarget[]
@@ -77,8 +78,8 @@ function MetricRow({ metric }: { metric: HPAMetricTarget }) {
         </span>
       </div>
       {metric.text && (
-        <span className="break-words leading-snug text-muted-foreground">
-          {metric.text}
+        <span title={metric.text} className="break-words leading-snug text-muted-foreground">
+          {humanizeTrigger(metric.text)}
         </span>
       )}
     </div>
