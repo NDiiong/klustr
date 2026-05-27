@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Boxes, Folder, Network } from 'lucide-react'
+import { ArrowUpCircle, Boxes, Folder, Network } from 'lucide-react'
 import { SiGithub } from 'react-icons/si'
 import { useActiveContexts, useIsAggregated, useUIStore } from '@/store/ui'
 import { usePortForwards } from '@/store/portForwards'
-import { api } from '@/lib/api'
+import { api, type UpdateResult } from '@/lib/api'
 import { BrowserOpenURL } from '@/lib/wails/wailsjs/runtime/runtime'
 
 const REPO_URL = 'https://github.com/SametKUM/klustr'
@@ -19,6 +19,7 @@ type Health = {
 const PING_INTERVAL_MS = 25_000
 const SLOW_THRESHOLD_MS = 300
 const STALE_THRESHOLD_MS = 60_000
+const UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000
 
 export function StatusBar() {
   const activeContexts = useActiveContexts()
@@ -27,6 +28,7 @@ export function StatusBar() {
   const portForwards = usePortForwards((s) => s.list)
   const [healthByCtx, setHealthByCtx] = useState<Record<string, Health>>({})
   const [appVersion, setAppVersion] = useState<string | null>(null)
+  const [update, setUpdate] = useState<UpdateResult | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -38,6 +40,24 @@ export function StatusBar() {
       .catch(() => {})
     return () => {
       cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const check = () => {
+      api
+        .checkForUpdate()
+        .then((r) => {
+          if (!cancelled && r.available) setUpdate(r)
+        })
+        .catch(() => {})
+    }
+    check()
+    const id = window.setInterval(check, UPDATE_CHECK_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
     }
   }, [])
 
@@ -198,6 +218,17 @@ export function StatusBar() {
       >
         Press <kbd className="rounded border border-border bg-muted px-1 py-px text-[9px] text-foreground">?</kbd> for shortcuts
       </span>
+      {update?.available && (
+        <button
+          type="button"
+          onClick={() => BrowserOpenURL(update.releaseURL)}
+          className="inline-flex items-center gap-1 font-mono text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-400"
+          title={`Update available: ${update.latest} (you have ${update.current}) — click to view the release`}
+        >
+          <ArrowUpCircle className="size-3" />
+          <span>{update.latest}</span>
+        </button>
+      )}
       <button
         type="button"
         onClick={() => BrowserOpenURL(REPO_URL)}

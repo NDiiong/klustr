@@ -209,10 +209,12 @@ import {
   StopPodLogs,
   StopWatch,
   Version,
+  CheckForUpdate,
 } from '@/lib/wails/wailsjs/go/app/App'
-import { kube } from '@/lib/wails/wailsjs/go/models'
+import { kube, update } from '@/lib/wails/wailsjs/go/models'
 
 export type ContextInfo = kube.ContextInfo
+export type UpdateResult = update.Result
 export type Kubeconfig = kube.Kubeconfig
 export type ServerVersion = kube.ServerVersion
 export type NamespaceInfo = kube.NamespaceInfo
@@ -1001,4 +1003,5 @@ export const api = {
     suspended: boolean,
   ): Promise<void> => SetFluxResourceSuspended(contextName, kind, namespace, name, suspended),
   version: (): Promise<string> => Version(),
+  checkForUpdate: (): Promise<UpdateResult> => CheckForUpdate(),
 }
