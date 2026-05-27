@@ -14,6 +14,10 @@ export function ApproveCertificateSigningRequest(arg1, arg2, arg3) {
   return window['go']['app']['App']['ApproveCertificateSigningRequest'](arg1, arg2, arg3);
 }
 
+export function CheckForUpdate() {
+  return window['go']['app']['App']['CheckForUpdate']();
+}
+
 export function DeleteArgoApplication(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['DeleteArgoApplication'](arg1, arg2, arg3, arg4);
 }

@@ -7,11 +7,17 @@ import (
 	"runtime/debug"
 
 	"klustr/internal/kube"
+	"klustr/internal/update"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 const eventKubeChange = "kube:change"
+
+const (
+	githubOwner = "SametKUM"
+	githubRepo  = "klustr"
+)
 
 var Version = "dev"
 
@@ -54,6 +60,10 @@ func (a *App) Version() string {
 		revision += "-dirty"
 	}
 	return "dev-" + revision
+}
+
+func (a *App) CheckForUpdate() (update.Result, error) {
+	return update.Check(a.ctx, a.Version(), githubOwner, githubRepo)
 }
 
 func (a *App) Startup(ctx context.Context) {

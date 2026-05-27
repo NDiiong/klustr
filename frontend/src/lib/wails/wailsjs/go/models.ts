@@ -6789,3 +6789,30 @@ export namespace kube {
 
 }
 
+export namespace update {
+	
+	export class Result {
+	    available: boolean;
+	    current: string;
+	    latest: string;
+	    releaseURL: string;
+	    notes: string;
+	    publishedAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Result(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.available = source["available"];
+	        this.current = source["current"];
+	        this.latest = source["latest"];
+	        this.releaseURL = source["releaseURL"];
+	        this.notes = source["notes"];
+	        this.publishedAt = source["publishedAt"];
+	    }
+	}
+
+}
+
