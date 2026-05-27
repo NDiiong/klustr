@@ -166,6 +166,8 @@ import {
   SetFluxResourceSuspended,
   ListNamespaces,
   ListNodes,
+  ListNodePoolNodes,
+  ListNodeClaimNode,
   ListServiceAccounts,
   GetServiceAccount,
   ListRoles,
@@ -591,6 +593,10 @@ export const api = {
   getReferenceGrant: (ctx: string, ns: string, name: string): Promise<ReferenceGrantDetail> =>
     GetReferenceGrant(ctx, ns, name),
   listNodes: (name: string): Promise<NodeInfo[]> => ListNodes(name),
+  listNodePoolNodes: (contextName: string, nodePoolName: string): Promise<NodeInfo[]> =>
+    ListNodePoolNodes(contextName, nodePoolName),
+  listNodeClaimNode: (contextName: string, nodeClaimName: string): Promise<NodeInfo[]> =>
+    ListNodeClaimNode(contextName, nodeClaimName),
   listServiceAccounts: (name: string, namespace: string): Promise<ServiceAccountInfo[]> =>
     ListServiceAccounts(name, namespace),
   listRoles: (name: string, namespace: string): Promise<RoleInfo[]> =>

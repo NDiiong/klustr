@@ -582,6 +582,14 @@ export function ListNetworkPolicies(arg1, arg2) {
   return window['go']['app']['App']['ListNetworkPolicies'](arg1, arg2);
 }
 
+export function ListNodeClaimNode(arg1, arg2) {
+  return window['go']['app']['App']['ListNodeClaimNode'](arg1, arg2);
+}
+
+export function ListNodePoolNodes(arg1, arg2) {
+  return window['go']['app']['App']['ListNodePoolNodes'](arg1, arg2);
+}
+
 export function ListNodes(arg1) {
   return window['go']['app']['App']['ListNodes'](arg1);
 }

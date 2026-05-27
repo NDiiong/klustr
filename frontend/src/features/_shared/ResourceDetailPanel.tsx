@@ -77,6 +77,7 @@ import { GRPCRouteDetailBody } from '@/features/grpcroutes/GRPCRouteDetailBody'
 import { GatewayClassDetailBody } from '@/features/gatewayclasses/GatewayClassDetailBody'
 import { ReferenceGrantDetailBody } from '@/features/referencegrants/ReferenceGrantDetailBody'
 import { NodeDetailBody } from '@/features/nodes/NodeDetailBody'
+import { KarpenterNodesTab } from '@/features/karpenter-nodepools/KarpenterNodesTab'
 import { NamespaceDetailBody } from '@/features/namespaces/NamespaceDetailBody'
 import { ServiceAccountDetailBody } from '@/features/serviceaccounts/ServiceAccountDetailBody'
 import { RoleDetailBody } from '@/features/roles/RoleDetailBody'
@@ -359,9 +360,20 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
   const isFluxProvider = resource.kind === 'FluxProvider'
   const isFluxAlert = resource.kind === 'FluxAlert'
   const isFluxReceiver = resource.kind === 'FluxReceiver'
+  const isKarpenterNodePool =
+    resource.kind === 'NodePool' && resource.gvr?.group === 'karpenter.sh'
+  const isKarpenterNodeClaim =
+    resource.kind === 'NodeClaim' && resource.gvr?.group === 'karpenter.sh'
+  const hasKarpenterNodes = isKarpenterNodePool || isKarpenterNodeClaim
   const hasOverview = isArgoAppProject || isArgoAppSet || isFlux
   const hasEvents = isFlux
-  const initialTab = isArgoApp ? 'resources' : hasOverview ? 'overview' : 'yaml'
+  const initialTab = isArgoApp
+    ? 'resources'
+    : hasKarpenterNodes
+      ? 'nodes'
+      : hasOverview
+        ? 'overview'
+        : 'yaml'
   const [tab, setTab] = useState<string>(initialTab)
   return (
     <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
@@ -369,6 +381,9 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
         {hasOverview && <TabsTrigger value="overview">Overview</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="resources">Resources</TabsTrigger>}
         {isArgoApp && <TabsTrigger value="history">History</TabsTrigger>}
+        {hasKarpenterNodes && (
+          <TabsTrigger value="nodes">{isKarpenterNodeClaim ? 'Node' : 'Nodes'}</TabsTrigger>
+        )}
         {hasEvents && <TabsTrigger value="events">Events</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
@@ -486,6 +501,21 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {hasKarpenterNodes && (
+        <TabsContent value="nodes" className="min-h-0 flex-1 overflow-y-auto p-0">
+          <KarpenterNodesTab
+            contextName={contextName}
+            name={resource.name}
+            load={isKarpenterNodeClaim ? api.listNodeClaimNode : api.listNodePoolNodes}
+            title={isKarpenterNodeClaim ? 'Node' : 'Nodes'}
+            emptyMessage={
+              isKarpenterNodeClaim
+                ? 'This NodeClaim has not registered a node yet.'
+                : 'No nodes are currently provisioned by this NodePool.'
+            }
           />
         </TabsContent>
       )}

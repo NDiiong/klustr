@@ -91,6 +91,28 @@ func (m *ClientManager) ListKarpenterNodeClaims(contextName string) []KarpenterN
 	return out
 }
 
+// NodeForNodeClaim resolves the single node a NodeClaim has registered, read from
+// status.nodeName on the claim. Returns an empty slice while the claim is still
+// launching (no node yet). A slice rather than a pointer so the frontend reuses
+// the NodePool node-table renderer.
+func (m *ClientManager) NodeForNodeClaim(contextName, nodeClaimName string) []NodeInfo {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return []NodeInfo{}
+	}
+	var nodeName string
+	for _, obj := range m.listKarpenterCR(contextName, karpenterNodeClaimGVR) {
+		if obj.GetName() == nodeClaimName {
+			nodeName, _, _ = unstructured.NestedString(obj.Object, "status", "nodeName")
+			break
+		}
+	}
+	if nodeName == "" {
+		return []NodeInfo{}
+	}
+	return w.NodeInfoByName(nodeName)
+}
+
 // listKarpenterCR is the shared cache lookup the typed Karpenter listers use.
 // It returns an empty slice when the CR watch hasn't been started yet — the
 // frontend retries after EnsureCustomResourceWatch resolves, mirroring the

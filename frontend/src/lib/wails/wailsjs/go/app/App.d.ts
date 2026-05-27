@@ -293,6 +293,10 @@ export function ListNamespaces(arg1:string):Promise<Array<kube.NamespaceInfo>>;
 
 export function ListNetworkPolicies(arg1:string,arg2:string):Promise<Array<kube.NetworkPolicyInfo>>;
 
+export function ListNodeClaimNode(arg1:string,arg2:string):Promise<Array<kube.NodeInfo>>;
+
+export function ListNodePoolNodes(arg1:string,arg2:string):Promise<Array<kube.NodeInfo>>;
+
 export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;
 
 export function ListPersistentVolumeClaims(arg1:string,arg2:string):Promise<Array<kube.PersistentVolumeClaimInfo>>;

@@ -127,21 +127,62 @@ func (w *contextWatcher) Nodes() []NodeInfo {
 	}
 	out := make([]NodeInfo, 0, len(list))
 	for _, n := range list {
-		out = append(out, NodeInfo{
-			Name:         n.Name,
-			Status:       nodeStatus(n),
-			Roles:        nodeRoles(n),
-			Version:      n.Status.NodeInfo.KubeletVersion,
-			OSImage:      n.Status.NodeInfo.OSImage,
-			InternalIP:   nodeInternalIP(n),
-			InstanceType: nodeInstanceType(n),
-			CapacityType: nodeCapacityType(n),
-			NodePool:     nodeNodePool(n),
-			CreatedAt:    n.CreationTimestamp.UTC().Format(time.RFC3339),
-		})
+		out = append(out, nodeInfo(n))
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
+}
+
+// NodesForNodePool lists the nodes a Karpenter NodePool currently owns. Karpenter
+// stamps every node it provisions with the karpenter.sh/nodepool label, so a label
+// selector is the authoritative join — there is no owner reference from Node back
+// to NodePool.
+func (w *contextWatcher) NodesForNodePool(nodePoolName string) []NodeInfo {
+	f := w.factoryFor("Node")
+	if f == nil {
+		return []NodeInfo{}
+	}
+	sel := labels.SelectorFromSet(labels.Set{"karpenter.sh/nodepool": nodePoolName})
+	list, err := f.Core().V1().Nodes().Lister().List(sel)
+	if err != nil {
+		return []NodeInfo{}
+	}
+	out := make([]NodeInfo, 0, len(list))
+	for _, n := range list {
+		out = append(out, nodeInfo(n))
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out
+}
+
+// NodeInfoByName returns a one-element slice for the named node, or empty when
+// it is not in cache. The slice shape lets the Karpenter detail views share the
+// same node-table renderer the NodePool view uses.
+func (w *contextWatcher) NodeInfoByName(name string) []NodeInfo {
+	f := w.factoryFor("Node")
+	if f == nil {
+		return []NodeInfo{}
+	}
+	n, err := f.Core().V1().Nodes().Lister().Get(name)
+	if err != nil {
+		return []NodeInfo{}
+	}
+	return []NodeInfo{nodeInfo(n)}
+}
+
+func nodeInfo(n *corev1.Node) NodeInfo {
+	return NodeInfo{
+		Name:         n.Name,
+		Status:       nodeStatus(n),
+		Roles:        nodeRoles(n),
+		Version:      n.Status.NodeInfo.KubeletVersion,
+		OSImage:      n.Status.NodeInfo.OSImage,
+		InternalIP:   nodeInternalIP(n),
+		InstanceType: nodeInstanceType(n),
+		CapacityType: nodeCapacityType(n),
+		NodePool:     nodeNodePool(n),
+		CreatedAt:    n.CreationTimestamp.UTC().Format(time.RFC3339),
+	}
 }
 
 func (w *contextWatcher) Leases(namespace string) []LeaseInfo {

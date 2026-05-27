@@ -995,6 +995,14 @@ func (a *App) ListKarpenterNodeClaims(contextName string) []kube.KarpenterNodeCl
 	return a.clients.ListKarpenterNodeClaims(contextName)
 }
 
+func (a *App) ListNodePoolNodes(contextName, nodePoolName string) []kube.NodeInfo {
+	return a.clients.NodesForNodePool(contextName, nodePoolName)
+}
+
+func (a *App) ListNodeClaimNode(contextName, nodeClaimName string) []kube.NodeInfo {
+	return a.clients.NodeForNodeClaim(contextName, nodeClaimName)
+}
+
 func (a *App) FetchMetricsServerManifest() (string, error) {
 	return kube.FetchMetricsServerManifest(a.ctx)
 }

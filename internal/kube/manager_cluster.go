@@ -34,6 +34,14 @@ func (m *ClientManager) Node(contextName, name string) (*NodeDetail, error) {
 	return w.Node(name)
 }
 
+func (m *ClientManager) NodesForNodePool(contextName, nodePoolName string) []NodeInfo {
+	w, ok := m.watcher(contextName)
+	if !ok {
+		return []NodeInfo{}
+	}
+	return w.NodesForNodePool(nodePoolName)
+}
+
 func (m *ClientManager) Leases(contextName, namespace string) []LeaseInfo {
 	w, ok := m.watcher(contextName)
 	if !ok {
