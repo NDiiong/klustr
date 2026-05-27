@@ -344,6 +344,55 @@ func TestControllerOwnerRef(t *testing.T) {
 	}
 }
 
+func TestPodContainerBriefs(t *testing.T) {
+	p := &corev1.Pod{
+		Spec: corev1.PodSpec{
+			Containers:     []corev1.Container{{Name: "app"}},
+			InitContainers: []corev1.Container{{Name: "setup"}, {Name: "migrate"}},
+		},
+		Status: corev1.PodStatus{
+			ContainerStatuses: []corev1.ContainerStatus{
+				{Name: "app", Ready: true, State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}}},
+			},
+			InitContainerStatuses: []corev1.ContainerStatus{
+				{Name: "setup", State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{ExitCode: 0}}},
+				{Name: "migrate", State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}}},
+			},
+		},
+	}
+	got := podContainerBriefs(p)
+	if len(got) != 3 {
+		t.Fatalf("len: got %d, want 3", len(got))
+	}
+	if got[0].Name != "app" || got[0].Init || got[0].Tone != "ready" {
+		t.Errorf("regular: got %+v, want app/regular/ready", got[0])
+	}
+	if got[1].Name != "setup" || !got[1].Init || got[1].Tone != "done" {
+		t.Errorf("init done: got %+v, want setup/init/done", got[1])
+	}
+	if got[2].Name != "migrate" || !got[2].Init || got[2].Tone != "error" || got[2].State != "CrashLoopBackOff" {
+		t.Errorf("init crash: got %+v, want migrate/init/error/CrashLoopBackOff", got[2])
+	}
+}
+
+func TestContainerBriefTone(t *testing.T) {
+	if b := containerBrief("x", nil, false); b.Tone != "warn" || b.State != "Pending" {
+		t.Errorf("nil status: got %+v, want warn/Pending", b)
+	}
+	creating := &corev1.ContainerStatus{State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "ContainerCreating"}}}
+	if b := containerBrief("x", creating, false); b.Tone != "warn" {
+		t.Errorf("creating: got %+v, want warn", b)
+	}
+	oom := &corev1.ContainerStatus{State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}}}
+	if b := containerBrief("x", oom, false); b.Tone != "error" || b.State != "OOMKilled" {
+		t.Errorf("oom: got %+v, want error/OOMKilled", b)
+	}
+	notReady := &corev1.ContainerStatus{Ready: false, State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}}}
+	if b := containerBrief("x", notReady, false); b.Tone != "warn" {
+		t.Errorf("running not ready: got %+v, want warn", b)
+	}
+}
+
 func TestSortByNamespaceName(t *testing.T) {
 	items := []struct {
 		ns, name string

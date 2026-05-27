@@ -11,19 +11,31 @@ import (
 )
 
 type PodInfo struct {
-	Name         string `json:"name"`
-	Namespace    string `json:"namespace"`
-	Status       string `json:"status"`
-	Ready        string `json:"ready"`
-	Restarts     int32  `json:"restarts"`
-	Node         string `json:"node"`
-	PodIP        string `json:"podIP"`
-	CreatedAt    string `json:"createdAt"`
-	CPURequestMC int64  `json:"cpuRequestMC"`
-	CPULimitMC   int64  `json:"cpuLimitMC"`
-	MemRequestB  int64  `json:"memRequestB"`
-	MemLimitB    int64  `json:"memLimitB"`
-	HasPorts     bool   `json:"hasPorts"`
+	Name         string              `json:"name"`
+	Namespace    string              `json:"namespace"`
+	Status       string              `json:"status"`
+	Ready        string              `json:"ready"`
+	Restarts     int32               `json:"restarts"`
+	Node         string              `json:"node"`
+	PodIP        string              `json:"podIP"`
+	CreatedAt    string              `json:"createdAt"`
+	CPURequestMC int64               `json:"cpuRequestMC"`
+	CPULimitMC   int64               `json:"cpuLimitMC"`
+	MemRequestB  int64               `json:"memRequestB"`
+	MemLimitB    int64               `json:"memLimitB"`
+	HasPorts     bool                `json:"hasPorts"`
+	Containers   []PodContainerBrief `json:"containers"`
+}
+
+// PodContainerBrief is the per-container summary the Pods list renders as a row
+// of status squares. Regular containers come first, then init containers, so a
+// pod's full makeup (e.g. cilium's one agent container plus several init
+// containers) is visible at a glance without opening the detail panel.
+type PodContainerBrief struct {
+	Name  string `json:"name"`
+	Init  bool   `json:"init"`
+	Tone  string `json:"tone"`  // ready | warn | error | done
+	State string `json:"state"` // human-readable state for the tooltip
 }
 
 type PodLogTarget struct {
@@ -604,7 +616,85 @@ func podInfoFrom(p *corev1.Pod) PodInfo {
 		MemRequestB:  memReq,
 		MemLimitB:    memLim,
 		HasPorts:     hasPorts,
+		Containers:   podContainerBriefs(p),
 	}
+}
+
+// podContainerBriefs summarizes every container's status for the Pods list,
+// regular containers first then init containers so the row of squares reads as
+// "app health, then the init chain behind it".
+func podContainerBriefs(p *corev1.Pod) []PodContainerBrief {
+	regStatus := make(map[string]corev1.ContainerStatus, len(p.Status.ContainerStatuses))
+	for _, s := range p.Status.ContainerStatuses {
+		regStatus[s.Name] = s
+	}
+	initStatus := make(map[string]corev1.ContainerStatus, len(p.Status.InitContainerStatuses))
+	for _, s := range p.Status.InitContainerStatuses {
+		initStatus[s.Name] = s
+	}
+	out := make([]PodContainerBrief, 0, len(p.Spec.Containers)+len(p.Spec.InitContainers))
+	for _, c := range p.Spec.Containers {
+		out = append(out, containerBrief(c.Name, lookupStatus(regStatus, c.Name), false))
+	}
+	for _, c := range p.Spec.InitContainers {
+		out = append(out, containerBrief(c.Name, lookupStatus(initStatus, c.Name), true))
+	}
+	return out
+}
+
+func lookupStatus(byName map[string]corev1.ContainerStatus, name string) *corev1.ContainerStatus {
+	if s, ok := byName[name]; ok {
+		return &s
+	}
+	return nil
+}
+
+func containerBrief(name string, st *corev1.ContainerStatus, init bool) PodContainerBrief {
+	b := PodContainerBrief{Name: name, Init: init}
+	switch {
+	case st == nil:
+		b.Tone, b.State = "warn", "Pending"
+	case st.State.Waiting != nil:
+		b.State = st.State.Waiting.Reason
+		if b.State == "" {
+			b.State = "Waiting"
+		}
+		if isFailureReason(b.State) {
+			b.Tone = "error"
+		} else {
+			b.Tone = "warn"
+		}
+	case st.State.Terminated != nil:
+		t := st.State.Terminated
+		if t.ExitCode == 0 {
+			b.Tone, b.State = "done", "Completed"
+		} else {
+			b.Tone = "error"
+			b.State = t.Reason
+			if b.State == "" {
+				b.State = fmt.Sprintf("ExitCode:%d", t.ExitCode)
+			}
+		}
+	case st.State.Running != nil:
+		if st.Ready {
+			b.Tone, b.State = "ready", "Running"
+		} else {
+			b.Tone, b.State = "warn", "Running"
+		}
+	default:
+		b.Tone, b.State = "warn", "Unknown"
+	}
+	return b
+}
+
+func isFailureReason(reason string) bool {
+	switch reason {
+	case "CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull", "InvalidImageName",
+		"CreateContainerConfigError", "CreateContainerError", "RunContainerError",
+		"ErrImageNeverPull", "ImageInspectError":
+		return true
+	}
+	return false
 }
 
 // podResourceTotals sums cpu/mem requests and limits across init+regular
