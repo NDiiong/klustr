@@ -122,13 +122,13 @@ func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
 		Labels:            p.Labels,
 		Annotations:       p.Annotations,
 		Owners:            owners,
-		InitContainers:    containerDetails(p, p.Spec.InitContainers, p.Status.InitContainerStatuses),
-		Containers:        containerDetails(p, p.Spec.Containers, p.Status.ContainerStatuses),
+		InitContainers:    w.containerDetails(p, p.Spec.InitContainers, p.Status.InitContainerStatuses),
+		Containers:        w.containerDetails(p, p.Spec.Containers, p.Status.ContainerStatuses),
 		Conditions:        podConditions(p.Status.Conditions),
 	}, nil
 }
 
-func containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
+func (w *contextWatcher) containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []corev1.ContainerStatus) []ContainerDetail {
 	byName := make(map[string]corev1.ContainerStatus, len(statuses))
 	for _, s := range statuses {
 		byName[s.Name] = s
@@ -152,7 +152,7 @@ func containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []core
 			Name:    c.Name,
 			Image:   c.Image,
 			Ports:   ports,
-			Env:     envVarsFrom(pod, c, c.Env),
+			Env:     w.envVarsFrom(pod, c, c.Env),
 			EnvFrom: envFromSources(c.EnvFrom),
 		}
 		if s, ok := byName[c.Name]; ok {
@@ -188,12 +188,15 @@ func containerDetails(pod *corev1.Pod, specs []corev1.Container, statuses []core
 	return out
 }
 
-func envVarsFrom(pod *corev1.Pod, container *corev1.Container, env []corev1.EnvVar) []ContainerEnvVar {
+func (w *contextWatcher) envVarsFrom(pod *corev1.Pod, container *corev1.Container, env []corev1.EnvVar) []ContainerEnvVar {
 	if len(env) == 0 {
 		return []ContainerEnvVar{}
 	}
 	out := make([]ContainerEnvVar, 0, len(env))
 	for _, e := range env {
+		if w.optionalEnvKeyAbsent(pod.Namespace, e.ValueFrom) {
+			continue
+		}
 		v := ContainerEnvVar{Name: e.Name}
 		if e.ValueFrom != nil {
 			v.ValueFrom, v.Ref = describeEnvVarSource(e.ValueFrom)
@@ -208,6 +211,56 @@ func envVarsFrom(pod *corev1.Pod, container *corev1.Container, env []corev1.EnvV
 		out = append(out, v)
 	}
 	return out
+}
+
+// optionalEnvKeyAbsent reports whether an env var sourced from an optional
+// ConfigMap/Secret key references a key we can positively confirm is missing.
+// Kubernetes never sets such a var on the container, so listing it (and the
+// "key not found" error the frontend would render) is pure noise. We only
+// suppress when the backing object is readable from cache and the key is truly
+// absent — when access is denied or the object is uncached we keep the row so
+// nothing that may actually be set vanishes silently. Required (non-optional)
+// missing keys are a real CreateContainerConfigError and stay visible.
+func (w *contextWatcher) optionalEnvKeyAbsent(namespace string, src *corev1.EnvVarSource) bool {
+	if src == nil {
+		return false
+	}
+	if ref := src.ConfigMapKeyRef; ref != nil && ref.Optional != nil && *ref.Optional {
+		return w.configMapKeyConfirmedAbsent(namespace, ref.Name, ref.Key)
+	}
+	if ref := src.SecretKeyRef; ref != nil && ref.Optional != nil && *ref.Optional {
+		return w.secretKeyConfirmedAbsent(namespace, ref.Name, ref.Key)
+	}
+	return false
+}
+
+func (w *contextWatcher) configMapKeyConfirmedAbsent(namespace, name, key string) bool {
+	f := w.factoryFor("ConfigMap")
+	if f == nil {
+		return false
+	}
+	cm, err := f.Core().V1().ConfigMaps().Lister().ConfigMaps(namespace).Get(name)
+	if err != nil {
+		return false
+	}
+	if _, ok := cm.Data[key]; ok {
+		return false
+	}
+	_, ok := cm.BinaryData[key]
+	return !ok
+}
+
+func (w *contextWatcher) secretKeyConfirmedAbsent(namespace, name, key string) bool {
+	f := w.factoryFor("Secret")
+	if f == nil {
+		return false
+	}
+	s, err := f.Core().V1().Secrets().Lister().Secrets(namespace).Get(name)
+	if err != nil {
+		return false
+	}
+	_, ok := s.Data[key]
+	return !ok
 }
 
 func describeEnvVarSource(src *corev1.EnvVarSource) (string, *EnvVarRef) {
