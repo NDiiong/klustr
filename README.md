@@ -31,7 +31,12 @@
 </p>
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/2fa03a47-aed6-42a3-933a-1a1b5f094b1b" autoplay loop muted playsinline width="900"></video>
+  <a href="https://github.com/SametKUM/klustr/blob/main/docs/hero.mp4">
+    <img src="https://raw.githubusercontent.com/SametKUM/klustr/main/docs/hero.gif" width="900" alt="Klustr — live demo">
+  </a>
+</p>
+<p align="center">
+  <sub><a href="https://github.com/SametKUM/klustr/blob/main/docs/hero.mp4">▶ Watch the full-quality video</a></sub>
 </p>
 
 ## What is Klustr?
