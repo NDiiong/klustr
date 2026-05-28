@@ -710,6 +710,10 @@ export function ListVolumeAttachments(arg1) {
   return window['go']['app']['App']['ListVolumeAttachments'](arg1);
 }
 
+export function OpenLocalTerminal(arg1, arg2, arg3) {
+  return window['go']['app']['App']['OpenLocalTerminal'](arg1, arg2, arg3);
+}
+
 export function PatchDeploymentPaused(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['PatchDeploymentPaused'](arg1, arg2, arg3, arg4);
 }
@@ -748,6 +752,10 @@ export function RemoveHelmRepo(arg1) {
 
 export function ResizeExec(arg1, arg2, arg3) {
   return window['go']['app']['App']['ResizeExec'](arg1, arg2, arg3);
+}
+
+export function ResizeLocalTerminal(arg1, arg2, arg3) {
+  return window['go']['app']['App']['ResizeLocalTerminal'](arg1, arg2, arg3);
 }
 
 export function RestartWorkload(arg1, arg2, arg3, arg4) {
@@ -794,6 +802,10 @@ export function SendExecInput(arg1, arg2) {
   return window['go']['app']['App']['SendExecInput'](arg1, arg2);
 }
 
+export function SendLocalTerminalInput(arg1, arg2) {
+  return window['go']['app']['App']['SendLocalTerminalInput'](arg1, arg2);
+}
+
 export function SetArgoApplicationAutomation(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['SetArgoApplicationAutomation'](arg1, arg2, arg3, arg4);
 }
@@ -820,6 +832,10 @@ export function StartWatch(arg1) {
 
 export function StopExec(arg1) {
   return window['go']['app']['App']['StopExec'](arg1);
+}
+
+export function StopLocalTerminal(arg1) {
+  return window['go']['app']['App']['StopLocalTerminal'](arg1);
 }
 
 export function StopPodLogs(arg1) {

@@ -386,6 +386,46 @@ func (a *App) StopExec(sessionID string) {
 	a.clients.StopExec(sessionID)
 }
 
+func (a *App) OpenLocalTerminal(contextName string, cols, rows int) (string, error) {
+	var sessionID string
+	id, err := a.clients.StartLocalTerminal(
+		a.ctx, contextName, uint16(cols), uint16(rows),
+		func(data []byte) {
+			if sessionID == "" {
+				return
+			}
+			runtime.EventsEmit(a.ctx, "term:out:"+sessionID, string(data))
+		},
+		func(err error) {
+			if sessionID == "" {
+				return
+			}
+			msg := ""
+			if err != nil {
+				msg = err.Error()
+			}
+			runtime.EventsEmit(a.ctx, "term:close:"+sessionID, msg)
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+	sessionID = id
+	return id, nil
+}
+
+func (a *App) SendLocalTerminalInput(sessionID, data string) {
+	a.clients.SendLocalTerminalInput(sessionID, data)
+}
+
+func (a *App) ResizeLocalTerminal(sessionID string, cols, rows int) {
+	a.clients.ResizeLocalTerminal(sessionID, uint16(cols), uint16(rows))
+}
+
+func (a *App) StopLocalTerminal(sessionID string) {
+	a.clients.StopLocalTerminal(sessionID)
+}
+
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
 	return a.clients.Deployments(name, namespace)
 }

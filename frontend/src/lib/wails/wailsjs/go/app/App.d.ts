@@ -357,6 +357,8 @@ export function ListValidatingWebhookConfigurations(arg1:string):Promise<Array<k
 
 export function ListVolumeAttachments(arg1:string):Promise<Array<kube.VolumeAttachmentInfo>>;
 
+export function OpenLocalTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
+
 export function PatchDeploymentPaused(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
 export function PatchHPAReplicas(arg1:string,arg2:string,arg3:string,arg4:number,arg5:number):Promise<void>;
@@ -376,6 +378,8 @@ export function RefreshArgoApplication(arg1:string,arg2:string,arg3:string,arg4:
 export function RemoveHelmRepo(arg1:string):Promise<void>;
 
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
+
+export function ResizeLocalTerminal(arg1:string,arg2:number,arg3:number):Promise<void>;
 
 export function RestartWorkload(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
@@ -399,6 +403,8 @@ export function SearchHelmCharts(arg1:string):Promise<Array<kube.HelmChartSearch
 
 export function SendExecInput(arg1:string,arg2:string):Promise<void>;
 
+export function SendLocalTerminalInput(arg1:string,arg2:string):Promise<void>;
+
 export function SetArgoApplicationAutomation(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
 export function SetFluxResourceSuspended(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean):Promise<void>;
@@ -412,6 +418,8 @@ export function StartPortForward(arg1:string,arg2:string,arg3:string,arg4:number
 export function StartWatch(arg1:string):Promise<void>;
 
 export function StopExec(arg1:string):Promise<void>;
+
+export function StopLocalTerminal(arg1:string):Promise<void>;
 
 export function StopPodLogs(arg1:string):Promise<void>;
 
