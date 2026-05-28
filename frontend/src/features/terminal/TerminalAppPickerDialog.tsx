@@ -71,7 +71,7 @@ export function TerminalAppPickerDialog({ open, description, onClose, onLaunch }
         <fieldset className="space-y-1.5">
           <legend className="sr-only">Choose terminal app</legend>
           <AppOption
-            id=""
+            appId=""
             label="System default"
             description="Whatever app handles .command / shell scripts"
             chosen={chosen}
@@ -80,7 +80,7 @@ export function TerminalAppPickerDialog({ open, description, onClose, onLaunch }
           {apps.map((app) => (
             <AppOption
               key={app.id}
-              id={app.id}
+              appId={app.id}
               label={app.name}
               chosen={chosen}
               onChoose={setChosen}
@@ -123,15 +123,15 @@ export function TerminalAppPickerDialog({ open, description, onClose, onLaunch }
 }
 
 type OptionProps = {
-  id: string
+  appId: string
   label: string
   description?: string
   chosen: string
   onChoose: (id: string) => void
 }
 
-function AppOption({ id, label, description, chosen, onChoose }: OptionProps) {
-  const selected = chosen === id
+function AppOption({ appId, label, description, chosen, onChoose }: OptionProps) {
+  const selected = chosen === appId
   return (
     <label
       className={`flex cursor-pointer items-center gap-3 rounded border px-3 py-2 text-sm transition ${
@@ -141,9 +141,9 @@ function AppOption({ id, label, description, chosen, onChoose }: OptionProps) {
       <input
         type="radio"
         name="terminalApp"
-        value={id}
+        value={appId}
         checked={selected}
-        onChange={() => onChoose(id)}
+        onChange={() => onChoose(appId)}
         className="size-3.5 accent-primary"
       />
       <span className="flex min-w-0 flex-1 flex-col">
