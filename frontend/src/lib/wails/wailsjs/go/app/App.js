@@ -722,6 +722,10 @@ export function OpenLocalTerminal(arg1, arg2, arg3) {
   return window['go']['app']['App']['OpenLocalTerminal'](arg1, arg2, arg3);
 }
 
+export function OpenPodExecInSystemTerminal(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['app']['App']['OpenPodExecInSystemTerminal'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
 export function PatchDeploymentPaused(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['PatchDeploymentPaused'](arg1, arg2, arg3, arg4);
 }

@@ -48,6 +48,97 @@ func (m *ClientManager) ListSystemTerminals() []SystemTerminal {
 	return []SystemTerminal{}
 }
 
+// OpenPodExecInSystemTerminal launches an external terminal app and
+// immediately `kubectl exec`s into the named pod/container. KUBECONFIG
+// is pointed at a minified single-context file so kubectl resolves to
+// the right cluster without touching the user's main config.
+//
+// shellPath is the command the pod runs (e.g. /bin/sh, /bin/bash); if
+// empty defaults to /bin/sh. container may be empty, in which case
+// kubectl picks the first one.
+func (m *ClientManager) OpenPodExecInSystemTerminal(
+	contextName, namespace, podName, container, shellPath, appID string,
+) error {
+	if contextName == "" || namespace == "" || podName == "" {
+		return fmt.Errorf("context, namespace and pod are required")
+	}
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("opening a system terminal is not supported on Windows yet")
+	}
+	if shellPath == "" {
+		shellPath = "/bin/sh"
+	}
+
+	kubeconfigPath, err := writeContextKubeconfig(m.rules, contextName)
+	if err != nil {
+		return err
+	}
+	scriptPath, err := writePodExecLauncher(kubeconfigPath, contextName, namespace, podName, container, shellPath)
+	if err != nil {
+		_ = os.Remove(kubeconfigPath)
+		return err
+	}
+	if err := launchExternalTerminal(scriptPath, appID); err != nil {
+		_ = os.Remove(kubeconfigPath)
+		_ = os.Remove(scriptPath)
+		return err
+	}
+	return nil
+}
+
+func writePodExecLauncher(kubeconfigPath, contextName, namespace, podName, container, shellPath string) (string, error) {
+	suffix := ".sh"
+	if runtime.GOOS == "darwin" {
+		suffix = ".command"
+	}
+	f, err := os.CreateTemp("", "klustr-exec-*"+suffix)
+	if err != nil {
+		return "", err
+	}
+	path := f.Name()
+
+	containerArg := ""
+	if container != "" {
+		containerArg = fmt.Sprintf("-c %q ", container)
+	}
+
+	// We explicitly check for kubectl before invoking it so that if the
+	// user opens this on a machine without kubectl on PATH, they get a
+	// readable message instead of the terminal flashing closed with
+	// exit 127.
+	body := fmt.Sprintf(`#!/bin/sh
+KC=%q
+SCRIPT=%q
+trap 'rm -f "$KC" "$SCRIPT"' EXIT
+export KUBECONFIG="$KC"
+export KLUSTR_CONTEXT=%q
+export KUBE_CONTEXT=%q
+if ! command -v kubectl >/dev/null 2>&1; then
+  echo "kubectl not found on PATH. Install kubectl or use the in-app Exec tab."
+  echo
+  printf "Press Enter to close. "
+  read _
+  exit 127
+fi
+kubectl exec -it -n %q %s%q -- %q
+`, kubeconfigPath, path, contextName, contextName, namespace, containerArg, podName, shellPath)
+
+	if _, err := f.WriteString(body); err != nil {
+		_ = f.Close()
+		_ = os.Remove(path)
+		return "", err
+	}
+	if err := f.Close(); err != nil {
+		_ = os.Remove(path)
+		return "", err
+	}
+	if err := os.Chmod(path, 0o700); err != nil {
+		_ = os.Remove(path)
+		return "", err
+	}
+	return path, nil
+}
+
 // OpenInSystemTerminal launches the user's external terminal emulator
 // with KUBECONFIG pre-set to a minified single-context copy of their
 // kubeconfig, then drops them into their normal login shell. The temp

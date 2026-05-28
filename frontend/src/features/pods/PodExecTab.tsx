@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { ExternalLink } from 'lucide-react'
+import { toast } from 'sonner'
 import '@xterm/xterm/css/xterm.css'
 import { EventsOff, EventsOn } from '@/lib/wails/wailsjs/runtime/runtime'
 import { Button } from '@/components/ui/button'
 import { api, type PodDetail } from '@/lib/api'
 import { xtermThemeFor } from '@/features/_shared/xtermTheme'
 import { InlinePicker } from '@/features/_shared/InlinePicker'
+import { TerminalAppPickerDialog } from '@/features/terminal/TerminalAppPickerDialog'
+import { useTerminalStore } from '@/store/terminals'
 import { useUIStore } from '@/store/ui'
 
 const SHELLS = ['/bin/sh', '/bin/bash']
@@ -30,6 +34,7 @@ export function PodExecTab({ detail, contextName }: Props) {
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [nonce, setNonce] = useState(0) // bumps to restart session
+  const [externalOpen, setExternalOpen] = useState(false)
 
   const termHostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
@@ -171,6 +176,39 @@ export function PodExecTab({ detail, contextName }: Props) {
         >
           Reattach
         </Button>
+        <Button
+          type="button"
+          size="xs"
+          variant="outline"
+          onClick={(e) => {
+            if (!selectedContext) return
+            const pref = useTerminalStore.getState().preferredAppId
+            if (pref && !e.altKey) {
+              api
+                .openPodExecInSystemTerminal(
+                  selectedContext,
+                  detail.namespace,
+                  detail.name,
+                  container,
+                  shell,
+                  pref,
+                )
+                .catch((err) => {
+                  toast.error('Could not open system terminal', {
+                    description: String(err),
+                  })
+                  setExternalOpen(true)
+                })
+              return
+            }
+            setExternalOpen(true)
+          }}
+          disabled={!selectedContext || !container}
+          title="Open this exec session in a system terminal (Alt+click to choose app)"
+        >
+          <ExternalLink className="size-3" />
+          External
+        </Button>
         <span className={running ? 'text-emerald-500' : 'text-muted-foreground'}>
           {running ? '● running' : '○ idle'}
         </span>
@@ -181,6 +219,38 @@ export function PodExecTab({ detail, contextName }: Props) {
         </div>
       )}
       <div ref={termHostRef} className="min-h-0 flex-1 bg-background px-2 py-1" />
+
+      <TerminalAppPickerDialog
+        open={externalOpen}
+        description={
+          <>
+            Open a system terminal already <code>kubectl exec</code>'d into{' '}
+            <span className="font-mono text-foreground">
+              {detail.namespace}/{detail.name}
+            </span>
+            {container && (
+              <>
+                {' '}container{' '}
+                <span className="font-mono text-foreground">{container}</span>
+              </>
+            )}
+            .
+          </>
+        }
+        onClose={() => setExternalOpen(false)}
+        onLaunch={(appID) =>
+          selectedContext
+            ? api.openPodExecInSystemTerminal(
+                selectedContext,
+                detail.namespace,
+                detail.name,
+                container,
+                shell,
+                appID,
+              )
+            : Promise.resolve()
+        }
+      />
     </div>
   )
 }

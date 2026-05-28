@@ -215,6 +215,7 @@ import {
   ResizeLocalTerminal,
   StopLocalTerminal,
   OpenInSystemTerminal,
+  OpenPodExecInSystemTerminal,
   ListSystemTerminals,
   Version,
   CheckForUpdate,
@@ -672,6 +673,15 @@ export const api = {
   stopLocalTerminal: (sessionId: string): Promise<void> => StopLocalTerminal(sessionId),
   openInSystemTerminal: (contextName: string, appID: string): Promise<void> =>
     OpenInSystemTerminal(contextName, appID),
+  openPodExecInSystemTerminal: (
+    contextName: string,
+    namespace: string,
+    podName: string,
+    container: string,
+    shellPath: string,
+    appID: string,
+  ): Promise<void> =>
+    OpenPodExecInSystemTerminal(contextName, namespace, podName, container, shellPath, appID),
   listSystemTerminals: (): Promise<SystemTerminal[]> => ListSystemTerminals(),
   getDeployment: (ctx: string, ns: string, name: string): Promise<DeploymentDetail> =>
     GetDeployment(ctx, ns, name),

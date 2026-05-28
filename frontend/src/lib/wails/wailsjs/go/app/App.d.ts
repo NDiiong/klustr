@@ -363,6 +363,8 @@ export function OpenInSystemTerminal(arg1:string,arg2:string):Promise<void>;
 
 export function OpenLocalTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
 
+export function OpenPodExecInSystemTerminal(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<void>;
+
 export function PatchDeploymentPaused(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;
 
 export function PatchHPAReplicas(arg1:string,arg2:string,arg3:string,arg4:number,arg5:number):Promise<void>;

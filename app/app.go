@@ -434,6 +434,10 @@ func (a *App) ListSystemTerminals() []kube.SystemTerminal {
 	return a.clients.ListSystemTerminals()
 }
 
+func (a *App) OpenPodExecInSystemTerminal(contextName, namespace, podName, container, shellPath, appID string) error {
+	return a.clients.OpenPodExecInSystemTerminal(contextName, namespace, podName, container, shellPath, appID)
+}
+
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {
 	return a.clients.Deployments(name, namespace)
 }
