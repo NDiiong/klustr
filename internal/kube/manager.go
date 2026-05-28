@@ -39,6 +39,7 @@ type ClientManager struct {
 	watchers map[string]*contextWatcher
 	logs     *logSessionManager
 	execs    *execSessionManager
+	terms    *terminalSessionManager
 	pf       *pfManager
 	metrics  *metricsCache
 	helm     *helmManager
@@ -54,6 +55,7 @@ func NewClientManager() *ClientManager {
 		watchers: make(map[string]*contextWatcher),
 		logs:     newLogSessionManager(),
 		execs:    newExecSessionManager(),
+		terms:    newTerminalSessionManager(),
 		pf:       newPFManager(),
 		metrics:  newMetricsCache(),
 		helm:     helm,
@@ -193,6 +195,7 @@ func (m *ClientManager) Shutdown() {
 	m.pf.stopAll()
 	m.logs.stopAll()
 	m.execs.stopAll()
+	m.terms.stopAll()
 
 	m.mu.Lock()
 	watchers := m.watchers
@@ -314,6 +317,30 @@ func (m *ClientManager) ResizeExec(sessionID string, cols, rows uint16) {
 
 func (m *ClientManager) StopExec(sessionID string) {
 	m.execs.stop(sessionID)
+}
+
+// ---- Local terminal ---------------------------------------------------
+
+func (m *ClientManager) StartLocalTerminal(
+	parent context.Context,
+	contextName string,
+	cols, rows uint16,
+	onData TerminalDataFunc,
+	onClose TerminalCloseFunc,
+) (string, error) {
+	return m.terms.start(parent, m.rules, contextName, cols, rows, onData, onClose)
+}
+
+func (m *ClientManager) SendLocalTerminalInput(sessionID, data string) {
+	m.terms.sendInput(sessionID, data)
+}
+
+func (m *ClientManager) ResizeLocalTerminal(sessionID string, cols, rows uint16) {
+	m.terms.resize(sessionID, cols, rows)
+}
+
+func (m *ClientManager) StopLocalTerminal(sessionID string) {
+	m.terms.stop(sessionID)
 }
 
 // ---- Port-forward ------------------------------------------------------
