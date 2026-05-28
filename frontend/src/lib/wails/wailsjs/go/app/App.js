@@ -710,6 +710,10 @@ export function ListVolumeAttachments(arg1) {
   return window['go']['app']['App']['ListVolumeAttachments'](arg1);
 }
 
+export function OpenInSystemTerminal(arg1) {
+  return window['go']['app']['App']['OpenInSystemTerminal'](arg1);
+}
+
 export function OpenLocalTerminal(arg1, arg2, arg3) {
   return window['go']['app']['App']['OpenLocalTerminal'](arg1, arg2, arg3);
 }

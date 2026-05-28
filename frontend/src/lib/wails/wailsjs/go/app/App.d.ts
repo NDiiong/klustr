@@ -357,6 +357,8 @@ export function ListValidatingWebhookConfigurations(arg1:string):Promise<Array<k
 
 export function ListVolumeAttachments(arg1:string):Promise<Array<kube.VolumeAttachmentInfo>>;
 
+export function OpenInSystemTerminal(arg1:string):Promise<void>;
+
 export function OpenLocalTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
 
 export function PatchDeploymentPaused(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<void>;

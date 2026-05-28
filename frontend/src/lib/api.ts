@@ -214,6 +214,7 @@ import {
   SendLocalTerminalInput,
   ResizeLocalTerminal,
   StopLocalTerminal,
+  OpenInSystemTerminal,
   Version,
   CheckForUpdate,
 } from '@/lib/wails/wailsjs/go/app/App'
@@ -667,6 +668,7 @@ export const api = {
   resizeLocalTerminal: (sessionId: string, cols: number, rows: number): Promise<void> =>
     ResizeLocalTerminal(sessionId, cols, rows),
   stopLocalTerminal: (sessionId: string): Promise<void> => StopLocalTerminal(sessionId),
+  openInSystemTerminal: (contextName: string): Promise<void> => OpenInSystemTerminal(contextName),
   getDeployment: (ctx: string, ns: string, name: string): Promise<DeploymentDetail> =>
     GetDeployment(ctx, ns, name),
   getStatefulSet: (ctx: string, ns: string, name: string): Promise<StatefulSetDetail> =>
