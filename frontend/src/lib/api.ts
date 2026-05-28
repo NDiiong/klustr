@@ -210,6 +210,10 @@ import {
   StopExec,
   StopPodLogs,
   StopWatch,
+  OpenLocalTerminal,
+  SendLocalTerminalInput,
+  ResizeLocalTerminal,
+  StopLocalTerminal,
   Version,
   CheckForUpdate,
 } from '@/lib/wails/wailsjs/go/app/App'
@@ -656,6 +660,13 @@ export const api = {
   resizeExec: (sessionId: string, cols: number, rows: number): Promise<void> =>
     ResizeExec(sessionId, cols, rows),
   stopExec: (sessionId: string): Promise<void> => StopExec(sessionId),
+  openLocalTerminal: (contextName: string, cols: number, rows: number): Promise<string> =>
+    OpenLocalTerminal(contextName, cols, rows),
+  sendLocalTerminalInput: (sessionId: string, data: string): Promise<void> =>
+    SendLocalTerminalInput(sessionId, data),
+  resizeLocalTerminal: (sessionId: string, cols: number, rows: number): Promise<void> =>
+    ResizeLocalTerminal(sessionId, cols, rows),
+  stopLocalTerminal: (sessionId: string): Promise<void> => StopLocalTerminal(sessionId),
   getDeployment: (ctx: string, ns: string, name: string): Promise<DeploymentDetail> =>
     GetDeployment(ctx, ns, name),
   getStatefulSet: (ctx: string, ns: string, name: string): Promise<StatefulSetDetail> =>
