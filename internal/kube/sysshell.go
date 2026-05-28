@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 // SystemTerminal is a terminal app discovered on the host. The frontend
@@ -280,32 +281,108 @@ type terminalLauncher struct {
 	label string
 	bin   string
 	args  func(script string) []string
+	// flatpakID, if non-empty, lets the detector pick this terminal up
+	// from a Flatpak install when the native binary is not on PATH —
+	// the common case on Fedora Silverblue / Bazzite / immutable distros.
+	flatpakID string
 }
 
 var linuxKnownTerminals = []terminalLauncher{
-	{"gnome-terminal", "GNOME Terminal", "gnome-terminal", func(s string) []string { return []string{"--", s} }},
-	{"konsole", "Konsole", "konsole", func(s string) []string { return []string{"-e", s} }},
-	{"xfce4-terminal", "Xfce Terminal", "xfce4-terminal", func(s string) []string { return []string{"-e", s} }},
-	{"tilix", "Tilix", "tilix", func(s string) []string { return []string{"-e", s} }},
-	{"ghostty", "Ghostty", "ghostty", func(s string) []string { return []string{"-e", s} }},
-	{"kitty", "kitty", "kitty", func(s string) []string { return []string{s} }},
-	{"alacritty", "Alacritty", "alacritty", func(s string) []string { return []string{"-e", s} }},
-	{"wezterm", "WezTerm", "wezterm", func(s string) []string { return []string{"start", "--", s} }},
-	{"foot", "foot", "foot", func(s string) []string { return []string{s} }},
-	{"xterm", "xterm", "xterm", func(s string) []string { return []string{"-e", s} }},
+	{"gnome-terminal", "GNOME Terminal", "gnome-terminal", func(s string) []string { return []string{"--", s} }, "org.gnome.Terminal"},
+	{"konsole", "Konsole", "konsole", func(s string) []string { return []string{"-e", s} }, "org.kde.konsole"},
+	{"xfce4-terminal", "Xfce Terminal", "xfce4-terminal", func(s string) []string { return []string{"-e", s} }, ""},
+	{"tilix", "Tilix", "tilix", func(s string) []string { return []string{"-e", s} }, ""},
+	{"ghostty", "Ghostty", "ghostty", func(s string) []string { return []string{"-e", s} }, "com.mitchellh.ghostty"},
+	{"kitty", "kitty", "kitty", func(s string) []string { return []string{s} }, "net.kovidgoyal.kitty"},
+	{"alacritty", "Alacritty", "alacritty", func(s string) []string { return []string{"-e", s} }, "org.alacritty.Alacritty"},
+	{"wezterm", "WezTerm", "wezterm", func(s string) []string { return []string{"start", "--", s} }, "org.wezfurlong.wezterm"},
+	{"foot", "foot", "foot", func(s string) []string { return []string{s} }, ""},
+	{"xterm", "xterm", "xterm", func(s string) []string { return []string{"-e", s} }, ""},
 }
 
+const flatpakPrefix = "flatpak:"
+
 func listLinuxTerminals() []SystemTerminal {
-	out := make([]SystemTerminal, 0, len(linuxKnownTerminals))
+	seen := map[string]bool{}
+	out := make([]SystemTerminal, 0, len(linuxKnownTerminals)+2)
+
+	// xdg-terminal-exec is the freedesktop "default terminal" launcher.
+	// When the user has set a default via ~/.config/xdg-terminals.list
+	// (newer GNOME / KDE / xdg-utils), this is the right thing to honor
+	// — surface it as a first-class option labeled accordingly.
+	if _, err := exec.LookPath("xdg-terminal-exec"); err == nil {
+		out = append(out, SystemTerminal{ID: "xdg-default", Name: "System default (xdg-terminal-exec)"})
+	}
+
 	for _, c := range linuxKnownTerminals {
 		if _, err := exec.LookPath(c.bin); err == nil {
 			out = append(out, SystemTerminal{ID: c.id, Name: c.label})
+			seen[c.id] = true
+		}
+	}
+
+	// Probe Flatpak-installed terminals: useful on immutable distros
+	// (Silverblue, Bazzite, …) where the canonical install location is
+	// not PATH but `flatpak run <app-id>`. Dedup by friendly id so a
+	// native install is preferred when both are present.
+	installed := flatpakInstalledApps()
+	for _, c := range linuxKnownTerminals {
+		if seen[c.id] || c.flatpakID == "" {
+			continue
+		}
+		if installed[c.flatpakID] {
+			out = append(out, SystemTerminal{
+				ID:   flatpakPrefix + c.id,
+				Name: c.label + " (Flatpak)",
+			})
 		}
 	}
 	return out
 }
 
+// flatpakInstalledApps returns the set of Flatpak application ids the
+// user has installed. Empty when flatpak is not on PATH or the call
+// fails — we deliberately swallow errors so absence is treated as "no
+// flatpak terminals", not a hard failure.
+func flatpakInstalledApps() map[string]bool {
+	if _, err := exec.LookPath("flatpak"); err != nil {
+		return nil
+	}
+	out, err := exec.Command("flatpak", "list", "--app", "--columns=application").Output()
+	if err != nil {
+		return nil
+	}
+	set := map[string]bool{}
+	for line := range strings.SplitSeq(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			set[line] = true
+		}
+	}
+	return set
+}
+
 func launchLinuxTerminal(scriptPath, appID string) error {
+	if appID == "xdg-default" {
+		bin, err := exec.LookPath("xdg-terminal-exec")
+		if err != nil {
+			return fmt.Errorf("xdg-terminal-exec is no longer on PATH")
+		}
+		return exec.Command(bin, scriptPath).Start()
+	}
+	if id, ok := strings.CutPrefix(appID, flatpakPrefix); ok {
+		for _, c := range linuxKnownTerminals {
+			if c.id != id || c.flatpakID == "" {
+				continue
+			}
+			// `flatpak run <app-id> <args>` — the app inside the
+			// sandbox receives the args verbatim, so each terminal's
+			// per-binary flag form (e.g. `--`, `-e`) still applies.
+			args := append([]string{"run", c.flatpakID}, c.args(scriptPath)...)
+			return exec.Command("flatpak", args...).Start()
+		}
+		return fmt.Errorf("unknown flatpak terminal app %q", appID)
+	}
 	if appID != "" {
 		for _, c := range linuxKnownTerminals {
 			if c.id != appID {
@@ -320,10 +397,17 @@ func launchLinuxTerminal(scriptPath, appID string) error {
 		return fmt.Errorf("unknown terminal app %q", appID)
 	}
 
-	// Empty appID: try x-terminal-emulator (Debian alternatives system)
-	// first, otherwise walk the known list in priority order.
-	if bin, err := exec.LookPath("x-terminal-emulator"); err == nil {
-		return exec.Command(bin, "-e", scriptPath).Start()
+	// Empty appID — walk a fallback chain that prefers the freedesktop
+	// "default terminal" spec, then the Debian alternatives system,
+	// then a tiling-WM convention, then a user override, then the
+	// known list in priority order.
+	for _, bin := range []string{"xdg-terminal-exec", "x-terminal-emulator", "i3-sensible-terminal"} {
+		if path, err := exec.LookPath(bin); err == nil {
+			if bin == "xdg-terminal-exec" {
+				return exec.Command(path, scriptPath).Start()
+			}
+			return exec.Command(path, "-e", scriptPath).Start()
+		}
 	}
 	if pref := os.Getenv("KLUSTR_TERMINAL"); pref != "" {
 		if bin, err := exec.LookPath(pref); err == nil {
