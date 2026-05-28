@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ExternalLink, Plus, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -7,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { api, type SystemTerminal } from '@/lib/api'
 import { useTerminalStore } from '@/store/terminals'
 import {
   useActiveContexts,
@@ -15,6 +17,7 @@ import {
   type CustomTagDef,
 } from '@/store/ui'
 import { resolveTagMeta } from '@/features/contexts/contextTagMeta'
+import { TerminalAppPickerDialog } from './TerminalAppPickerDialog'
 import { TerminalTab } from './TerminalTab'
 
 export function TerminalDrawer() {
@@ -28,10 +31,40 @@ export function TerminalDrawer() {
   const closeTab = useTerminalStore((s) => s.closeTab)
   const setActiveTab = useTerminalStore((s) => s.setActiveTab)
 
+  const preferredAppId = useTerminalStore((s) => s.preferredAppId)
+
   const activeContexts = useActiveContexts()
   const selectedContext = useUIStore((s) => s.selectedContext)
   const contextTags = useUIStore((s) => s.contextTags)
   const customTags = useUIStore((s) => s.customTags)
+
+  const [externalCtx, setExternalCtx] = useState<string | null>(null)
+  const [systemTerminals, setSystemTerminals] = useState<SystemTerminal[]>([])
+  useEffect(() => {
+    api
+      .listSystemTerminals()
+      .then((list) => setSystemTerminals(list ?? []))
+      .catch(() => setSystemTerminals([]))
+  }, [])
+  const preferredApp = systemTerminals.find((t) => t.id === preferredAppId) ?? null
+
+  // Click → if a default app is remembered, launch directly and skip the
+  // picker. Alt+click forces the picker so the user can change apps
+  // without having to clear the default first.
+  const handleExternal = useCallback(
+    (contextName: string, event: React.MouseEvent) => {
+      const pref = useTerminalStore.getState().preferredAppId
+      if (pref && !event.altKey) {
+        api.openInSystemTerminal(contextName, pref).catch((e) => {
+          toast.error('Could not open system terminal', { description: String(e) })
+          setExternalCtx(contextName)
+        })
+        return
+      }
+      setExternalCtx(contextName)
+    },
+    [],
+  )
 
   const draggingRef = useRef(false)
   const onMouseDownResize = useCallback(
@@ -76,6 +109,7 @@ export function TerminalDrawer() {
     }
   }
 
+
   return (
     <div
       className="flex shrink-0 flex-col border-t border-border bg-card"
@@ -97,8 +131,10 @@ export function TerminalDrawer() {
               active={tab.tabId === activeTabId}
               tags={contextTags[tab.contextName] ?? []}
               customTags={customTags}
+              preferredAppName={preferredApp?.name ?? null}
               onSelect={() => setActiveTab(tab.tabId)}
               onClose={() => closeTab(tab.tabId)}
+              onOpenExternal={(e) => handleExternal(tab.contextName, e)}
             />
           ))}
           {addPickerContexts.length > 1 ? (
@@ -167,6 +203,23 @@ export function TerminalDrawer() {
           ))
         )}
       </div>
+
+      <TerminalAppPickerDialog
+        open={externalCtx !== null}
+        description={
+          externalCtx ? (
+            <>
+              Launch a terminal app outside Klustr with{' '}
+              <span className="font-mono text-foreground">{externalCtx}</span> already
+              selected.
+            </>
+          ) : undefined
+        }
+        onClose={() => setExternalCtx(null)}
+        onLaunch={(appID) =>
+          externalCtx ? api.openInSystemTerminal(externalCtx, appID) : Promise.resolve()
+        }
+      />
     </div>
   )
 }
@@ -176,11 +229,22 @@ type PillProps = {
   active: boolean
   tags: ContextTag[]
   customTags: Record<string, CustomTagDef>
+  preferredAppName: string | null
   onSelect: () => void
   onClose: () => void
+  onOpenExternal: (event: React.MouseEvent) => void
 }
 
-function TabPill({ contextName, active, tags, customTags, onSelect, onClose }: PillProps) {
+function TabPill({
+  contextName,
+  active,
+  tags,
+  customTags,
+  preferredAppName,
+  onSelect,
+  onClose,
+  onOpenExternal,
+}: PillProps) {
   const primary = tags[0]
   const meta = primary ? resolveTagMeta(primary, customTags) : null
   const dotClass = meta?.dotClass ?? null
@@ -212,6 +276,22 @@ function TabPill({ contextName, active, tags, customTags, onSelect, onClose }: P
       >
         <X className="size-3" />
       </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onOpenExternal(e)
+        }}
+        aria-label="Open in system terminal"
+        title={
+          preferredAppName
+            ? `Open in ${preferredAppName} (Alt+click to choose another app)`
+            : 'Open in system terminal'
+        }
+        className="flex size-4 shrink-0 items-center justify-center rounded text-muted-foreground opacity-60 transition hover:bg-muted hover:text-foreground hover:opacity-100"
+      >
+        <ExternalLink className="size-3" />
+      </button>
     </div>
   )
 }
@@ -241,3 +321,4 @@ function EmptyState({ contexts, onPick }: { contexts: string[]; onPick: (ctx: st
     </div>
   )
 }
+

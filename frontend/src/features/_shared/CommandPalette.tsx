@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { LayoutGrid, SquareTerminal } from 'lucide-react'
+import { ExternalLink, LayoutGrid, SquareTerminal } from 'lucide-react'
+import { toast } from 'sonner'
 import { ProviderIcon } from '@/features/_shared/providerIcons'
 import { useTerminalStore } from '@/store/terminals'
 import {
@@ -119,6 +120,25 @@ export function CommandPalette() {
                 >
                   <SquareTerminal />
                   <span className="truncate">Open terminal — {ctx}</span>
+                </CommandItem>
+              ))}
+              {activeContexts.map((ctx) => (
+                <CommandItem
+                  key={`systerm-${ctx}`}
+                  value={`system terminal ${ctx}`}
+                  onSelect={() => {
+                    setOpen(false)
+                    api
+                      .openInSystemTerminal(ctx, useTerminalStore.getState().preferredAppId)
+                      .catch((e) =>
+                        toast.error('Could not open system terminal', {
+                          description: String(e),
+                        }),
+                      )
+                  }}
+                >
+                  <ExternalLink />
+                  <span className="truncate">Open in system terminal — {ctx}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
