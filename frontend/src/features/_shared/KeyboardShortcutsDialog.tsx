@@ -36,6 +36,10 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    heading: 'Terminal',
+    shortcuts: [{ keys: [MOD_KEY, '`'], label: 'Toggle terminal panel' }],
+  },
+  {
     heading: 'Help',
     shortcuts: [{ keys: ['?'], label: 'Show this cheatsheet' }],
   },

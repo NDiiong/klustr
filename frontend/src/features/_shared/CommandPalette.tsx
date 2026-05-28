@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { LayoutGrid } from 'lucide-react'
+import { LayoutGrid, SquareTerminal } from 'lucide-react'
 import { ProviderIcon } from '@/features/_shared/providerIcons'
+import { useTerminalStore } from '@/store/terminals'
 import {
   CommandDialog,
   CommandEmpty,
@@ -102,6 +103,27 @@ export function CommandPalette() {
             </CommandGroup>
           </div>
         ))}
+
+        {activeContexts.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Terminal">
+              {activeContexts.map((ctx) => (
+                <CommandItem
+                  key={`term-${ctx}`}
+                  value={`terminal ${ctx}`}
+                  onSelect={() => {
+                    useTerminalStore.getState().openTab(ctx)
+                    setOpen(false)
+                  }}
+                >
+                  <SquareTerminal />
+                  <span className="truncate">Open terminal — {ctx}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
 
         {contexts.length > 0 && (
           <>

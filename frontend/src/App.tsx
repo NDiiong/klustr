@@ -99,6 +99,8 @@ import { NamespaceSearchPalette } from '@/features/contexts/NamespaceSearchPalet
 import { StatusBar } from '@/features/_shared/StatusBar'
 import { PodSearchPalette } from '@/features/pods/PodSearchPalette'
 import { PortForwardIndicator } from '@/features/portforward/PortForwardIndicator'
+import { TerminalButton } from '@/features/terminal/TerminalButton'
+import { TerminalDrawer } from '@/features/terminal/TerminalDrawer'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type CRDInfo } from '@/lib/api'
@@ -113,6 +115,7 @@ import { useResources } from '@/store/resources'
 import { crdKey, useCRDStore } from '@/store/crds'
 import { useHelmStore } from '@/store/helm'
 import { usePortForwards } from '@/store/portForwards'
+import { useTerminalStore } from '@/store/terminals'
 import { kindAccessibleInAny, useAccessStore } from '@/store/access'
 
 
@@ -414,6 +417,18 @@ function App() {
   }, [navViews, selectedView, setSelectedView])
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '`') return
+      if (!e.metaKey && !e.ctrlKey) return
+      if (e.altKey || e.shiftKey) return
+      e.preventDefault()
+      useTerminalStore.getState().toggleDrawer()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  useEffect(() => {
     const reload = () => {
       api.listPortForwards().then((list) => setPortForwards(list ?? []))
     }
@@ -503,6 +518,7 @@ function App() {
           <ContextTagPicker />
         </div>
         <div className="flex items-center gap-1">
+          <TerminalButton />
           <PortForwardIndicator />
           <DisconnectButton />
           <ThemePicker />
@@ -602,9 +618,12 @@ function App() {
           )}
         </aside>
 
-        <main className="flex flex-1 overflow-hidden">
-          <MainView />
-        </main>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <main className="flex min-h-0 flex-1 overflow-hidden">
+            <MainView />
+          </main>
+          <TerminalDrawer />
+        </div>
       </div>
 
       <StatusBar />
