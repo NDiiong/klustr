@@ -349,6 +349,8 @@ export function ListStatefulSets(arg1:string,arg2:string):Promise<Array<kube.Sta
 
 export function ListStorageClasses(arg1:string):Promise<Array<kube.StorageClassInfo>>;
 
+export function ListSystemTerminals():Promise<Array<kube.SystemTerminal>>;
+
 export function ListValidatingAdmissionPolicies(arg1:string):Promise<Array<kube.AdmissionPolicyInfo>>;
 
 export function ListValidatingAdmissionPolicyBindings(arg1:string):Promise<Array<kube.AdmissionPolicyBindingInfo>>;
@@ -357,7 +359,7 @@ export function ListValidatingWebhookConfigurations(arg1:string):Promise<Array<k
 
 export function ListVolumeAttachments(arg1:string):Promise<Array<kube.VolumeAttachmentInfo>>;
 
-export function OpenInSystemTerminal(arg1:string):Promise<void>;
+export function OpenInSystemTerminal(arg1:string,arg2:string):Promise<void>;
 
 export function OpenLocalTerminal(arg1:string,arg2:number,arg3:number):Promise<string>;
 

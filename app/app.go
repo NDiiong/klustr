@@ -426,8 +426,12 @@ func (a *App) StopLocalTerminal(sessionID string) {
 	a.clients.StopLocalTerminal(sessionID)
 }
 
-func (a *App) OpenInSystemTerminal(contextName string) error {
-	return a.clients.OpenInSystemTerminal(contextName)
+func (a *App) OpenInSystemTerminal(contextName, appID string) error {
+	return a.clients.OpenInSystemTerminal(contextName, appID)
+}
+
+func (a *App) ListSystemTerminals() []kube.SystemTerminal {
+	return a.clients.ListSystemTerminals()
 }
 
 func (a *App) ListDeployments(name, namespace string) []kube.DeploymentInfo {

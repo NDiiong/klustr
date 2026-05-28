@@ -694,6 +694,10 @@ export function ListStorageClasses(arg1) {
   return window['go']['app']['App']['ListStorageClasses'](arg1);
 }
 
+export function ListSystemTerminals() {
+  return window['go']['app']['App']['ListSystemTerminals']();
+}
+
 export function ListValidatingAdmissionPolicies(arg1) {
   return window['go']['app']['App']['ListValidatingAdmissionPolicies'](arg1);
 }
@@ -710,8 +714,8 @@ export function ListVolumeAttachments(arg1) {
   return window['go']['app']['App']['ListVolumeAttachments'](arg1);
 }
 
-export function OpenInSystemTerminal(arg1) {
-  return window['go']['app']['App']['OpenInSystemTerminal'](arg1);
+export function OpenInSystemTerminal(arg1, arg2) {
+  return window['go']['app']['App']['OpenInSystemTerminal'](arg1, arg2);
 }
 
 export function OpenLocalTerminal(arg1, arg2, arg3) {

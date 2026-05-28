@@ -215,6 +215,7 @@ import {
   ResizeLocalTerminal,
   StopLocalTerminal,
   OpenInSystemTerminal,
+  ListSystemTerminals,
   Version,
   CheckForUpdate,
 } from '@/lib/wails/wailsjs/go/app/App'
@@ -222,6 +223,7 @@ import { kube, update } from '@/lib/wails/wailsjs/go/models'
 
 export type ContextInfo = kube.ContextInfo
 export type UpdateResult = update.Result
+export type SystemTerminal = kube.SystemTerminal
 export type Kubeconfig = kube.Kubeconfig
 export type ServerVersion = kube.ServerVersion
 export type NamespaceInfo = kube.NamespaceInfo
@@ -668,7 +670,9 @@ export const api = {
   resizeLocalTerminal: (sessionId: string, cols: number, rows: number): Promise<void> =>
     ResizeLocalTerminal(sessionId, cols, rows),
   stopLocalTerminal: (sessionId: string): Promise<void> => StopLocalTerminal(sessionId),
-  openInSystemTerminal: (contextName: string): Promise<void> => OpenInSystemTerminal(contextName),
+  openInSystemTerminal: (contextName: string, appID: string): Promise<void> =>
+    OpenInSystemTerminal(contextName, appID),
+  listSystemTerminals: (): Promise<SystemTerminal[]> => ListSystemTerminals(),
   getDeployment: (ctx: string, ns: string, name: string): Promise<DeploymentDetail> =>
     GetDeployment(ctx, ns, name),
   getStatefulSet: (ctx: string, ns: string, name: string): Promise<StatefulSetDetail> =>

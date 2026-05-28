@@ -13,18 +13,21 @@ type State = {
   activeTabId: string | null
   drawerOpen: boolean
   drawerHeight: number
+  preferredAppId: string
   setDrawerOpen: (open: boolean) => void
   toggleDrawer: () => void
   setDrawerHeight: (height: number) => void
   openTab: (contextName: string) => string
   closeTab: (tabId: string) => void
   setActiveTab: (tabId: string) => void
+  setPreferredAppId: (id: string) => void
 }
 
 const MIN_HEIGHT = 160
 const MAX_HEIGHT = 800
 const DEFAULT_HEIGHT = 320
 const HEIGHT_KEY = 'klustr.terminal.height'
+const PREF_APP_KEY = 'klustr.terminal.preferredApp'
 
 function readHeight(): number {
   try {
@@ -46,6 +49,23 @@ function writeHeight(h: number) {
   }
 }
 
+function readPreferredAppId(): string {
+  try {
+    return localStorage.getItem(PREF_APP_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function writePreferredAppId(id: string) {
+  try {
+    if (id) localStorage.setItem(PREF_APP_KEY, id)
+    else localStorage.removeItem(PREF_APP_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 let counter = 0
 const nextTabId = () => `tab-${++counter}-${Date.now()}`
 
@@ -54,6 +74,7 @@ export const useTerminalStore = create<State>((set, get) => ({
   activeTabId: null,
   drawerOpen: false,
   drawerHeight: readHeight(),
+  preferredAppId: readPreferredAppId(),
   setDrawerOpen: (open) => set({ drawerOpen: open }),
   toggleDrawer: () => set({ drawerOpen: !get().drawerOpen }),
   setDrawerHeight: (height) => {
@@ -85,6 +106,10 @@ export const useTerminalStore = create<State>((set, get) => ({
     })
   },
   setActiveTab: (tabId) => set({ activeTabId: tabId }),
+  setPreferredAppId: (id) => {
+    writePreferredAppId(id)
+    set({ preferredAppId: id })
+  },
 }))
 
 export const TERMINAL_HEIGHT_MIN = MIN_HEIGHT
