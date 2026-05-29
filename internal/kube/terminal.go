@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -80,12 +81,7 @@ func (mgr *terminalSessionManager) start(
 	ctx, cancel := context.WithCancel(parent)
 	shell := userShell()
 	cmd := exec.CommandContext(ctx, shell, loginShellArgs(shell)...)
-	cmd.Env = append(os.Environ(),
-		"KUBECONFIG="+kubeconfigPath,
-		"KLUSTR_CONTEXT="+contextName,
-		// Hint for users with PS1 logic that wants to surface the cluster.
-		"KUBE_CONTEXT="+contextName,
-	)
+	cmd.Env = terminalEnv(os.Environ(), kubeconfigPath, contextName, defaultUTF8Locale())
 	if home, err := os.UserHomeDir(); err == nil {
 		cmd.Dir = home
 	}
@@ -189,6 +185,82 @@ func (mgr *terminalSessionManager) stopAll() {
 	for _, s := range sessions {
 		s.close()
 	}
+}
+
+// terminalEnv augments the inherited environment for the PTY shell. A
+// GUI-launched bundle (Finder/Dock on macOS, a .desktop entry on Linux)
+// starts with no controlling terminal, so the variables a shell normally
+// inherits from a real terminal are simply absent. Without TERM, tput
+// fails and zsh's line editor can't resolve terminfo — it redraws the
+// prompt by reprinting characters instead of repositioning the cursor, so
+// every keystroke appears several times. Without a UTF-8 locale, the
+// Nerd Font glyphs that modern prompts emit garble. We only fill in
+// defaults the user has not already exported. locale is the UTF-8 locale
+// to fall back to (see defaultUTF8Locale); it is empty when none could be
+// confirmed on this host, in which case we leave the locale untouched
+// rather than export one that triggers setlocale warnings.
+func terminalEnv(base []string, kubeconfigPath, contextName, locale string) []string {
+	env := append([]string{}, base...)
+	env = append(env,
+		"KUBECONFIG="+kubeconfigPath,
+		"KLUSTR_CONTEXT="+contextName,
+		// Hint for users with PS1 logic that wants to surface the cluster.
+		"KUBE_CONTEXT="+contextName,
+	)
+	if !hasEnvKey(env, "TERM") {
+		env = append(env, "TERM=xterm-256color")
+	}
+	if !hasEnvKey(env, "COLORTERM") {
+		env = append(env, "COLORTERM=truecolor")
+	}
+	if locale != "" && !hasEnvKey(env, "LANG") && !hasEnvKey(env, "LC_ALL") && !hasEnvKey(env, "LC_CTYPE") {
+		env = append(env, "LANG="+locale)
+	}
+	return env
+}
+
+// defaultUTF8Locale returns a UTF-8 locale that actually exists on this
+// host, or "" if none can be confirmed. A GUI-launched shell inherits no
+// locale, and blindly exporting en_US.UTF-8 triggers setlocale warnings on
+// Linux boxes where that locale was never generated — so we pick from what
+// `locale -a` reports, preferring the portable C.UTF-8 (common on Linux)
+// and falling back to en_US.UTF-8 (always present on macOS). locale names
+// are compared case-insensitively and dash-insensitively because Linux
+// reports them lowercased and without the dash (en_US.utf8, C.utf8).
+func defaultUTF8Locale() string {
+	out, err := exec.Command("locale", "-a").Output()
+	if err != nil {
+		if runtime.GOOS == "darwin" {
+			return "en_US.UTF-8"
+		}
+		return ""
+	}
+	available := make(map[string]bool)
+	for line := range strings.SplitSeq(string(out), "\n") {
+		if norm := normalizeLocale(line); norm != "" {
+			available[norm] = true
+		}
+	}
+	for _, want := range []string{"C.UTF-8", "en_US.UTF-8"} {
+		if available[normalizeLocale(want)] {
+			return want
+		}
+	}
+	return ""
+}
+
+func normalizeLocale(s string) string {
+	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(s), "-", ""))
+}
+
+func hasEnvKey(env []string, key string) bool {
+	prefix := key + "="
+	for _, e := range env {
+		if strings.HasPrefix(e, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func userShell() string {
