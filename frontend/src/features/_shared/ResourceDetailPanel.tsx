@@ -8,6 +8,7 @@ import { useUIStore, type DetailTab, type SelectedResource } from '@/store/ui'
 import { useResourceDetail } from './useResourceDetail'
 import { CopyButton } from './Copyable'
 import { ErrorBox } from './DetailPrimitives'
+import { SkeletonDetail } from './SkeletonDetail'
 import { ResourceYAMLTab } from './ResourceYAMLTab'
 import { MultiPodLogsTab } from './MultiPodLogsTab'
 import { EventsTab } from './EventsTab'
@@ -677,6 +678,7 @@ function PodTabs({
       </TabsList>
       <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
         {error && <ErrorBox>{error}</ErrorBox>}
+        {!detail && !error && <SkeletonDetail />}
         {detail && <PodOverviewBody contextName={contextName} detail={detail} />}
       </TabsContent>
       <TabsContent value="logs" className="min-h-0 flex-1 p-0">

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { lazy, Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ErrorBox } from '@/features/_shared/DetailPrimitives'
+import { SkeletonDetail } from '@/features/_shared/SkeletonDetail'
 import { type HelmReleaseDetail, type HelmRevisionInfo } from '@/lib/api'
 import { useThemeMode } from '@/features/_shared/useThemeMode'
 import { formatAge } from '@/lib/time'
@@ -32,8 +33,8 @@ export function HelmReleaseDetailBody({
   if (error) return <ErrorBox>{error}</ErrorBox>
   if (!detail)
     return (
-      <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-        Loading release…
+      <div className="px-6 py-4">
+        <SkeletonDetail />
       </div>
     )
 
