@@ -34,6 +34,7 @@ export const SIDEBAR_WIDTH_KEY = 'klustr-sidebar-width'
 export const DEFAULT_CONTEXT_KEY = 'klustr-default-context'
 export const AGGREGATED_CONTEXTS_KEY = 'klustr-aggregated-contexts'
 export const NAMESPACES_BY_CONTEXT_KEY = 'klustr-namespaces-by-context'
+export const GLOBAL_READ_ONLY_KEY = 'klustr-read-only'
 export const CONTEXT_TAGS_KEY = 'klustr-context-tags'
 export const CUSTOM_TAGS_KEY = 'klustr-custom-tags'
 export const CONTEXT_GROUPS_KEY = 'klustr-context-groups'
@@ -220,6 +221,15 @@ export function readNamespacesByContext(): Record<string, string[]> {
   } catch {
     return {}
   }
+}
+
+export function readGlobalReadOnly(): boolean {
+  return localStorage.getItem(GLOBAL_READ_ONLY_KEY) === 'true'
+}
+
+export function persistGlobalReadOnly(value: boolean) {
+  if (value) localStorage.setItem(GLOBAL_READ_ONLY_KEY, 'true')
+  else localStorage.removeItem(GLOBAL_READ_ONLY_KEY)
 }
 
 export function persistNamespacesByContext(map: Record<string, string[]>) {

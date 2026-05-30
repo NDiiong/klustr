@@ -32,6 +32,8 @@ import {
   readAggregatedContexts,
   readNamespacesByContext,
   persistNamespacesByContext,
+  readGlobalReadOnly,
+  persistGlobalReadOnly,
   readCollapsedNavGroups,
   readContextGroups,
   readContextTags,
@@ -73,6 +75,7 @@ type UIState = {
   activeGroupId: string | null
   selectedNamespaces: string[]
   namespacesByContext: Record<string, string[]>
+  globalReadOnly: boolean
   selectedView: ResourceView
   selectedCRDKey: string | null
   selectedResource: SelectedResource | null
@@ -99,6 +102,7 @@ type UIState = {
   setSelectedNamespaces: (names: string[]) => void
   toggleSelectedNamespace: (name: string) => void
   clearSelectedNamespaces: () => void
+  setGlobalReadOnly: (value: boolean) => void
   setSelectedView: (view: ResourceView) => void
   setSelectedCRD: (key: string | null) => void
   setSelectedResource: (resource: SelectedResource | null) => void
@@ -225,6 +229,7 @@ export const useUIStore = create<UIState>((set) => {
     activeGroupId: null,
     selectedNamespaces: namespacesByContext[namespaceKey(activeAtBoot)] ?? [],
     namespacesByContext,
+    globalReadOnly: readGlobalReadOnly(),
     selectedView: 'overview',
     selectedCRDKey: null,
     selectedResource: null,
@@ -297,6 +302,10 @@ export const useUIStore = create<UIState>((set) => {
         return applyNamespaceSelection(s, next)
       }),
     clearSelectedNamespaces: () => set((s) => applyNamespaceSelection(s, [])),
+    setGlobalReadOnly: (value) => {
+      persistGlobalReadOnly(value)
+      set({ globalReadOnly: value })
+    },
     setSelectedView: (view) =>
       set({
         selectedView: view,

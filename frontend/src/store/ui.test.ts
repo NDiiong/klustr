@@ -34,6 +34,7 @@ function resetStore() {
     activeGroupId: null,
     selectedNamespaces: [],
     namespacesByContext: {},
+    globalReadOnly: false,
     selectedView: 'overview',
     selectedCRDKey: null,
     selectedResource: null,
@@ -151,6 +152,20 @@ describe('namespace selection', () => {
     expect(useUIStore.getState().selectedNamespaces).toEqual([])
     useUIStore.getState().setSelectedContext('a')
     expect(useUIStore.getState().selectedNamespaces).toEqual(['ns-a'])
+  })
+})
+
+describe('read-only mode', () => {
+  beforeEach(resetStore)
+
+  it('persists global read-only and clears it', () => {
+    useUIStore.getState().setGlobalReadOnly(true)
+    expect(useUIStore.getState().globalReadOnly).toBe(true)
+    expect(localStorage.getItem('klustr-read-only')).toBe('true')
+
+    useUIStore.getState().setGlobalReadOnly(false)
+    expect(useUIStore.getState().globalReadOnly).toBe(false)
+    expect(localStorage.getItem('klustr-read-only')).toBeNull()
   })
 })
 

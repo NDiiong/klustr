@@ -216,6 +216,7 @@ import {
   StopExec,
   StopPodLogs,
   StopWatch,
+  SetReadOnly,
   OpenLocalTerminal,
   SendLocalTerminalInput,
   ResizeLocalTerminal,
@@ -477,6 +478,8 @@ export const api = {
   pingContext: (name: string): Promise<ServerVersion> => PingContext(name),
   startWatch: (name: string): Promise<void> => StartWatch(name),
   stopWatch: (name: string): Promise<void> => StopWatch(name),
+  setReadOnly: (contextName: string, readOnly: boolean): Promise<void> =>
+    SetReadOnly(contextName, readOnly),
   listNamespaces: (name: string): Promise<NamespaceInfo[]> => ListNamespaces(name),
   listPods: (name: string, namespace: string): Promise<PodInfo[]> => ListPods(name, namespace),
   podsForOwner: (

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { ThemePicker } from '@/features/_shared/ThemePicker'
+import { ReadOnlyToggle } from '@/features/_shared/ReadOnlyToggle'
 import { ContextSwitcher } from '@/features/contexts/ContextSwitcher'
 import { ContextTagPicker } from '@/features/contexts/ContextTagPicker'
 import { DisconnectButton } from '@/features/contexts/DisconnectButton'
@@ -319,6 +320,7 @@ function isEditableTarget(t: EventTarget | null): boolean {
 
 function App() {
   const activeContexts = useActiveContexts()
+  const globalReadOnly = useUIStore((s) => s.globalReadOnly)
   const selectedContext = useUIStore((s) => s.selectedContext)
   const selectedView = useUIStore((s) => s.selectedView)
   const setSelectedView = useUIStore((s) => s.setSelectedView)
@@ -449,6 +451,12 @@ function App() {
   }, [setPortForwards])
 
   useEffect(() => {
+    for (const ctx of activeContexts) {
+      api.setReadOnly(ctx, globalReadOnly).catch(console.error)
+    }
+  }, [activeContexts, globalReadOnly])
+
+  useEffect(() => {
     if (activeContexts.length === 0) return
     resetSyncState(activeContexts)
     resetResources()
@@ -531,10 +539,14 @@ function App() {
           <ContextTagPicker />
         </div>
         <div className="flex items-center gap-1">
+          {/* Cluster session tools */}
           <TerminalButton />
           <PortForwardIndicator />
-          <DisconnectButton />
+          <ReadOnlyToggle />
+          <span aria-hidden className="mx-0.5 h-4 w-px bg-border" />
+          {/* App preferences & leaving the cluster */}
           <ThemePicker />
+          <DisconnectButton />
         </div>
       </header>
 

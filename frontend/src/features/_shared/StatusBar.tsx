@@ -25,6 +25,7 @@ export function StatusBar() {
   const activeContexts = useActiveContexts()
   const isAggregated = useIsAggregated()
   const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
+  const readOnly = useUIStore((s) => s.globalReadOnly)
   const portForwards = usePortForwards((s) => s.list)
   const [healthByCtx, setHealthByCtx] = useState<Record<string, Health>>({})
   const [appVersion, setAppVersion] = useState<string | null>(null)
@@ -210,6 +211,14 @@ export function StatusBar() {
         <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
           <Network className="size-3" />
           {portForwards.length} forward{portForwards.length === 1 ? '' : 's'}
+        </span>
+      )}
+      {readOnly && (
+        <span
+          className="font-mono text-primary"
+          title="Read-only mode: Klustr refuses every mutation on the active context(s)."
+        >
+          read-only
         </span>
       )}
       <span
