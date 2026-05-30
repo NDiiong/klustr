@@ -95,6 +95,12 @@ export function GetIngress(arg1:string,arg2:string,arg3:string):Promise<kube.Ing
 
 export function GetIngressClass(arg1:string,arg2:string):Promise<kube.IngressClassDetail>;
 
+export function GetIstioDestinationRule(arg1:string,arg2:string,arg3:string):Promise<kube.IstioDestinationRuleDetail>;
+
+export function GetIstioPeerAuthentication(arg1:string,arg2:string,arg3:string):Promise<kube.IstioPeerAuthenticationDetail>;
+
+export function GetIstioVirtualService(arg1:string,arg2:string,arg3:string):Promise<kube.IstioVirtualServiceDetail>;
+
 export function GetJob(arg1:string,arg2:string,arg3:string):Promise<kube.JobDetail>;
 
 export function GetLease(arg1:string,arg2:string,arg3:string):Promise<kube.LeaseDetail>;
@@ -272,6 +278,12 @@ export function ListIPAddresses(arg1:string):Promise<Array<kube.IPAddressInfo>>;
 export function ListIngressClasses(arg1:string):Promise<Array<kube.IngressClassInfo>>;
 
 export function ListIngresses(arg1:string,arg2:string):Promise<Array<kube.IngressInfo>>;
+
+export function ListIstioDestinationRules(arg1:string,arg2:string):Promise<Array<kube.IstioDestinationRuleInfo>>;
+
+export function ListIstioPeerAuthentications(arg1:string,arg2:string):Promise<Array<kube.IstioPeerAuthenticationInfo>>;
+
+export function ListIstioVirtualServices(arg1:string,arg2:string):Promise<Array<kube.IstioVirtualServiceInfo>>;
 
 export function ListJobs(arg1:string,arg2:string):Promise<Array<kube.JobInfo>>;
 

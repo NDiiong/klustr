@@ -4267,6 +4267,290 @@ export namespace kube {
 	
 	
 	
+	export class IstioSubset {
+	    name: string;
+	    labels: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioSubset(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.labels = source["labels"];
+	    }
+	}
+	export class IstioDestinationRuleDetail {
+	    name: string;
+	    namespace: string;
+	    host: string;
+	    subsets: string[];
+	    tlsMode: string;
+	    createdAt: string;
+	    subsetDetails: IstioSubset[];
+	    loadBalancer: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioDestinationRuleDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.host = source["host"];
+	        this.subsets = source["subsets"];
+	        this.tlsMode = source["tlsMode"];
+	        this.createdAt = source["createdAt"];
+	        this.subsetDetails = this.convertValues(source["subsetDetails"], IstioSubset);
+	        this.loadBalancer = source["loadBalancer"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class IstioDestinationRuleInfo {
+	    name: string;
+	    namespace: string;
+	    host: string;
+	    subsets: string[];
+	    tlsMode: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioDestinationRuleInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.host = source["host"];
+	        this.subsets = source["subsets"];
+	        this.tlsMode = source["tlsMode"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class IstioDestinationWeight {
+	    host: string;
+	    subset: string;
+	    port: number;
+	    weight: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioDestinationWeight(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.host = source["host"];
+	        this.subset = source["subset"];
+	        this.port = source["port"];
+	        this.weight = source["weight"];
+	    }
+	}
+	export class IstioPortMTLS {
+	    port: number;
+	    mode: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioPortMTLS(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.mode = source["mode"];
+	    }
+	}
+	export class IstioPeerAuthenticationDetail {
+	    name: string;
+	    namespace: string;
+	    mtlsMode: string;
+	    selector: string;
+	    createdAt: string;
+	    selectorLabels: Record<string, string>;
+	    portLevel: IstioPortMTLS[];
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioPeerAuthenticationDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.mtlsMode = source["mtlsMode"];
+	        this.selector = source["selector"];
+	        this.createdAt = source["createdAt"];
+	        this.selectorLabels = source["selectorLabels"];
+	        this.portLevel = this.convertValues(source["portLevel"], IstioPortMTLS);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class IstioPeerAuthenticationInfo {
+	    name: string;
+	    namespace: string;
+	    mtlsMode: string;
+	    selector: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioPeerAuthenticationInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.mtlsMode = source["mtlsMode"];
+	        this.selector = source["selector"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
+	export class IstioRouteRule {
+	    match: string;
+	    destinations: IstioDestinationWeight[];
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioRouteRule(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.match = source["match"];
+	        this.destinations = this.convertValues(source["destinations"], IstioDestinationWeight);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class IstioVirtualServiceDetail {
+	    name: string;
+	    namespace: string;
+	    hosts: string[];
+	    gateways: string[];
+	    httpCount: number;
+	    tlsCount: number;
+	    tcpCount: number;
+	    createdAt: string;
+	    httpRoutes: IstioRouteRule[];
+	    tlsRoutes: IstioRouteRule[];
+	    tcpRoutes: IstioRouteRule[];
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioVirtualServiceDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.hosts = source["hosts"];
+	        this.gateways = source["gateways"];
+	        this.httpCount = source["httpCount"];
+	        this.tlsCount = source["tlsCount"];
+	        this.tcpCount = source["tcpCount"];
+	        this.createdAt = source["createdAt"];
+	        this.httpRoutes = this.convertValues(source["httpRoutes"], IstioRouteRule);
+	        this.tlsRoutes = this.convertValues(source["tlsRoutes"], IstioRouteRule);
+	        this.tcpRoutes = this.convertValues(source["tcpRoutes"], IstioRouteRule);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class IstioVirtualServiceInfo {
+	    name: string;
+	    namespace: string;
+	    hosts: string[];
+	    gateways: string[];
+	    httpCount: number;
+	    tlsCount: number;
+	    tcpCount: number;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new IstioVirtualServiceInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.hosts = source["hosts"];
+	        this.gateways = source["gateways"];
+	        this.httpCount = source["httpCount"];
+	        this.tlsCount = source["tlsCount"];
+	        this.tcpCount = source["tcpCount"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class JobDetail {
 	    name: string;
 	    namespace: string;

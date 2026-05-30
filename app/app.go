@@ -1036,6 +1036,34 @@ func (a *App) SetFluxResourceSuspended(contextName, kind, namespace, name string
 }
 
 // ---------------------------------------------------------------------------
+// Istio bindings.
+// ---------------------------------------------------------------------------
+
+func (a *App) ListIstioVirtualServices(contextName, namespace string) []kube.IstioVirtualServiceInfo {
+	return a.clients.ListIstioVirtualServices(contextName, namespace)
+}
+
+func (a *App) GetIstioVirtualService(contextName, namespace, name string) (*kube.IstioVirtualServiceDetail, error) {
+	return a.clients.GetIstioVirtualService(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListIstioDestinationRules(contextName, namespace string) []kube.IstioDestinationRuleInfo {
+	return a.clients.ListIstioDestinationRules(contextName, namespace)
+}
+
+func (a *App) GetIstioDestinationRule(contextName, namespace, name string) (*kube.IstioDestinationRuleDetail, error) {
+	return a.clients.GetIstioDestinationRule(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListIstioPeerAuthentications(contextName, namespace string) []kube.IstioPeerAuthenticationInfo {
+	return a.clients.ListIstioPeerAuthentications(contextName, namespace)
+}
+
+func (a *App) GetIstioPeerAuthentication(contextName, namespace, name string) (*kube.IstioPeerAuthenticationDetail, error) {
+	return a.clients.GetIstioPeerAuthentication(a.ctx, contextName, namespace, name)
+}
+
+// ---------------------------------------------------------------------------
 // Karpenter bindings.
 // ---------------------------------------------------------------------------
 

@@ -186,6 +186,18 @@ export function GetIngressClass(arg1, arg2) {
   return window['go']['app']['App']['GetIngressClass'](arg1, arg2);
 }
 
+export function GetIstioDestinationRule(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetIstioDestinationRule'](arg1, arg2, arg3);
+}
+
+export function GetIstioPeerAuthentication(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetIstioPeerAuthentication'](arg1, arg2, arg3);
+}
+
+export function GetIstioVirtualService(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetIstioVirtualService'](arg1, arg2, arg3);
+}
+
 export function GetJob(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetJob'](arg1, arg2, arg3);
 }
@@ -540,6 +552,18 @@ export function ListIngressClasses(arg1) {
 
 export function ListIngresses(arg1, arg2) {
   return window['go']['app']['App']['ListIngresses'](arg1, arg2);
+}
+
+export function ListIstioDestinationRules(arg1, arg2) {
+  return window['go']['app']['App']['ListIstioDestinationRules'](arg1, arg2);
+}
+
+export function ListIstioPeerAuthentications(arg1, arg2) {
+  return window['go']['app']['App']['ListIstioPeerAuthentications'](arg1, arg2);
+}
+
+export function ListIstioVirtualServices(arg1, arg2) {
+  return window['go']['app']['App']['ListIstioVirtualServices'](arg1, arg2);
 }
 
 export function ListJobs(arg1, arg2) {
