@@ -1,10 +1,15 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+type SortRule = { id: string; desc: boolean }
+
 type ColumnPrefs = {
   order: string[]
   hidden: string[]
   sizing: Record<string, number>
+  // Absent means "never sorted this kind" (fall back to the view's default sort);
+  // an empty array means the user explicitly cleared sorting.
+  sorting?: SortRule[]
 }
 
 type State = {
@@ -12,6 +17,7 @@ type State = {
   setOrder: (kind: string, order: string[]) => void
   setHidden: (kind: string, hidden: string[]) => void
   setSizing: (kind: string, sizing: Record<string, number>) => void
+  setSorting: (kind: string, sorting: SortRule[]) => void
   reset: (kind: string) => void
 }
 
@@ -25,6 +31,8 @@ export const useTablePrefs = create<State>()(
         set((s) => ({ byKind: { ...s.byKind, [kind]: { ...prefsFor(s, kind), hidden } } })),
       setSizing: (kind, sizing) =>
         set((s) => ({ byKind: { ...s.byKind, [kind]: { ...prefsFor(s, kind), sizing } } })),
+      setSorting: (kind, sorting) =>
+        set((s) => ({ byKind: { ...s.byKind, [kind]: { ...prefsFor(s, kind), sorting } } })),
       reset: (kind) =>
         set((s) => {
           const next = { ...s.byKind }

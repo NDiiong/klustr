@@ -28,6 +28,17 @@ describe('useTablePrefs', () => {
     expect(prefs.sizing).toEqual({ name: 200 })
   })
 
+  it('persists sorting per kind and distinguishes unset from cleared', () => {
+    const { setSorting } = useTablePrefs.getState()
+    setSorting('Pod', [{ id: 'age', desc: true }])
+    expect(selectPrefs('Pod')(useTablePrefs.getState()).sorting).toEqual([{ id: 'age', desc: true }])
+    // An unknown kind has no sorting key, so the view falls back to its default sort.
+    expect(selectPrefs('Service')(useTablePrefs.getState()).sorting).toBeUndefined()
+    // An explicit clear persists as an empty array, distinct from unset.
+    setSorting('Pod', [])
+    expect(selectPrefs('Pod')(useTablePrefs.getState()).sorting).toEqual([])
+  })
+
   it('keeps kinds isolated from each other', () => {
     useTablePrefs.getState().setOrder('Pod', ['a', 'b'])
     useTablePrefs.getState().setOrder('Service', ['x'])

@@ -116,7 +116,6 @@ export function ResourceTable<T>({
         : { apiNamespace: '', matches: () => true },
     [scope, selectedNamespaces],
   )
-  const [sorting, setSorting] = useState<SortingState>(defaultSort ?? [{ id: 'name', desc: false }])
   const [filter, setFilter] = useState('')
   const prefs = useTablePrefs((s) => s.byKind[kind])
   const persistedSizing = useMemo<ColumnSizingState>(
@@ -126,6 +125,7 @@ export function ResourceTable<T>({
   const setOrder = useTablePrefs((s) => s.setOrder)
   const setHidden = useTablePrefs((s) => s.setHidden)
   const setSizing = useTablePrefs((s) => s.setSizing)
+  const setSortingPref = useTablePrefs((s) => s.setSorting)
   const resetPrefs = useTablePrefs((s) => s.reset)
   const [liveSizing, setLiveSizing] = useState<ColumnSizingState>(persistedSizing)
   const liveSizingRef = useRef(liveSizing)
@@ -320,6 +320,13 @@ export function ResourceTable<T>({
     for (const id of allColumnIds) v[id] = !(prefs?.hidden ?? []).includes(id)
     return v
   }, [allColumnIds, prefs?.hidden])
+  // Sort lives in tablePrefs (like order/size/hidden) so it survives leaving and
+  // returning to a kind. Absent prefs.sorting → the view's default; entries are
+  // filtered to columns that currently exist (e.g. the aggregated Context column).
+  const sorting = useMemo<SortingState>(() => {
+    const base = prefs?.sorting ?? defaultSort ?? [{ id: 'name', desc: false }]
+    return base.filter((s) => allColumnIds.includes(s.id))
+  }, [prefs?.sorting, defaultSort, allColumnIds])
 
   const table = useReactTable({
     data: mergedData,
@@ -331,7 +338,10 @@ export function ResourceTable<T>({
       columnVisibility,
       columnSizing: liveSizing,
     },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(sorting) : updater
+      setSortingPref(kind, next)
+    },
     onGlobalFilterChange: setFilter,
     onColumnOrderChange: (updater) => {
       const next = typeof updater === 'function' ? updater(columnOrder) : updater
