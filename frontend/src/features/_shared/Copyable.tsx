@@ -7,6 +7,9 @@ type CopyButtonProps = {
   ariaLabel?: string
   className?: string
   iconClassName?: string
+  // When set, the toast reads "Copied <toastLabel>" instead of echoing the value
+  // — use it for large/multiline payloads where echoing the value is noise.
+  toastLabel?: string
 }
 
 export function CopyButton({
@@ -14,6 +17,7 @@ export function CopyButton({
   ariaLabel = 'Copy value',
   className,
   iconClassName = 'size-3',
+  toastLabel,
 }: CopyButtonProps) {
   const [copied, setCopied] = useState(false)
 
@@ -23,7 +27,7 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(value)
       setCopied(true)
-      toast.success(`Copied "${truncate(value, 60)}"`)
+      toast.success(toastLabel ? `Copied ${toastLabel}` : `Copied "${truncate(value, 60)}"`)
       window.setTimeout(() => setCopied(false), 1_200)
     } catch (err) {
       toast.error(`Copy failed: ${String(err)}`)
