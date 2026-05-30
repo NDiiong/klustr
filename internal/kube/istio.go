@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -440,8 +441,10 @@ func extractPortLevelMTLS(obj *unstructured.Unstructured) []IstioPortMTLS {
 			continue
 		}
 		mode, _ := entry["mode"].(string)
-		var port int64
-		fmt.Sscanf(portStr, "%d", &port)
+		port, err := strconv.ParseInt(portStr, 10, 64)
+		if err != nil {
+			continue
+		}
 		out = append(out, IstioPortMTLS{Port: port, Mode: mode})
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].Port < out[j].Port })
