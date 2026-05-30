@@ -38,6 +38,7 @@ import {
   ListClusterWarningEvents,
   GetClusterOverview,
   ListPodMetrics,
+  ListNodeMetrics,
   ListPortForwards,
   PodLogTargets,
   SaveTextFile,
@@ -378,6 +379,7 @@ export type PortForwardInfo = kube.PortForwardInfo
 export type PodLogTarget = kube.PodLogTarget
 export type EventInfo = kube.EventInfo
 export type PodMetrics = kube.PodMetrics
+export type NodeMetrics = kube.NodeMetrics
 export type ClusterOverview = kube.ClusterOverview
 export type ClusterResource = kube.ClusterResource
 export type ClusterPods = kube.ClusterPods
@@ -826,6 +828,7 @@ export const api = {
   ): Promise<EventInfo[]> => ListEvents(contextName, namespace, kind, name),
   listPodMetrics: (contextName: string, namespace: string): Promise<PodMetrics[]> =>
     ListPodMetrics(contextName, namespace),
+  listNodeMetrics: (contextName: string): Promise<NodeMetrics[]> => ListNodeMetrics(contextName),
   getClusterOverview: (contextName: string): Promise<ClusterOverview> =>
     GetClusterOverview(contextName),
   listClusterWarningEvents: (contextName: string, limit: number): Promise<EventInfo[]> =>
