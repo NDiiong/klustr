@@ -610,6 +610,10 @@ export function ListNodeClaimNode(arg1, arg2) {
   return window['go']['app']['App']['ListNodeClaimNode'](arg1, arg2);
 }
 
+export function ListNodeMetrics(arg1) {
+  return window['go']['app']['App']['ListNodeMetrics'](arg1);
+}
+
 export function ListNodePoolNodes(arg1, arg2) {
   return window['go']['app']['App']['ListNodePoolNodes'](arg1, arg2);
 }

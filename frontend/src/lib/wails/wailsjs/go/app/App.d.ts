@@ -307,6 +307,8 @@ export function ListNetworkPolicies(arg1:string,arg2:string):Promise<Array<kube.
 
 export function ListNodeClaimNode(arg1:string,arg2:string):Promise<Array<kube.NodeInfo>>;
 
+export function ListNodeMetrics(arg1:string):Promise<Array<kube.NodeMetrics>>;
+
 export function ListNodePoolNodes(arg1:string,arg2:string):Promise<Array<kube.NodeInfo>>;
 
 export function ListNodes(arg1:string):Promise<Array<kube.NodeInfo>>;

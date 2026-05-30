@@ -17,16 +17,21 @@ type NamespaceInfo struct {
 }
 
 type NodeInfo struct {
-	Name         string `json:"name"`
-	Status       string `json:"status"`
-	Roles        string `json:"roles"`
-	Version      string `json:"version"`
-	OSImage      string `json:"osImage"`
-	InternalIP   string `json:"internalIP"`
-	InstanceType string `json:"instanceType"`
-	CapacityType string `json:"capacityType"`
-	NodePool     string `json:"nodePool"`
-	CreatedAt    string `json:"createdAt"`
+	Name           string `json:"name"`
+	Status         string `json:"status"`
+	Roles          string `json:"roles"`
+	Version        string `json:"version"`
+	OSImage        string `json:"osImage"`
+	InternalIP     string `json:"internalIP"`
+	InstanceType   string `json:"instanceType"`
+	CapacityType   string `json:"capacityType"`
+	NodePool       string `json:"nodePool"`
+	CPUAllocMC     int64  `json:"cpuAllocMC"`
+	MemAllocB      int64  `json:"memAllocB"`
+	MemoryPressure bool   `json:"memoryPressure"`
+	DiskPressure   bool   `json:"diskPressure"`
+	PIDPressure    bool   `json:"pidPressure"`
+	CreatedAt      string `json:"createdAt"`
 }
 
 type LeaseInfo struct {
@@ -171,17 +176,36 @@ func (w *contextWatcher) NodeInfoByName(name string) []NodeInfo {
 }
 
 func nodeInfo(n *corev1.Node) NodeInfo {
+	var memP, diskP, pidP bool
+	for _, c := range n.Status.Conditions {
+		if c.Status != corev1.ConditionTrue {
+			continue
+		}
+		switch c.Type {
+		case corev1.NodeMemoryPressure:
+			memP = true
+		case corev1.NodeDiskPressure:
+			diskP = true
+		case corev1.NodePIDPressure:
+			pidP = true
+		}
+	}
 	return NodeInfo{
-		Name:         n.Name,
-		Status:       nodeStatus(n),
-		Roles:        nodeRoles(n),
-		Version:      n.Status.NodeInfo.KubeletVersion,
-		OSImage:      n.Status.NodeInfo.OSImage,
-		InternalIP:   nodeInternalIP(n),
-		InstanceType: nodeInstanceType(n),
-		CapacityType: nodeCapacityType(n),
-		NodePool:     nodeNodePool(n),
-		CreatedAt:    n.CreationTimestamp.UTC().Format(time.RFC3339),
+		Name:           n.Name,
+		Status:         nodeStatus(n),
+		Roles:          nodeRoles(n),
+		Version:        n.Status.NodeInfo.KubeletVersion,
+		OSImage:        n.Status.NodeInfo.OSImage,
+		InternalIP:     nodeInternalIP(n),
+		InstanceType:   nodeInstanceType(n),
+		CapacityType:   nodeCapacityType(n),
+		NodePool:       nodeNodePool(n),
+		CPUAllocMC:     n.Status.Allocatable.Cpu().MilliValue(),
+		MemAllocB:      n.Status.Allocatable.Memory().Value(),
+		MemoryPressure: memP,
+		DiskPressure:   diskP,
+		PIDPressure:    pidP,
+		CreatedAt:      n.CreationTimestamp.UTC().Format(time.RFC3339),
 	}
 }
 

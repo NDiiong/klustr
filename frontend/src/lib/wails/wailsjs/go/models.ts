@@ -5059,6 +5059,11 @@ export namespace kube {
 	    instanceType: string;
 	    capacityType: string;
 	    nodePool: string;
+	    cpuAllocMC: number;
+	    memAllocB: number;
+	    memoryPressure: boolean;
+	    diskPressure: boolean;
+	    pidPressure: boolean;
 	    createdAt: string;
 	
 	    static createFrom(source: any = {}) {
@@ -5076,7 +5081,28 @@ export namespace kube {
 	        this.instanceType = source["instanceType"];
 	        this.capacityType = source["capacityType"];
 	        this.nodePool = source["nodePool"];
+	        this.cpuAllocMC = source["cpuAllocMC"];
+	        this.memAllocB = source["memAllocB"];
+	        this.memoryPressure = source["memoryPressure"];
+	        this.diskPressure = source["diskPressure"];
+	        this.pidPressure = source["pidPressure"];
 	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class NodeMetrics {
+	    name: string;
+	    cpuMC: number;
+	    memB: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new NodeMetrics(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.cpuMC = source["cpuMC"];
+	        this.memB = source["memB"];
 	    }
 	}
 	

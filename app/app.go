@@ -897,6 +897,10 @@ func (a *App) ListPodMetrics(contextName, namespace string) ([]kube.PodMetrics, 
 	return a.clients.ListPodMetrics(a.ctx, contextName, namespace)
 }
 
+func (a *App) ListNodeMetrics(contextName string) ([]kube.NodeMetrics, error) {
+	return a.clients.ListNodeMetrics(a.ctx, contextName)
+}
+
 func (a *App) SaveTextFile(defaultName, content string) (string, error) {
 	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
 		DefaultFilename: defaultName,

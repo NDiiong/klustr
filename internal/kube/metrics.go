@@ -16,6 +16,12 @@ type PodMetrics struct {
 	MemB      int64  `json:"memB"`
 }
 
+type NodeMetrics struct {
+	Name  string `json:"name"`
+	CPUMC int64  `json:"cpuMC"`
+	MemB  int64  `json:"memB"`
+}
+
 type metricsCache struct {
 	mu     sync.Mutex
 	client map[string]metricsclient.Interface
@@ -57,6 +63,35 @@ func (m *ClientManager) ListPodMetrics(ctx context.Context, contextName, namespa
 			CPUMC:     cpu,
 			MemB:      mem,
 		})
+	}
+	return out, nil
+}
+
+func (m *ClientManager) ListNodeMetrics(ctx context.Context, contextName string) ([]NodeMetrics, error) {
+	c, err := m.metricsClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := c.MetricsV1beta1().NodeMetricses().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		if apierrors.IsNotFound(err) || apierrors.IsServiceUnavailable(err) {
+			return []NodeMetrics{}, nil
+		}
+		return nil, err
+	}
+
+	out := make([]NodeMetrics, 0, len(list.Items))
+	for i := range list.Items {
+		nm := &list.Items[i]
+		var cpu, mem int64
+		if q, ok := nm.Usage["cpu"]; ok {
+			cpu = q.MilliValue()
+		}
+		if q, ok := nm.Usage["memory"]; ok {
+			mem = q.Value()
+		}
+		out = append(out, NodeMetrics{Name: nm.Name, CPUMC: cpu, MemB: mem})
 	}
 	return out, nil
 }
