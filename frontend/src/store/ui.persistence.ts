@@ -33,7 +33,7 @@ export const SIDEBAR_MODE_KEY = 'klustr-sidebar-mode'
 export const SIDEBAR_WIDTH_KEY = 'klustr-sidebar-width'
 export const DEFAULT_CONTEXT_KEY = 'klustr-default-context'
 export const AGGREGATED_CONTEXTS_KEY = 'klustr-aggregated-contexts'
-export const SELECTED_NAMESPACES_KEY = 'klustr-selected-namespaces'
+export const NAMESPACES_BY_CONTEXT_KEY = 'klustr-namespaces-by-context'
 export const CONTEXT_TAGS_KEY = 'klustr-context-tags'
 export const CUSTOM_TAGS_KEY = 'klustr-custom-tags'
 export const CONTEXT_GROUPS_KEY = 'klustr-context-groups'
@@ -200,15 +200,34 @@ export function persistAggregatedContexts(list: string[]) {
   }
 }
 
-export function readSelectedNamespaces(): string[] {
-  return readStringArray(SELECTED_NAMESPACES_KEY)
+// Namespace selection is remembered per active-context-set: the key is the
+// sorted active contexts joined (a single context's name in single-context
+// mode), so each cluster — and each saved multi-cluster set — keeps its own
+// namespace filter. An absent/empty entry means "all namespaces".
+export function readNamespacesByContext(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(NAMESPACES_BY_CONTEXT_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {}
+    const result: Record<string, string[]> = {}
+    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (!Array.isArray(value)) continue
+      const list = value.filter((v): v is string => typeof v === 'string')
+      if (list.length > 0) result[key] = list
+    }
+    return result
+  } catch {
+    return {}
+  }
 }
 
-export function persistSelectedNamespaces(list: string[]) {
-  if (list.length === 0) {
-    localStorage.removeItem(SELECTED_NAMESPACES_KEY)
+export function persistNamespacesByContext(map: Record<string, string[]>) {
+  const entries = Object.entries(map).filter(([, list]) => list.length > 0)
+  if (entries.length === 0) {
+    localStorage.removeItem(NAMESPACES_BY_CONTEXT_KEY)
   } else {
-    localStorage.setItem(SELECTED_NAMESPACES_KEY, JSON.stringify(list))
+    localStorage.setItem(NAMESPACES_BY_CONTEXT_KEY, JSON.stringify(Object.fromEntries(entries)))
   }
 }
 

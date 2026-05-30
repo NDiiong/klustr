@@ -33,6 +33,7 @@ function resetStore() {
     aggregatedContexts: [],
     activeGroupId: null,
     selectedNamespaces: [],
+    namespacesByContext: {},
     selectedView: 'overview',
     selectedCRDKey: null,
     selectedResource: null,
@@ -112,6 +113,44 @@ describe('namespace selection', () => {
     expect(useUIStore.getState().selectedNamespaces).toEqual(['a', 'b'])
     useUIStore.getState().toggleSelectedNamespace('a')
     expect(useUIStore.getState().selectedNamespaces).toEqual(['b'])
+  })
+
+  it('remembers the selection per context and restores it on switch', () => {
+    const { setSelectedContext, setSelectedNamespaces } = useUIStore.getState()
+
+    setSelectedContext('cluster1')
+    setSelectedNamespaces(['prod'])
+    expect(useUIStore.getState().selectedNamespaces).toEqual(['prod'])
+
+    setSelectedContext('cluster2')
+    expect(useUIStore.getState().selectedNamespaces).toEqual([])
+    setSelectedNamespaces(['test'])
+    expect(useUIStore.getState().selectedNamespaces).toEqual(['test'])
+
+    setSelectedContext('cluster1')
+    expect(useUIStore.getState().selectedNamespaces).toEqual(['prod'])
+    setSelectedContext('cluster2')
+    expect(useUIStore.getState().selectedNamespaces).toEqual(['test'])
+  })
+
+  it('persists per-context namespaces and drops a context when cleared', () => {
+    useUIStore.getState().setSelectedContext('c1')
+    useUIStore.getState().setSelectedNamespaces(['a', 'b'])
+    expect(JSON.parse(localStorage.getItem('klustr-namespaces-by-context') ?? '{}')).toEqual({
+      c1: ['a', 'b'],
+    })
+    useUIStore.getState().clearSelectedNamespaces()
+    expect(localStorage.getItem('klustr-namespaces-by-context')).toBeNull()
+  })
+
+  it('keys aggregated mode by the whole context set, separate from single', () => {
+    useUIStore.getState().setSelectedContext('a')
+    useUIStore.getState().setSelectedNamespaces(['ns-a'])
+    useUIStore.getState().setAggregatedContexts(['a', 'b'])
+    // The aggregated set has its own (empty) selection, not 'a' single's.
+    expect(useUIStore.getState().selectedNamespaces).toEqual([])
+    useUIStore.getState().setSelectedContext('a')
+    expect(useUIStore.getState().selectedNamespaces).toEqual(['ns-a'])
   })
 })
 

@@ -30,8 +30,8 @@ import {
   persistSidebarWidth,
   persistThemeId,
   readAggregatedContexts,
-  readSelectedNamespaces,
-  persistSelectedNamespaces,
+  readNamespacesByContext,
+  persistNamespacesByContext,
   readCollapsedNavGroups,
   readContextGroups,
   readContextTags,
@@ -72,6 +72,7 @@ type UIState = {
   aggregatedContexts: string[]
   activeGroupId: string | null
   selectedNamespaces: string[]
+  namespacesByContext: Record<string, string[]>
   selectedView: ResourceView
   selectedCRDKey: string | null
   selectedResource: SelectedResource | null
@@ -136,6 +137,12 @@ function effectiveContextList(s: ContextSlice): string[] {
   return s.selectedContext ? [s.selectedContext] : []
 }
 
+// Key under which a namespace selection is remembered: the active contexts
+// (already sorted) joined. Single-context mode keys by the context's name.
+function namespaceKey(contexts: readonly string[]): string {
+  return contexts.join('\n')
+}
+
 function sameList(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((n, i) => b[i] === n)
 }
@@ -144,24 +151,49 @@ type NormalizedContexts = {
   selectedContext: string | null
   aggregatedContexts: string[]
   activeGroupId: string | null
+  selectedNamespaces: string[]
   selectedCRDKey: string | null
   selectedResource: SelectedResource | null
   lastSelectedResource: SelectedResource | null
 }
 
-function normalizeContexts(next: readonly string[]): NormalizedContexts {
+// normalizeContexts also re-applies the namespace selection saved for the
+// newly active context set, so switching clusters restores that cluster's
+// filter (and an unseen cluster defaults to all namespaces).
+function normalizeContexts(
+  next: readonly string[],
+  namespacesByContext: Record<string, string[]>,
+): NormalizedContexts {
   const sortedNext = dedupeSorted(next)
   const aggregatedNext = sortedNext.length >= 2 ? sortedNext : []
   const selectedNext = sortedNext.length === 1 ? sortedNext[0] : null
   persistAggregatedContexts(aggregatedNext)
+  const activeNext = aggregatedNext.length > 0 ? aggregatedNext : selectedNext ? [selectedNext] : []
   return {
     selectedContext: selectedNext,
     aggregatedContexts: aggregatedNext,
     activeGroupId: null,
+    selectedNamespaces: namespacesByContext[namespaceKey(activeNext)] ?? [],
     selectedCRDKey: null,
     selectedResource: null,
     lastSelectedResource: null,
   }
+}
+
+// applyNamespaceSelection updates the effective selection and saves it under
+// the active context set (clearing the key when the selection is empty, since
+// "all namespaces" is the default and need not be stored).
+function applyNamespaceSelection(
+  s: Pick<UIState, 'selectedContext' | 'aggregatedContexts' | 'namespacesByContext'>,
+  next: string[],
+): Pick<UIState, 'selectedNamespaces' | 'namespacesByContext'> {
+  const key = namespaceKey(effectiveContextList(s))
+  if (!key) return { selectedNamespaces: next, namespacesByContext: s.namespacesByContext }
+  const map = { ...s.namespacesByContext }
+  if (next.length === 0) delete map[key]
+  else map[key] = next
+  persistNamespacesByContext(map)
+  return { selectedNamespaces: next, namespacesByContext: map }
 }
 
 export const useUIStore = create<UIState>((set) => {
@@ -184,12 +216,15 @@ export const useUIStore = create<UIState>((set) => {
   const initialAggregatedContexts = readAggregatedContexts()
   const aggregatedAtBoot = initialAggregatedContexts.length >= 2 ? initialAggregatedContexts : []
   const selectedAtBoot = aggregatedAtBoot.length > 0 ? null : initialDefaultContext
+  const namespacesByContext = readNamespacesByContext()
+  const activeAtBoot = aggregatedAtBoot.length > 0 ? aggregatedAtBoot : selectedAtBoot ? [selectedAtBoot] : []
 
   return {
     selectedContext: selectedAtBoot,
     aggregatedContexts: aggregatedAtBoot,
     activeGroupId: null,
-    selectedNamespaces: readSelectedNamespaces(),
+    selectedNamespaces: namespacesByContext[namespaceKey(activeAtBoot)] ?? [],
+    namespacesByContext,
     selectedView: 'overview',
     selectedCRDKey: null,
     selectedResource: null,
@@ -212,7 +247,7 @@ export const useUIStore = create<UIState>((set) => {
       set((s) => {
         const next = name ? [name] : []
         if (sameList(next, effectiveContextList(s))) return s
-        const out = normalizeContexts(next)
+        const out = normalizeContexts(next, s.namespacesByContext)
         if (name) {
           const ls: LastSession = { contexts: [name], groupId: null, at: Date.now() }
           persistLastSession(ls)
@@ -225,7 +260,7 @@ export const useUIStore = create<UIState>((set) => {
         const next = dedupeSorted(names)
         const nextGroup = groupId ?? null
         if (sameList(next, effectiveContextList(s)) && s.activeGroupId === nextGroup) return s
-        const out = { ...normalizeContexts(next), activeGroupId: nextGroup }
+        const out = { ...normalizeContexts(next, s.namespacesByContext), activeGroupId: nextGroup }
         if (next.length > 0) {
           const ls: LastSession = { contexts: next, groupId: nextGroup, at: Date.now() }
           persistLastSession(ls)
@@ -244,31 +279,24 @@ export const useUIStore = create<UIState>((set) => {
           ? current.filter((n) => n !== name)
           : dedupeSorted([...current, name])
         if (sameList(next, current)) return s
-        return normalizeContexts(next)
+        return normalizeContexts(next, s.namespacesByContext)
       }),
     clearAggregatedContexts: () =>
       set((s) => {
         if (effectiveContextList(s).length === 0) return s
-        return normalizeContexts([])
+        return normalizeContexts([], s.namespacesByContext)
       }),
-    setSelectedNamespaces: (names) => {
-      const next = dedupeSorted(names)
-      persistSelectedNamespaces(next)
-      set({ selectedNamespaces: next })
-    },
+    setSelectedNamespaces: (names) =>
+      set((s) => applyNamespaceSelection(s, dedupeSorted(names))),
     toggleSelectedNamespace: (name) =>
       set((s) => {
         const has = s.selectedNamespaces.includes(name)
         const next = has
           ? s.selectedNamespaces.filter((n) => n !== name)
           : dedupeSorted([...s.selectedNamespaces, name])
-        persistSelectedNamespaces(next)
-        return { selectedNamespaces: next }
+        return applyNamespaceSelection(s, next)
       }),
-    clearSelectedNamespaces: () => {
-      persistSelectedNamespaces([])
-      set({ selectedNamespaces: [] })
-    },
+    clearSelectedNamespaces: () => set((s) => applyNamespaceSelection(s, [])),
     setSelectedView: (view) =>
       set({
         selectedView: view,
