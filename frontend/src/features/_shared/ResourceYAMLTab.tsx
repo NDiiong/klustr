@@ -10,7 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { parseDocument } from 'yaml'
 import { api } from '@/lib/api'
+import { CopyButton } from './Copyable'
 
 const Editor = lazy(() => import('@monaco-editor/react').then((m) => ({ default: m.Editor })))
 const DiffEditor = lazy(() =>
@@ -78,6 +80,21 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
 
   const dirty = draft !== source
 
+  const formatDraft = () => {
+    if (!draft.trim()) return
+    try {
+      const doc = parseDocument(draft)
+      if (doc.errors.length > 0) {
+        toast.error('Cannot format: invalid YAML')
+        return
+      }
+      const formatted = doc.toString({ indent: 2 })
+      if (formatted !== draft) setDraft(formatted)
+    } catch {
+      toast.error('Cannot format: invalid YAML')
+    }
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-xs">
@@ -96,6 +113,15 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
               disabled={apply.isPending}
             >
               Cancel
+            </Button>
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={formatDraft}
+              disabled={apply.isPending}
+            >
+              Format
             </Button>
             <Button
               type="button"
@@ -120,6 +146,14 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
         <span className="ml-auto text-muted-foreground">
           {editing && dirty ? '● unsaved changes' : null}
         </span>
+        {loaded && !loadError && (
+          <CopyButton
+            value={editing ? draft : source}
+            toastLabel="YAML"
+            ariaLabel="Copy YAML"
+            iconClassName="size-3.5"
+          />
+        )}
       </div>
       {loadError && (
         <div className="border-b border-destructive/40 bg-destructive/10 px-4 py-2 text-xs font-mono text-destructive break-words">
@@ -145,6 +179,8 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
                 minimap: { enabled: false },
                 lineNumbers: 'on',
                 scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                folding: true,
                 fontSize: 12,
                 fontFamily:
                   '"JetBrains Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
