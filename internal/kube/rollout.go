@@ -173,6 +173,9 @@ func (m *ClientManager) DeploymentRevisions(contextName, namespace, name string)
 // pod template from the target ReplicaSet (after stripping the
 // controller-managed pod-template-hash label).
 func (m *ClientManager) RollbackDeployment(ctx context.Context, contextName, namespace, name string, toRevision int32) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	cs, err := m.Clientset(contextName)
 	if err != nil {
 		return err
@@ -220,6 +223,9 @@ func (m *ClientManager) RollbackDeployment(ctx context.Context, contextName, nam
 // strategic merge patch to the StatefulSet — same approach kubectl
 // rollout undo uses.
 func (m *ClientManager) RollbackStatefulSet(ctx context.Context, contextName, namespace, name string, toRevision int32) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	return rollbackViaControllerRevision(ctx, m, contextName, namespace, name, "StatefulSet", toRevision, func(cs *kubernetes.Clientset, data []byte) error {
 		_, err := cs.AppsV1().StatefulSets(namespace).Patch(ctx, name, types.StrategicMergePatchType, data, metav1.PatchOptions{FieldManager: "klustr"})
 		return err
@@ -228,6 +234,9 @@ func (m *ClientManager) RollbackStatefulSet(ctx context.Context, contextName, na
 
 // RollbackDaemonSet same pattern as RollbackStatefulSet.
 func (m *ClientManager) RollbackDaemonSet(ctx context.Context, contextName, namespace, name string, toRevision int32) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	return rollbackViaControllerRevision(ctx, m, contextName, namespace, name, "DaemonSet", toRevision, func(cs *kubernetes.Clientset, data []byte) error {
 		_, err := cs.AppsV1().DaemonSets(namespace).Patch(ctx, name, types.StrategicMergePatchType, data, metav1.PatchOptions{FieldManager: "klustr"})
 		return err

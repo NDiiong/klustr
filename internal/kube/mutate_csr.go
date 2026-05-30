@@ -28,6 +28,9 @@ func (m *ClientManager) patchCSRApproval(
 	condType certv1.RequestConditionType,
 	reason, userMessage, defaultMessage string,
 ) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	cs, err := m.Clientset(contextName)
 	if err != nil {
 		return err

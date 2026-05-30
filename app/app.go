@@ -100,6 +100,13 @@ func (a *App) StopWatch(name string) {
 	a.clients.StopWatch(name)
 }
 
+// SetReadOnly marks a context read-only (or clears it). When read-only, every
+// mutating ClientManager method refuses with a typed error, regardless of what
+// the frontend allows — a hard local guard against accidental writes.
+func (a *App) SetReadOnly(name string, readOnly bool) {
+	a.clients.SetReadOnly(name, readOnly)
+}
+
 func (a *App) ListNamespaces(name string) []kube.NamespaceInfo {
 	return a.clients.Namespaces(name)
 }

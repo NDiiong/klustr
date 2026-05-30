@@ -1100,6 +1100,9 @@ func extractFluxReceiverResources(obj *unstructured.Unstructured, parentNS strin
 // it up on its next sync poll (interval ≤ a few seconds typically) and
 // reconciles immediately, the same path `flux reconcile <kind> <name>` uses.
 func (m *ClientManager) ReconcileFluxResource(ctx context.Context, contextName, kind, namespace, name string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	gvr, ok := fluxKindGVR[kind]
 	if !ok {
 		return fmt.Errorf("unsupported flux kind: %q", kind)
@@ -1132,6 +1135,9 @@ func (m *ClientManager) ReconcileFluxResource(ctx context.Context, contextName, 
 // controller leaves the resource alone — useful for taking a managed
 // workload offline temporarily without deleting the Flux object.
 func (m *ClientManager) SetFluxResourceSuspended(ctx context.Context, contextName, kind, namespace, name string, suspended bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	gvr, ok := fluxKindGVR[kind]
 	if !ok {
 		return fmt.Errorf("unsupported flux kind: %q", kind)

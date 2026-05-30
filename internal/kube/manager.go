@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -44,6 +45,7 @@ type ClientManager struct {
 	metrics  *metricsCache
 	helm     *helmManager
 	onChange func(ContextChange)
+	readOnly map[string]bool
 }
 
 func NewClientManager() *ClientManager {
@@ -59,7 +61,37 @@ func NewClientManager() *ClientManager {
 		pf:       newPFManager(),
 		metrics:  newMetricsCache(),
 		helm:     helm,
+		readOnly: make(map[string]bool),
 	}
+}
+
+// errReadOnly is returned by every mutating ClientManager method when the
+// target context is in read-only mode. It is a hard local guarantee: with no
+// in-cluster agent, Klustr itself is the only actor, so refusing to issue the
+// write here means no write is issued. This is an accident guard, not a
+// security boundary — real enforcement is the cluster's RBAC.
+var errReadOnly = errors.New("this context is in read-only mode in Klustr")
+
+// SetReadOnly marks a context read-only (no mutations) or clears it.
+func (m *ClientManager) SetReadOnly(contextName string, ro bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if ro {
+		m.readOnly[contextName] = true
+	} else {
+		delete(m.readOnly, contextName)
+	}
+}
+
+// assertWritable returns errReadOnly when contextName is read-only. Every
+// mutating method calls it before touching the cluster.
+func (m *ClientManager) assertWritable(contextName string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.readOnly[contextName] {
+		return errReadOnly
+	}
+	return nil
 }
 
 func (m *ClientManager) SetPFChangeCallback(cb func()) {

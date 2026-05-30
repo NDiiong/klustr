@@ -850,6 +850,10 @@ export function SetFluxResourceSuspended(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['SetFluxResourceSuspended'](arg1, arg2, arg3, arg4, arg5);
 }
 
+export function SetReadOnly(arg1, arg2) {
+  return window['go']['app']['App']['SetReadOnly'](arg1, arg2);
+}
+
 export function StartExec(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['StartExec'](arg1, arg2, arg3, arg4, arg5);
 }

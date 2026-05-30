@@ -36,6 +36,9 @@ func (m *ClientManager) HelmRelease(contextName, namespace, name string) (*HelmR
 }
 
 func (m *ClientManager) HelmInstall(ctx context.Context, opts HelmInstallOptions) (*HelmDryRunResult, error) {
+	if err := m.assertWritable(opts.ContextName); err != nil {
+		return nil, err
+	}
 	if m.helm == nil {
 		return nil, fmt.Errorf("helm subsystem unavailable")
 	}
@@ -43,6 +46,9 @@ func (m *ClientManager) HelmInstall(ctx context.Context, opts HelmInstallOptions
 }
 
 func (m *ClientManager) HelmUpgrade(ctx context.Context, opts HelmInstallOptions) (*HelmDryRunResult, error) {
+	if err := m.assertWritable(opts.ContextName); err != nil {
+		return nil, err
+	}
 	if m.helm == nil {
 		return nil, fmt.Errorf("helm subsystem unavailable")
 	}
@@ -50,6 +56,9 @@ func (m *ClientManager) HelmUpgrade(ctx context.Context, opts HelmInstallOptions
 }
 
 func (m *ClientManager) HelmRollback(contextName, namespace, name string, revision int, wait bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	if m.helm == nil {
 		return fmt.Errorf("helm subsystem unavailable")
 	}
@@ -57,6 +66,9 @@ func (m *ClientManager) HelmRollback(contextName, namespace, name string, revisi
 }
 
 func (m *ClientManager) HelmUninstall(contextName, namespace, name string, keepHistory bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	if m.helm == nil {
 		return fmt.Errorf("helm subsystem unavailable")
 	}

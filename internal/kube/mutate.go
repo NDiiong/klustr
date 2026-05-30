@@ -185,6 +185,9 @@ func sanitizeForYAML(obj *unstructured.Unstructured) {
 }
 
 func (m *ClientManager) ApplyResourceYAML(ctx context.Context, contextName, yamlBody string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	obj := &unstructured.Unstructured{}
 	if err := yaml.Unmarshal([]byte(yamlBody), &obj.Object); err != nil {
 		return fmt.Errorf("invalid YAML: %w", err)
@@ -219,6 +222,9 @@ func (m *ClientManager) ApplyResourceYAML(ctx context.Context, contextName, yaml
 }
 
 func (m *ClientManager) DeleteResource(ctx context.Context, contextName, kind, namespace, name string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	gvr, err := m.resolveKind(contextName, kind)
 	if err != nil {
 		return err
@@ -231,6 +237,9 @@ func (m *ClientManager) DeleteResource(ctx context.Context, contextName, kind, n
 }
 
 func (m *ClientManager) RestartWorkload(ctx context.Context, contextName, kind, namespace, name string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	gvr, err := resourceForKind(kind)
 	if err != nil {
 		return err
@@ -270,6 +279,9 @@ func (m *ClientManager) RestartWorkload(ctx context.Context, contextName, kind, 
 }
 
 func (m *ClientManager) PatchDeploymentPaused(ctx context.Context, contextName, namespace, name string, paused bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	cs, err := m.Clientset(contextName)
 	if err != nil {
 		return err
@@ -291,6 +303,9 @@ func (m *ClientManager) PatchDeploymentPaused(ctx context.Context, contextName, 
 }
 
 func (m *ClientManager) PatchHPAReplicas(ctx context.Context, contextName, namespace, name string, minReplicas, maxReplicas int32) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	if maxReplicas < 1 {
 		return fmt.Errorf("maxReplicas must be >= 1")
 	}
@@ -322,6 +337,9 @@ func (m *ClientManager) PatchHPAReplicas(ctx context.Context, contextName, names
 }
 
 func (m *ClientManager) ScaleResource(ctx context.Context, contextName, kind, namespace, name string, replicas int32) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	cs, err := m.Clientset(contextName)
 	if err != nil {
 		return err

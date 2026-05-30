@@ -143,6 +143,9 @@ type ArgoSyncOptions struct {
 // Strategy="" defaults to "hook" — respects sync waves + pre/post-sync
 // hooks, which is what `argocd app sync` does by default.
 func (m *ClientManager) SyncArgoApplication(ctx context.Context, contextName, namespace, name string, opts ArgoSyncOptions) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	revision := opts.Revision
 	if revision == "" {
 		revision = "HEAD"
@@ -293,6 +296,9 @@ const argoResourcesFinalizer = "resources-finalizer.argocd.argoproj.io"
 //
 // Empty mode defaults to "foreground" — the safe choice.
 func (m *ClientManager) DeleteArgoApplication(ctx context.Context, contextName, namespace, name, cascade string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	dyn, err := m.dynamicClient(contextName)
 	if err != nil {
 		return err
@@ -452,6 +458,9 @@ func extractArgoHistoryEntry(m map[string]any) ArgoApplicationHistoryEntry {
 // entry. prune=true also removes resources that were created after that
 // history entry (matches `argocd app rollback --prune`).
 func (m *ClientManager) RollbackArgoApplication(ctx context.Context, contextName, namespace, name string, id int64, prune bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	dyn, err := m.dynamicClient(contextName)
 	if err != nil {
 		return err
@@ -584,6 +593,9 @@ const argoAutomationBackupAnnotation = "klustr.io/argo-automation-suspended"
 // annotation (or sets an empty {} if there is no backup), clearing the
 // annotation on the way out.
 func (m *ClientManager) SetArgoApplicationAutomation(ctx context.Context, contextName, namespace, name string, enabled bool) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	dyn, err := m.dynamicClient(contextName)
 	if err != nil {
 		return err
@@ -633,6 +645,9 @@ func (m *ClientManager) SetArgoApplicationAutomation(ctx context.Context, contex
 // without running a sync, via the `argocd.argoproj.io/refresh` annotation.
 // mode is "normal" or "hard"; empty defaults to "normal".
 func (m *ClientManager) RefreshArgoApplication(ctx context.Context, contextName, namespace, name, mode string) error {
+	if err := m.assertWritable(contextName); err != nil {
+		return err
+	}
 	if mode == "" {
 		mode = "normal"
 	}

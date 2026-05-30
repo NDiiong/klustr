@@ -427,6 +427,8 @@ export function SetArgoApplicationAutomation(arg1:string,arg2:string,arg3:string
 
 export function SetFluxResourceSuspended(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean):Promise<void>;
 
+export function SetReadOnly(arg1:string,arg2:boolean):Promise<void>;
+
 export function StartExec(arg1:string,arg2:string,arg3:string,arg4:string,arg5:Array<string>):Promise<string>;
 
 export function StartPodLogs(arg1:string,arg2:string,arg3:string,arg4:string,arg5:boolean,arg6:number):Promise<string>;
