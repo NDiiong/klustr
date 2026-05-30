@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, Eye, EyeOff } from 'lucide-react'
+import { Check, Copy, Eye, EyeOff, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -10,6 +10,7 @@ import { Copyable } from '@/features/_shared/Copyable'
 import { NodeLink } from '@/features/_shared/NodeLink'
 import { OwnerLink } from '@/features/_shared/OwnerLink'
 import { ServiceAccountLink } from '@/features/_shared/ServiceAccountLink'
+import { podDiagnosis } from './podDiagnosis'
 
 export function PodOverviewBody({
   contextName,
@@ -20,6 +21,7 @@ export function PodOverviewBody({
 }) {
   return (
     <div className="space-y-6">
+      <PodDiagnosisCard detail={detail} />
       <div className="grid gap-6 sm:grid-cols-2">
         <Section title="Status">
           <Field label="Status">{detail.status}</Field>
@@ -98,6 +100,47 @@ export function PodOverviewBody({
       <MaybeSection title="Labels" items={detail.labels} render={() => <Chips items={detail.labels} />} />
       <MaybeSection title="Annotations" items={detail.annotations} render={() => <Chips items={detail.annotations} />} />
     </div>
+  )
+}
+
+function PodDiagnosisCard({ detail }: { detail: PodDetail }) {
+  const issues = podDiagnosis(detail)
+  if (issues.length === 0) return null
+  const hasError = issues.some((i) => i.severity === 'error')
+  return (
+    <section
+      className={[
+        'rounded-md border p-4',
+        hasError ? 'border-destructive/40 bg-destructive/5' : 'border-amber-500/40 bg-amber-500/5',
+      ].join(' ')}
+    >
+      <h3
+        className={[
+          'mb-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider',
+          hasError ? 'text-destructive' : 'text-amber-600 dark:text-amber-400',
+        ].join(' ')}
+      >
+        <TriangleAlert className="size-3.5" />
+        Diagnosis
+      </h3>
+      <ul className="space-y-2.5">
+        {issues.map((it, i) => (
+          <li key={i} className="flex gap-2.5 text-sm">
+            <span
+              aria-hidden
+              className={[
+                'mt-1.5 size-1.5 shrink-0 rounded-full',
+                it.severity === 'error' ? 'bg-destructive' : 'bg-amber-500',
+              ].join(' ')}
+            />
+            <div className="min-w-0">
+              <div className="font-medium text-foreground">{it.title}</div>
+              <div className="text-xs text-muted-foreground">{it.detail}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
