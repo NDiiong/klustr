@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { THEMES, type ThemeDefinition } from './themes'
 import { useUIStore } from '@/store/ui'
 
@@ -51,11 +52,16 @@ export function ThemePicker() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Pick color theme">
-          <Palette />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label="Pick color theme">
+              <Palette />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Color theme</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent className="w-56" align="end">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
           Light
