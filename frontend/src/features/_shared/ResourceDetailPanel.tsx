@@ -119,6 +119,7 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const goBackResource = useUIStore((s) => s.goBackResource)
   const canGoBack = useUIStore((s) => s.resourceNavStack.length > 0)
+  const readOnly = useUIStore((s) => s.globalReadOnly)
   const open = resource !== null
 
   return (
@@ -170,19 +171,19 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
               {resource.kind === 'Pod' && (
                 <PortForwardButton contextName={contextName} resource={resource} />
               )}
-              {isPausable(resource.kind) && (
+              {!readOnly && isPausable(resource.kind) && (
                 <PauseDeploymentButton contextName={contextName} resource={resource} />
               )}
-              {isRestartable(resource.kind) && (
+              {!readOnly && isRestartable(resource.kind) && (
                 <RestartWorkloadButton contextName={contextName} resource={resource} />
               )}
-              {isScalable(resource.kind) && (
+              {!readOnly && isScalable(resource.kind) && (
                 <ScaleResourceButton contextName={contextName} resource={resource} />
               )}
-              {isArgoApplication(resource) && (
+              {!readOnly && isArgoApplication(resource) && (
                 <SyncArgoApplicationButton contextName={contextName} resource={resource} />
               )}
-              {isFluxResource(resource) && (
+              {!readOnly && isFluxResource(resource) && (
                 <>
                   <ReconcileFluxResourceButton
                     contextName={contextName}
@@ -199,11 +200,12 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
                   />
                 </>
               )}
-              {isArgoApplication(resource) ? (
-                <DeleteArgoApplicationButton contextName={contextName} resource={resource} />
-              ) : (
-                <DeleteResourceButton contextName={contextName} resource={resource} />
-              )}
+              {!readOnly &&
+                (isArgoApplication(resource) ? (
+                  <DeleteArgoApplicationButton contextName={contextName} resource={resource} />
+                ) : (
+                  <DeleteResourceButton contextName={contextName} resource={resource} />
+                ))}
             </div>
           )}
         </DialogHeader>

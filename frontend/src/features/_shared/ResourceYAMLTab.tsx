@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { parseDocument } from 'yaml'
 import { api } from '@/lib/api'
+import { useUIStore } from '@/store/ui'
 import { CopyButton } from './Copyable'
 
 const Editor = lazy(() => import('@monaco-editor/react').then((m) => ({ default: m.Editor })))
@@ -31,6 +32,7 @@ type Props = {
 
 export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Props) {
   const theme = useThemeMode()
+  const readOnly = useUIStore((s) => s.globalReadOnly)
   const [source, setSource] = useState<string>('')
   const [draft, setDraft] = useState<string>('')
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -138,7 +140,8 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
             size="xs"
             variant="outline"
             onClick={() => setEditing(true)}
-            disabled={!loaded || !!loadError}
+            disabled={!loaded || !!loadError || readOnly}
+            title={readOnly ? 'Read-only mode — editing is disabled' : undefined}
           >
             Edit
           </Button>

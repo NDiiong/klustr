@@ -61,6 +61,7 @@ export function RowContextMenu({
 }: Props) {
   const openResource = useUIStore((s) => s.openResource)
   const setPendingAction = useUIStore((s) => s.setPendingAction)
+  const readOnly = useUIStore((s) => s.globalReadOnly)
 
   const resource: SelectedResource = { kind, namespace, name, context: contextName }
   const isPod = POD_KINDS.has(kind)
@@ -114,7 +115,7 @@ export function RowContextMenu({
           <FileCode2 />
           <span>Edit YAML</span>
         </ContextMenuItem>
-        {isRestartable && (
+        {!readOnly && isRestartable && (
           <ContextMenuItem onSelect={() => setPendingAction({ kind: 'restart', resource })}>
             <RotateCcw />
             <span>Rolling restart</span>
@@ -131,14 +132,18 @@ export function RowContextMenu({
             <span>Copy namespace</span>
           </ContextMenuItem>
         )}
-        <ContextMenuSeparator />
-        <ContextMenuItem
-          variant="destructive"
-          onSelect={() => setPendingAction({ kind: 'delete', resource })}
-        >
-          <Trash2 />
-          <span>Delete</span>
-        </ContextMenuItem>
+        {!readOnly && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              variant="destructive"
+              onSelect={() => setPendingAction({ kind: 'delete', resource })}
+            >
+              <Trash2 />
+              <span>Delete</span>
+            </ContextMenuItem>
+          </>
+        )}
       </ContextMenuContent>
     </ContextMenu>
   )

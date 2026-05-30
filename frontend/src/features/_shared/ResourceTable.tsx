@@ -107,6 +107,7 @@ export function ResourceTable<T>({
   const activeContexts = useActiveContexts()
   const isAggregated = useIsAggregated()
   const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
+  const readOnly = useUIStore((s) => s.globalReadOnly)
   const selectedResource = useUIStore((s) => s.selectedResource)
   const lastSelectedResource = useUIStore((s) => s.lastSelectedResource)
   const query = useMemo(
@@ -446,16 +447,18 @@ export function ResourceTable<T>({
       {selectedItems.length > 0 && (
         <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2 text-xs">
           <span className="font-medium text-foreground">{selectedItems.length} selected</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setBulkDeleteOpen(true)}
-            className="h-7 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 className="size-3.5" />
-            Delete
-          </Button>
-          {canRestart && (
+          {!readOnly && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setBulkDeleteOpen(true)}
+              className="h-7 gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="size-3.5" />
+              Delete
+            </Button>
+          )}
+          {!readOnly && canRestart && (
             <Button
               size="sm"
               variant="outline"
