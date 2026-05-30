@@ -128,6 +128,9 @@ export type ResourceView =
   | 'fluxproviders'
   | 'fluxalerts'
   | 'fluxreceivers'
+  | 'istiovirtualservices'
+  | 'istiodestinationrules'
+  | 'istiopeerauthentications'
 
 export type ResourceKind =
   | 'Pod'

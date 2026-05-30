@@ -87,8 +87,11 @@ import { FluxBucketsView } from '@/features/flux/FluxBucketsView'
 import { FluxProvidersView } from '@/features/flux/FluxProvidersView'
 import { FluxAlertsView } from '@/features/flux/FluxAlertsView'
 import { FluxReceiversView } from '@/features/flux/FluxReceiversView'
+import { IstioVirtualServicesView } from '@/features/istio/IstioVirtualServicesView'
+import { IstioDestinationRulesView } from '@/features/istio/IstioDestinationRulesView'
+import { IstioPeerAuthenticationsView } from '@/features/istio/IstioPeerAuthenticationsView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
-import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
+import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, ISTIO_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
 import { SidebarGroup } from '@/features/_shared/SidebarGroup'
 import { SidebarResizeHandle } from '@/features/_shared/SidebarResizeHandle'
@@ -288,6 +291,12 @@ function MainView() {
       return <FluxAlertsView />
     case 'fluxreceivers':
       return <FluxReceiversView />
+    case 'istiovirtualservices':
+      return <IstioVirtualServicesView />
+    case 'istiodestinationrules':
+      return <IstioDestinationRulesView />
+    case 'istiopeerauthentications':
+      return <IstioPeerAuthenticationsView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">
@@ -358,10 +367,12 @@ function App() {
   const hasFluxCD =
     !isAggregated &&
     crds.some((c) => c.group === 'kustomize.toolkit.fluxcd.io' && c.resource === 'kustomizations')
+  const hasIstio = !isAggregated && crds.some((c) => c.group === 'networking.istio.io')
   const visibleGroups = useMemo<ResourceGroup[]>(() => {
     const allGroups: ResourceGroup[] = [
       ...RESOURCE_GROUPS,
       ...(hasGatewayAPI ? [GATEWAY_GROUP] : []),
+      ...(hasIstio ? [ISTIO_GROUP] : []),
       ...(hasArgoApplications ? [ARGO_GROUP] : []),
       ...(hasKarpenter ? [KARPENTER_GROUP] : []),
       ...(hasFluxCD ? [FLUX_GROUP] : []),
@@ -388,6 +399,7 @@ function App() {
     hasArgoApplications,
     hasKarpenter,
     hasFluxCD,
+    hasIstio,
     accessByContext,
     activeContexts,
     hiddenSidebarItems,

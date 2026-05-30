@@ -60,7 +60,7 @@ import {
   Waypoints,
   Webhook,
 } from 'lucide-react'
-import { SiArgo } from 'react-icons/si'
+import { SiArgo, SiIstio } from 'react-icons/si'
 
 import type { ResourceKind, ResourceView } from '@/store/ui'
 
@@ -274,5 +274,19 @@ export const FLUX_GROUP: ResourceGroup = {
     { label: 'Providers', view: 'fluxproviders', icon: Plug },
     { label: 'Alerts', view: 'fluxalerts', icon: BellRing },
     { label: 'Receivers', view: 'fluxreceivers', icon: Webhook },
+  ],
+}
+
+// Istio CRs are watched via the dynamic CR informer like Argo CD / Flux. The
+// group is rendered conditionally when the networking.istio.io CRDs are present
+// in App.tsx. Versions vary by install, so the views read the served version
+// from the discovered CRD rather than hardcoding one.
+export const ISTIO_GROUP: ResourceGroup = {
+  label: 'Istio',
+  icon: SiIstio,
+  items: [
+    { label: 'VirtualServices', view: 'istiovirtualservices', icon: Route },
+    { label: 'DestinationRules', view: 'istiodestinationrules', icon: Waypoints },
+    { label: 'PeerAuthentications', view: 'istiopeerauthentications', icon: Lock },
   ],
 }

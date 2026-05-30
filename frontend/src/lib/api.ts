@@ -144,6 +144,12 @@ import {
   ListJobs,
   ListKarpenterNodePools,
   ListKarpenterNodeClaims,
+  ListIstioVirtualServices,
+  GetIstioVirtualService,
+  ListIstioDestinationRules,
+  GetIstioDestinationRule,
+  ListIstioPeerAuthentications,
+  GetIstioPeerAuthentication,
   ListFluxKustomizations,
   GetFluxKustomization,
   ListFluxHelmReleases,
@@ -445,6 +451,16 @@ export type FluxAlertDetail = kube.FluxAlertDetail
 export type FluxAlertSource = kube.FluxAlertSource
 export type FluxReceiverInfo = kube.FluxReceiverInfo
 export type FluxReceiverDetail = kube.FluxReceiverDetail
+export type IstioVirtualServiceInfo = kube.IstioVirtualServiceInfo
+export type IstioVirtualServiceDetail = kube.IstioVirtualServiceDetail
+export type IstioDestinationRuleInfo = kube.IstioDestinationRuleInfo
+export type IstioDestinationRuleDetail = kube.IstioDestinationRuleDetail
+export type IstioPeerAuthenticationInfo = kube.IstioPeerAuthenticationInfo
+export type IstioPeerAuthenticationDetail = kube.IstioPeerAuthenticationDetail
+export type IstioRouteRule = kube.IstioRouteRule
+export type IstioDestinationWeight = kube.IstioDestinationWeight
+export type IstioSubset = kube.IstioSubset
+export type IstioPortMTLS = kube.IstioPortMTLS
 export type FluxKind =
   | 'FluxKustomization'
   | 'FluxHelmRelease'
@@ -851,6 +867,33 @@ export const api = {
     version: string,
     resource: string,
   ): Promise<void> => EnsureCustomResourceWatch(contextName, group, version, resource),
+  listIstioVirtualServices: (
+    contextName: string,
+    namespace: string,
+  ): Promise<IstioVirtualServiceInfo[]> => ListIstioVirtualServices(contextName, namespace),
+  getIstioVirtualService: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<IstioVirtualServiceDetail> => GetIstioVirtualService(contextName, namespace, name),
+  listIstioDestinationRules: (
+    contextName: string,
+    namespace: string,
+  ): Promise<IstioDestinationRuleInfo[]> => ListIstioDestinationRules(contextName, namespace),
+  getIstioDestinationRule: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<IstioDestinationRuleDetail> => GetIstioDestinationRule(contextName, namespace, name),
+  listIstioPeerAuthentications: (
+    contextName: string,
+    namespace: string,
+  ): Promise<IstioPeerAuthenticationInfo[]> => ListIstioPeerAuthentications(contextName, namespace),
+  getIstioPeerAuthentication: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<IstioPeerAuthenticationDetail> => GetIstioPeerAuthentication(contextName, namespace, name),
   listCustomResources: (
     contextName: string,
     group: string,

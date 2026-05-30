@@ -99,6 +99,9 @@ import { FluxBucketDetailBody } from '@/features/flux/FluxBucketDetailBody'
 import { FluxProviderDetailBody } from '@/features/flux/FluxProviderDetailBody'
 import { FluxAlertDetailBody } from '@/features/flux/FluxAlertDetailBody'
 import { FluxReceiverDetailBody } from '@/features/flux/FluxReceiverDetailBody'
+import { IstioVirtualServiceDetailBody } from '@/features/istio/IstioVirtualServiceDetailBody'
+import { IstioDestinationRuleDetailBody } from '@/features/istio/IstioDestinationRuleDetailBody'
+import { IstioPeerAuthenticationDetailBody } from '@/features/istio/IstioPeerAuthenticationDetailBody'
 import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
 import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
 import {
@@ -366,7 +369,14 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
   const isKarpenterNodeClaim =
     resource.kind === 'NodeClaim' && resource.gvr?.group === 'karpenter.sh'
   const hasKarpenterNodes = isKarpenterNodePool || isKarpenterNodeClaim
-  const hasOverview = isArgoAppProject || isArgoAppSet || isFlux
+  const isIstioVirtualService =
+    resource.kind === 'IstioVirtualService' && resource.gvr?.group === 'networking.istio.io'
+  const isIstioDestinationRule =
+    resource.kind === 'IstioDestinationRule' && resource.gvr?.group === 'networking.istio.io'
+  const isIstioPeerAuthentication =
+    resource.kind === 'IstioPeerAuthentication' && resource.gvr?.group === 'security.istio.io'
+  const isIstio = isIstioVirtualService || isIstioDestinationRule || isIstioPeerAuthentication
+  const hasOverview = isArgoAppProject || isArgoAppSet || isFlux || isIstio
   const hasEvents = isFlux
   const initialTab = isArgoApp
     ? 'resources'
@@ -481,6 +491,33 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
       {isFluxReceiver && (
         <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
           <FluxReceiverDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isIstioVirtualService && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <IstioVirtualServiceDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isIstioDestinationRule && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <IstioDestinationRuleDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isIstioPeerAuthentication && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <IstioPeerAuthenticationDetailBody
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}
