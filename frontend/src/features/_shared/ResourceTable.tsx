@@ -11,13 +11,14 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCcw, Search, Trash2, X } from 'lucide-react'
-import { onKubeChange } from '@/lib/events'
+import { isKindSynced, onKubeChange } from '@/lib/events'
 import { namespaceQuery } from '@/lib/namespaceFilter'
 import { useActiveContexts, useIsAggregated, useUIStore, type ResourceKind } from '@/store/ui'
 import { useTablePrefs } from '@/store/tablePrefs'
 import { type ByContext } from '@/store/resources'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ColumnControls } from './ColumnControls'
 import { RowContextMenu } from './RowContextMenu'
 import { BulkDeleteDialog, BulkRestartDialog, type BulkItem } from './BulkActionDialogs'
@@ -57,6 +58,8 @@ function columnId<T>(c: ColumnDef<T, any>): string {
 }
 
 const EMPTY_SIZING: ColumnSizingState = {}
+
+const SKELETON_WIDTHS = ['70%', '45%', '55%', '40%', '60%', '35%', '50%']
 
 function sizingEqual(a: ColumnSizingState, b: ColumnSizingState): boolean {
   const ka = Object.keys(a)
@@ -248,34 +251,42 @@ export function ResourceTable<T>({
     }
     setLoadedSet(new Set())
     let cancelled = false
+    const markLoaded = (ctx: string) =>
+      setLoadedSet((prev) => {
+        if (prev.has(ctx)) return prev
+        const next = new Set(prev)
+        next.add(ctx)
+        return next
+      })
     const reload = (ctx: string) => {
       fetchRef.current(ctx, query.apiNamespace).then((list) => {
         if (cancelled) return
-        setDataRef.current(ctx, list ?? [])
-        setLoadedSet((prev) => {
-          if (prev.has(ctx)) return prev
-          const next = new Set(prev)
-          next.add(ctx)
-          return next
-        })
+        const items = list ?? []
+        setDataRef.current(ctx, items)
+        // An empty list is only trustworthy once the informer cache has synced;
+        // before that, treat it as still loading so the skeleton stays up instead
+        // of flashing "No X" and then popping in the real rows a moment later.
+        if (items.length > 0 || isKindSynced(ctx, kind)) markLoaded(ctx)
       }).catch(() => {
         if (cancelled) return
         setDataRef.current(ctx, [])
-        setLoadedSet((prev) => {
-          if (prev.has(ctx)) return prev
-          const next = new Set(prev)
-          next.add(ctx)
-          return next
-        })
+        markLoaded(ctx)
       })
     }
     for (const ctx of activeContexts) reload(ctx)
     const unsub = onKubeChange(kind, (ctx) => {
       if (activeContexts.includes(ctx)) reload(ctx)
     })
+    // Fallback for kinds that never emit a sync event (e.g. RBAC-denied kinds get
+    // no informer at all): stop waiting after a grace period and show the result.
+    const graceTimer = window.setTimeout(() => {
+      if (cancelled) return
+      setLoadedSet(new Set(activeContexts))
+    }, 5_000)
     return () => {
       cancelled = true
       unsub()
+      window.clearTimeout(graceTimer)
     }
   }, [activeContexts, query, kind])
 
@@ -615,17 +626,32 @@ export function ResourceTable<T>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.length === 0 ? (
+            {table.getRowModel().rows.length === 0 && !allLoaded ? (
+              Array.from({ length: 8 }).map((_, i) => (
+                <tr key={`skeleton-${i}`} className="border-b border-border last:border-b-0">
+                  <td className="px-2 py-1.5 align-middle">
+                    <Skeleton className="size-4 rounded-sm" />
+                  </td>
+                  {table.getVisibleLeafColumns().map((col, ci) => (
+                    <td key={col.id} className="px-3 py-1.5 align-middle">
+                      <Skeleton
+                        className="h-3.5"
+                        style={{ width: SKELETON_WIDTHS[ci % SKELETON_WIDTHS.length] }}
+                      />
+                    </td>
+                  ))}
+                  <td aria-hidden />
+                </tr>
+              ))
+            ) : table.getRowModel().rows.length === 0 ? (
               <tr>
                 <td
                   colSpan={tableColumns.length + 2}
                   className="px-3 py-8 text-center text-sm text-muted-foreground"
                 >
-                  {!allLoaded
-                    ? `Loading ${noun.plural}…`
-                    : filter
-                      ? `No ${noun.plural} matching "${filter}".`
-                      : `No ${noun.plural}${scope === 'namespaced' && selectedNamespaces.length > 0 ? scopeLabel : ''}.`}
+                  {filter
+                    ? `No ${noun.plural} matching "${filter}".`
+                    : `No ${noun.plural}${scope === 'namespaced' && selectedNamespaces.length > 0 ? scopeLabel : ''}.`}
                 </td>
               </tr>
             ) : (

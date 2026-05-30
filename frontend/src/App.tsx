@@ -104,7 +104,7 @@ import { TerminalDrawer } from '@/features/terminal/TerminalDrawer'
 import { Toaster } from '@/components/ui/sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { api, type CRDInfo } from '@/lib/api'
-import { onKubeChange, onPFUpdate } from '@/lib/events'
+import { onKubeChange, onPFUpdate, resetSyncState } from '@/lib/events'
 import {
   useActiveContexts,
   useEffectiveHiddenSidebarItems,
@@ -438,6 +438,7 @@ function App() {
 
   useEffect(() => {
     if (activeContexts.length === 0) return
+    resetSyncState(activeContexts)
     resetResources()
     resetCRDs()
     resetHelm()
