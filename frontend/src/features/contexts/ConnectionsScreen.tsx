@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ThemePicker } from '@/features/_shared/ThemePicker'
+import { ReadOnlyToggle } from '@/features/_shared/ReadOnlyToggle'
 import { ProviderIcon, ProviderIconStack, providerMeta } from '@/features/_shared/providerIcons'
 import { api, type ContextInfo } from '@/lib/api'
 import {
@@ -258,7 +259,10 @@ export function ConnectionsScreen() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
         <span className="text-sm font-semibold tracking-tight">Klustr</span>
-        <ThemePicker />
+        <div className="flex items-center gap-1">
+          <ReadOnlyToggle />
+          <ThemePicker />
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto">
