@@ -93,6 +93,82 @@ func TestExtractCertManagerIssuerType(t *testing.T) {
 	}
 }
 
+func TestExtractCertManagerCertificateRequest(t *testing.T) {
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"metadata": map[string]any{"name": "web-tls-1", "namespace": "default"},
+		"spec": map[string]any{
+			"issuerRef": map[string]any{"kind": "ClusterIssuer", "name": "letsencrypt-prod"},
+		},
+		"status": map[string]any{
+			"conditions": []any{
+				map[string]any{"type": "Approved", "status": "True", "reason": "cert-manager.io"},
+				map[string]any{"type": "Ready", "status": "False", "reason": "Pending", "message": "Waiting on certificate issuance"},
+			},
+		},
+	}}
+	got := extractCertManagerCertificateRequest(obj)
+	if got.Approved != "True" {
+		t.Errorf("approved condition not surfaced: %+v", got)
+	}
+	if got.Denied != "" {
+		t.Errorf("absent Denied condition should be empty: %q", got.Denied)
+	}
+	if got.Ready != "False" || got.Status != "Waiting on certificate issuance" {
+		t.Errorf("ready summary wrong: %+v", got)
+	}
+	if got.Issuer != "ClusterIssuer/letsencrypt-prod" {
+		t.Errorf("issuer wrong: %q", got.Issuer)
+	}
+}
+
+func TestExtractCertManagerOrderAndChallenge(t *testing.T) {
+	order := &unstructured.Unstructured{Object: map[string]any{
+		"metadata": map[string]any{"name": "web-tls-1-12345", "namespace": "default"},
+		"spec":     map[string]any{"dnsNames": []any{"a.example.com", "b.example.com", "c.example.com", "d.example.com"}},
+		"status":   map[string]any{"state": "pending", "reason": "waiting for challenge"},
+	}}
+	got := extractCertManagerOrder(order)
+	if got.State != "pending" || got.Reason != "waiting for challenge" {
+		t.Errorf("order state/reason wrong: %+v", got)
+	}
+	if got.DNSNames != "a.example.com, b.example.com, c.example.com +1" {
+		t.Errorf("dnsNames trim wrong: %q", got.DNSNames)
+	}
+
+	challenge := &unstructured.Unstructured{Object: map[string]any{
+		"metadata": map[string]any{"name": "web-tls-1-12345-99", "namespace": "default"},
+		"spec":     map[string]any{"type": "HTTP-01", "dnsName": "a.example.com"},
+		"status":   map[string]any{"state": "invalid", "reason": "self-check failed"},
+	}}
+	gotCh := extractCertManagerChallenge(challenge)
+	if gotCh.Type != "HTTP-01" || gotCh.DNSName != "a.example.com" {
+		t.Errorf("challenge spec wrong: %+v", gotCh)
+	}
+	if gotCh.State != "invalid" || gotCh.Reason != "self-check failed" {
+		t.Errorf("challenge status wrong: %+v", gotCh)
+	}
+}
+
+func TestOwnedBy(t *testing.T) {
+	obj := &unstructured.Unstructured{Object: map[string]any{
+		"metadata": map[string]any{
+			"name": "order-1",
+			"ownerReferences": []any{
+				map[string]any{"kind": "CertificateRequest", "name": "web-tls-1", "uid": "abc"},
+			},
+		},
+	}}
+	if !ownedBy(obj, "CertificateRequest", "web-tls-1") {
+		t.Error("expected ownedBy to match the CertificateRequest owner")
+	}
+	if ownedBy(obj, "CertificateRequest", "other") {
+		t.Error("ownedBy should not match a different owner name")
+	}
+	if ownedBy(obj, "Certificate", "web-tls-1") {
+		t.Error("ownedBy should not match a different owner kind")
+	}
+}
+
 func TestExtractCertManagerConditionsEmpty(t *testing.T) {
 	obj := &unstructured.Unstructured{Object: map[string]any{
 		"metadata": map[string]any{"name": "bare", "namespace": "default"},
