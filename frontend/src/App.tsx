@@ -91,8 +91,10 @@ import { FluxReceiversView } from '@/features/flux/FluxReceiversView'
 import { IstioVirtualServicesView } from '@/features/istio/IstioVirtualServicesView'
 import { IstioDestinationRulesView } from '@/features/istio/IstioDestinationRulesView'
 import { IstioPeerAuthenticationsView } from '@/features/istio/IstioPeerAuthenticationsView'
+import { CertificatesView } from '@/features/cert-manager/CertificatesView'
+import { IssuersView } from '@/features/cert-manager/IssuersView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
-import { ARGO_GROUP, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, ISTIO_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
+import { ARGO_GROUP, CERT_MANAGER_GROUP_NAV, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, ISTIO_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
 import { SidebarGroup } from '@/features/_shared/SidebarGroup'
 import { SidebarResizeHandle } from '@/features/_shared/SidebarResizeHandle'
@@ -298,6 +300,12 @@ function MainView() {
       return <IstioDestinationRulesView />
     case 'istiopeerauthentications':
       return <IstioPeerAuthenticationsView />
+    case 'certmanagercertificates':
+      return <CertificatesView />
+    case 'certmanagerissuers':
+      return <IssuersView cluster={false} />
+    case 'certmanagerclusterissuers':
+      return <IssuersView cluster={true} />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">
@@ -370,11 +378,15 @@ function App() {
     !isAggregated &&
     crds.some((c) => c.group === 'kustomize.toolkit.fluxcd.io' && c.resource === 'kustomizations')
   const hasIstio = !isAggregated && crds.some((c) => c.group === 'networking.istio.io')
+  const hasCertManager =
+    !isAggregated &&
+    crds.some((c) => c.group === 'cert-manager.io' && c.resource === 'certificates')
   const visibleGroups = useMemo<ResourceGroup[]>(() => {
     const allGroups: ResourceGroup[] = [
       ...RESOURCE_GROUPS,
       ...(hasGatewayAPI ? [GATEWAY_GROUP] : []),
       ...(hasIstio ? [ISTIO_GROUP] : []),
+      ...(hasCertManager ? [CERT_MANAGER_GROUP_NAV] : []),
       ...(hasArgoApplications ? [ARGO_GROUP] : []),
       ...(hasKarpenter ? [KARPENTER_GROUP] : []),
       ...(hasFluxCD ? [FLUX_GROUP] : []),
@@ -402,6 +414,7 @@ function App() {
     hasKarpenter,
     hasFluxCD,
     hasIstio,
+    hasCertManager,
     accessByContext,
     activeContexts,
     hiddenSidebarItems,

@@ -290,3 +290,16 @@ export const ISTIO_GROUP: ResourceGroup = {
     { label: 'PeerAuthentications', view: 'istiopeerauthentications', icon: Lock },
   ],
 }
+
+// cert-manager CRs are watched via the dynamic CR informer like Argo CD /
+// Flux. The group is rendered conditionally when the cert-manager.io CRDs are
+// present in App.tsx. ClusterIssuers are cluster-scoped; the rest namespaced.
+export const CERT_MANAGER_GROUP_NAV: ResourceGroup = {
+  label: 'cert-manager',
+  icon: ShieldCheck,
+  items: [
+    { label: 'Certificates', view: 'certmanagercertificates', icon: ShieldCheck },
+    { label: 'Issuers', view: 'certmanagerissuers', icon: Stamp },
+    { label: 'ClusterIssuers', view: 'certmanagerclusterissuers', icon: Globe },
+  ],
+}

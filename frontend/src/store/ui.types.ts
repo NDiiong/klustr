@@ -131,6 +131,9 @@ export type ResourceView =
   | 'istiovirtualservices'
   | 'istiodestinationrules'
   | 'istiopeerauthentications'
+  | 'certmanagercertificates'
+  | 'certmanagerissuers'
+  | 'certmanagerclusterissuers'
 
 export type ResourceKind =
   | 'Pod'

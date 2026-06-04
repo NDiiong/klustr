@@ -102,6 +102,10 @@ import { FluxReceiverDetailBody } from '@/features/flux/FluxReceiverDetailBody'
 import { IstioVirtualServiceDetailBody } from '@/features/istio/IstioVirtualServiceDetailBody'
 import { IstioDestinationRuleDetailBody } from '@/features/istio/IstioDestinationRuleDetailBody'
 import { IstioPeerAuthenticationDetailBody } from '@/features/istio/IstioPeerAuthenticationDetailBody'
+import { CertificateDetailBody } from '@/features/cert-manager/CertificateDetailBody'
+import { IssuerDetailBody } from '@/features/cert-manager/IssuerDetailBody'
+import { RenewCertificateButton } from '@/features/cert-manager/RenewCertificateButton'
+import { isCertManagerCertificate } from '@/features/cert-manager/certManagerKinds'
 import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
 import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
 import {
@@ -199,6 +203,13 @@ export function ResourceDetailPanel({ contextName, resource }: Props) {
                     suspended={resource.suspended ?? false}
                   />
                 </>
+              )}
+              {!readOnly && isCertManagerCertificate(resource) && (
+                <RenewCertificateButton
+                  contextName={contextName}
+                  namespace={resource.namespace}
+                  name={resource.name}
+                />
               )}
               {!readOnly &&
                 (isArgoApplication(resource) ? (
@@ -378,7 +389,15 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
   const isIstioPeerAuthentication =
     resource.kind === 'IstioPeerAuthentication' && resource.gvr?.group === 'security.istio.io'
   const isIstio = isIstioVirtualService || isIstioDestinationRule || isIstioPeerAuthentication
-  const hasOverview = isArgoAppProject || isArgoAppSet || isFlux || isIstio
+  const isCertManagerCert =
+    resource.kind === 'Certificate' && resource.gvr?.group === 'cert-manager.io'
+  const isCertManagerIssuer =
+    resource.kind === 'Issuer' && resource.gvr?.group === 'cert-manager.io'
+  const isCertManagerClusterIssuer =
+    resource.kind === 'ClusterIssuer' && resource.gvr?.group === 'cert-manager.io'
+  const isCertManager =
+    isCertManagerCert || isCertManagerIssuer || isCertManagerClusterIssuer
+  const hasOverview = isArgoAppProject || isArgoAppSet || isFlux || isIstio || isCertManager
   const hasEvents = isFlux
   const initialTab = isArgoApp
     ? 'resources'
@@ -523,6 +542,25 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
             contextName={contextName}
             namespace={resource.namespace}
             name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isCertManagerCert && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <CertificateDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {(isCertManagerIssuer || isCertManagerClusterIssuer) && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <IssuerDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+            cluster={isCertManagerClusterIssuer}
           />
         </TabsContent>
       )}
