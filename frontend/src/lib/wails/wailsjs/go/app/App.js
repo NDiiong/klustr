@@ -14,6 +14,18 @@ export function ApproveCertificateSigningRequest(arg1, arg2, arg3) {
   return window['go']['app']['App']['ApproveCertificateSigningRequest'](arg1, arg2, arg3);
 }
 
+export function CertManagerCertificateRequestsFor(arg1, arg2, arg3) {
+  return window['go']['app']['App']['CertManagerCertificateRequestsFor'](arg1, arg2, arg3);
+}
+
+export function CertManagerChallengesFor(arg1, arg2, arg3) {
+  return window['go']['app']['App']['CertManagerChallengesFor'](arg1, arg2, arg3);
+}
+
+export function CertManagerOrdersFor(arg1, arg2, arg3) {
+  return window['go']['app']['App']['CertManagerOrdersFor'](arg1, arg2, arg3);
+}
+
 export function CheckForUpdate() {
   return window['go']['app']['App']['CheckForUpdate']();
 }
@@ -66,12 +78,24 @@ export function GetCertManagerCertificate(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetCertManagerCertificate'](arg1, arg2, arg3);
 }
 
+export function GetCertManagerCertificateRequest(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetCertManagerCertificateRequest'](arg1, arg2, arg3);
+}
+
+export function GetCertManagerChallenge(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetCertManagerChallenge'](arg1, arg2, arg3);
+}
+
 export function GetCertManagerClusterIssuer(arg1, arg2) {
   return window['go']['app']['App']['GetCertManagerClusterIssuer'](arg1, arg2);
 }
 
 export function GetCertManagerIssuer(arg1, arg2, arg3) {
   return window['go']['app']['App']['GetCertManagerIssuer'](arg1, arg2, arg3);
+}
+
+export function GetCertManagerOrder(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetCertManagerOrder'](arg1, arg2, arg3);
 }
 
 export function GetCertificateSigningRequest(arg1, arg2) {
@@ -418,8 +442,16 @@ export function ListCSINodes(arg1) {
   return window['go']['app']['App']['ListCSINodes'](arg1);
 }
 
+export function ListCertManagerCertificateRequests(arg1, arg2) {
+  return window['go']['app']['App']['ListCertManagerCertificateRequests'](arg1, arg2);
+}
+
 export function ListCertManagerCertificates(arg1, arg2) {
   return window['go']['app']['App']['ListCertManagerCertificates'](arg1, arg2);
+}
+
+export function ListCertManagerChallenges(arg1, arg2) {
+  return window['go']['app']['App']['ListCertManagerChallenges'](arg1, arg2);
 }
 
 export function ListCertManagerClusterIssuers(arg1) {
@@ -428,6 +460,10 @@ export function ListCertManagerClusterIssuers(arg1) {
 
 export function ListCertManagerIssuers(arg1, arg2) {
   return window['go']['app']['App']['ListCertManagerIssuers'](arg1, arg2);
+}
+
+export function ListCertManagerOrders(arg1, arg2) {
+  return window['go']['app']['App']['ListCertManagerOrders'](arg1, arg2);
 }
 
 export function ListCertificateSigningRequests(arg1) {

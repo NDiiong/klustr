@@ -1106,6 +1106,42 @@ func (a *App) RenewCertificate(contextName, namespace, name string) error {
 	return a.clients.RenewCertificate(a.ctx, contextName, namespace, name)
 }
 
+func (a *App) ListCertManagerCertificateRequests(contextName, namespace string) []kube.CertManagerCertificateRequestInfo {
+	return a.clients.ListCertManagerCertificateRequests(contextName, namespace)
+}
+
+func (a *App) GetCertManagerCertificateRequest(contextName, namespace, name string) (*kube.CertManagerCertificateRequestDetail, error) {
+	return a.clients.GetCertManagerCertificateRequest(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) CertManagerCertificateRequestsFor(contextName, namespace, certName string) []kube.CertManagerCertificateRequestInfo {
+	return a.clients.CertManagerCertificateRequestsFor(contextName, namespace, certName)
+}
+
+func (a *App) ListCertManagerOrders(contextName, namespace string) []kube.CertManagerOrderInfo {
+	return a.clients.ListCertManagerOrders(contextName, namespace)
+}
+
+func (a *App) GetCertManagerOrder(contextName, namespace, name string) (*kube.CertManagerOrderDetail, error) {
+	return a.clients.GetCertManagerOrder(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) CertManagerOrdersFor(contextName, namespace, requestName string) []kube.CertManagerOrderInfo {
+	return a.clients.CertManagerOrdersFor(contextName, namespace, requestName)
+}
+
+func (a *App) ListCertManagerChallenges(contextName, namespace string) []kube.CertManagerChallengeInfo {
+	return a.clients.ListCertManagerChallenges(contextName, namespace)
+}
+
+func (a *App) GetCertManagerChallenge(contextName, namespace, name string) (*kube.CertManagerChallengeDetail, error) {
+	return a.clients.GetCertManagerChallenge(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) CertManagerChallengesFor(contextName, namespace, orderName string) []kube.CertManagerChallengeInfo {
+	return a.clients.CertManagerChallengesFor(contextName, namespace, orderName)
+}
+
 // ---------------------------------------------------------------------------
 // Karpenter bindings.
 // ---------------------------------------------------------------------------

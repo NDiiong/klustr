@@ -1186,6 +1186,146 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class CertManagerCertificateRequestDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    approved: string;
+	    denied: string;
+	    status: string;
+	    issuer: string;
+	    createdAt: string;
+	    conditions: CertManagerCondition[];
+	    issuerKind: string;
+	    issuerGroup: string;
+	    usages: string[];
+	    isCA: boolean;
+	    failureTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerCertificateRequestDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.approved = source["approved"];
+	        this.denied = source["denied"];
+	        this.status = source["status"];
+	        this.issuer = source["issuer"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], CertManagerCondition);
+	        this.issuerKind = source["issuerKind"];
+	        this.issuerGroup = source["issuerGroup"];
+	        this.usages = source["usages"];
+	        this.isCA = source["isCA"];
+	        this.failureTime = source["failureTime"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class CertManagerCertificateRequestInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    approved: string;
+	    denied: string;
+	    status: string;
+	    issuer: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerCertificateRequestInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.approved = source["approved"];
+	        this.denied = source["denied"];
+	        this.status = source["status"];
+	        this.issuer = source["issuer"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class CertManagerChallengeDetail {
+	    name: string;
+	    namespace: string;
+	    state: string;
+	    type: string;
+	    dnsName: string;
+	    reason: string;
+	    createdAt: string;
+	    token: string;
+	    wildcard: boolean;
+	    presented: boolean;
+	    processing: boolean;
+	    authorizationURL: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerChallengeDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.state = source["state"];
+	        this.type = source["type"];
+	        this.dnsName = source["dnsName"];
+	        this.reason = source["reason"];
+	        this.createdAt = source["createdAt"];
+	        this.token = source["token"];
+	        this.wildcard = source["wildcard"];
+	        this.presented = source["presented"];
+	        this.processing = source["processing"];
+	        this.authorizationURL = source["authorizationURL"];
+	    }
+	}
+	export class CertManagerChallengeInfo {
+	    name: string;
+	    namespace: string;
+	    state: string;
+	    type: string;
+	    dnsName: string;
+	    reason: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerChallengeInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.state = source["state"];
+	        this.type = source["type"];
+	        this.dnsName = source["dnsName"];
+	        this.reason = source["reason"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	
 	export class CertManagerIssuerDetail {
 	    name: string;
@@ -1252,6 +1392,62 @@ export namespace kube {
 	        this.ready = source["ready"];
 	        this.status = source["status"];
 	        this.type = source["type"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class CertManagerOrderDetail {
+	    name: string;
+	    namespace: string;
+	    state: string;
+	    reason: string;
+	    dnsNames: string;
+	    createdAt: string;
+	    commonName: string;
+	    dnsNameList: string[];
+	    url: string;
+	    finalizeURL: string;
+	    authorizations: number;
+	    failureTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerOrderDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.state = source["state"];
+	        this.reason = source["reason"];
+	        this.dnsNames = source["dnsNames"];
+	        this.createdAt = source["createdAt"];
+	        this.commonName = source["commonName"];
+	        this.dnsNameList = source["dnsNameList"];
+	        this.url = source["url"];
+	        this.finalizeURL = source["finalizeURL"];
+	        this.authorizations = source["authorizations"];
+	        this.failureTime = source["failureTime"];
+	    }
+	}
+	export class CertManagerOrderInfo {
+	    name: string;
+	    namespace: string;
+	    state: string;
+	    reason: string;
+	    dnsNames: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerOrderInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.state = source["state"];
+	        this.reason = source["reason"];
+	        this.dnsNames = source["dnsNames"];
 	        this.createdAt = source["createdAt"];
 	    }
 	}
