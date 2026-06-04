@@ -171,6 +171,13 @@ import {
   GetFluxReceiver,
   ReconcileFluxResource,
   SetFluxResourceSuspended,
+  ListCertManagerCertificates,
+  GetCertManagerCertificate,
+  ListCertManagerIssuers,
+  GetCertManagerIssuer,
+  ListCertManagerClusterIssuers,
+  GetCertManagerClusterIssuer,
+  RenewCertificate,
   ListNamespaces,
   ListNodes,
   ListNodePoolNodes,
@@ -454,6 +461,11 @@ export type FluxAlertDetail = kube.FluxAlertDetail
 export type FluxAlertSource = kube.FluxAlertSource
 export type FluxReceiverInfo = kube.FluxReceiverInfo
 export type FluxReceiverDetail = kube.FluxReceiverDetail
+export type CertManagerCondition = kube.CertManagerCondition
+export type CertManagerCertificateInfo = kube.CertManagerCertificateInfo
+export type CertManagerCertificateDetail = kube.CertManagerCertificateDetail
+export type CertManagerIssuerInfo = kube.CertManagerIssuerInfo
+export type CertManagerIssuerDetail = kube.CertManagerIssuerDetail
 export type IstioVirtualServiceInfo = kube.IstioVirtualServiceInfo
 export type IstioVirtualServiceDetail = kube.IstioVirtualServiceDetail
 export type IstioDestinationRuleInfo = kube.IstioDestinationRuleInfo
@@ -1084,6 +1096,35 @@ export const api = {
     name: string,
     suspended: boolean,
   ): Promise<void> => SetFluxResourceSuspended(contextName, kind, namespace, name, suspended),
+  listCertManagerCertificates: (
+    contextName: string,
+    namespace: string,
+  ): Promise<CertManagerCertificateInfo[]> =>
+    ListCertManagerCertificates(contextName, namespace),
+  getCertManagerCertificate: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<CertManagerCertificateDetail> =>
+    GetCertManagerCertificate(contextName, namespace, name),
+  listCertManagerIssuers: (
+    contextName: string,
+    namespace: string,
+  ): Promise<CertManagerIssuerInfo[]> => ListCertManagerIssuers(contextName, namespace),
+  getCertManagerIssuer: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<CertManagerIssuerDetail> => GetCertManagerIssuer(contextName, namespace, name),
+  listCertManagerClusterIssuers: (
+    contextName: string,
+  ): Promise<CertManagerIssuerInfo[]> => ListCertManagerClusterIssuers(contextName),
+  getCertManagerClusterIssuer: (
+    contextName: string,
+    name: string,
+  ): Promise<CertManagerIssuerDetail> => GetCertManagerClusterIssuer(contextName, name),
+  renewCertificate: (contextName: string, namespace: string, name: string): Promise<void> =>
+    RenewCertificate(contextName, namespace, name),
   version: (): Promise<string> => Version(),
   checkForUpdate: (): Promise<UpdateResult> => CheckForUpdate(),
 }
