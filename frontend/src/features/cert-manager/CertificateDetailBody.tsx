@@ -5,7 +5,7 @@ import { ErrorBox, Field, Section } from '@/features/_shared/DetailPrimitives'
 import { ConditionPill } from '@/features/_shared/ConditionPill'
 import { useResourceDetail } from '@/features/_shared/useResourceDetail'
 import { CertManagerConditionsTable } from './CertManagerConditionsTable'
-import { ExpiryCell } from './CertificatesView'
+import { ExpiryCell } from './ExpiryCell'
 
 type Props = {
   contextName: string | null

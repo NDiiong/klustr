@@ -93,6 +93,9 @@ import { IstioDestinationRulesView } from '@/features/istio/IstioDestinationRule
 import { IstioPeerAuthenticationsView } from '@/features/istio/IstioPeerAuthenticationsView'
 import { CertificatesView } from '@/features/cert-manager/CertificatesView'
 import { IssuersView } from '@/features/cert-manager/IssuersView'
+import { CertificateRequestsView } from '@/features/cert-manager/CertificateRequestsView'
+import { OrdersView } from '@/features/cert-manager/OrdersView'
+import { ChallengesView } from '@/features/cert-manager/ChallengesView'
 import { ResourceDetailPanel } from '@/features/_shared/ResourceDetailPanel'
 import { ARGO_GROUP, CERT_MANAGER_GROUP_NAV, FLUX_GROUP, GATEWAY_GROUP, HELM_GROUP, ISTIO_GROUP, KARPENTER_GROUP, RESOURCE_GROUPS, type ResourceGroup } from '@/features/_shared/resourceGroups'
 import { HiddenSidebarItemsButton } from '@/features/_shared/HiddenSidebarItemsButton'
@@ -306,6 +309,12 @@ function MainView() {
       return <IssuersView cluster={false} />
     case 'certmanagerclusterissuers':
       return <IssuersView cluster={true} />
+    case 'certmanagercertificaterequests':
+      return <CertificateRequestsView />
+    case 'certmanagerorders':
+      return <OrdersView />
+    case 'certmanagerchallenges':
+      return <ChallengesView />
     default:
       return (
         <div className="flex flex-1 items-center justify-center">

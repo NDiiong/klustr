@@ -104,8 +104,22 @@ import { IstioDestinationRuleDetailBody } from '@/features/istio/IstioDestinatio
 import { IstioPeerAuthenticationDetailBody } from '@/features/istio/IstioPeerAuthenticationDetailBody'
 import { CertificateDetailBody } from '@/features/cert-manager/CertificateDetailBody'
 import { IssuerDetailBody } from '@/features/cert-manager/IssuerDetailBody'
+import { CertificateRequestDetailBody } from '@/features/cert-manager/CertificateRequestDetailBody'
+import { OrderDetailBody } from '@/features/cert-manager/OrderDetailBody'
+import { ChallengeDetailBody } from '@/features/cert-manager/ChallengeDetailBody'
+import { CertManagerChainTab } from '@/features/cert-manager/CertManagerChainTab'
+import { CertManagerStatePill } from '@/features/cert-manager/CertManagerStatePill'
 import { RenewCertificateButton } from '@/features/cert-manager/RenewCertificateButton'
 import { isCertManagerCertificate } from '@/features/cert-manager/certManagerKinds'
+import {
+  CERT_MANAGER_ACME_GROUP,
+  CERT_MANAGER_CERTIFICATEREQUEST_RESOURCE,
+  CERT_MANAGER_CHALLENGE_RESOURCE,
+  CERT_MANAGER_GROUP,
+  CERT_MANAGER_ORDER_RESOURCE,
+} from '@/features/cert-manager/certManagerKinds'
+import { ConditionPill } from '@/features/_shared/ConditionPill'
+import { formatAge } from '@/lib/time'
 import { ReconcileFluxResourceButton } from '@/features/flux/ReconcileFluxResourceButton'
 import { SuspendResumeFluxResourceButton } from '@/features/flux/SuspendResumeFluxResourceButton'
 import {
@@ -390,15 +404,26 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
     resource.kind === 'IstioPeerAuthentication' && resource.gvr?.group === 'security.istio.io'
   const isIstio = isIstioVirtualService || isIstioDestinationRule || isIstioPeerAuthentication
   const isCertManagerCert =
-    resource.kind === 'Certificate' && resource.gvr?.group === 'cert-manager.io'
+    resource.kind === 'Certificate' && resource.gvr?.group === CERT_MANAGER_GROUP
   const isCertManagerIssuer =
-    resource.kind === 'Issuer' && resource.gvr?.group === 'cert-manager.io'
+    resource.kind === 'Issuer' && resource.gvr?.group === CERT_MANAGER_GROUP
   const isCertManagerClusterIssuer =
-    resource.kind === 'ClusterIssuer' && resource.gvr?.group === 'cert-manager.io'
+    resource.kind === 'ClusterIssuer' && resource.gvr?.group === CERT_MANAGER_GROUP
+  const isCertManagerRequest =
+    resource.kind === 'CertificateRequest' && resource.gvr?.group === CERT_MANAGER_GROUP
+  const isCertManagerOrder =
+    resource.kind === 'Order' && resource.gvr?.group === CERT_MANAGER_ACME_GROUP
+  const isCertManagerChallenge =
+    resource.kind === 'Challenge' && resource.gvr?.group === CERT_MANAGER_ACME_GROUP
   const isCertManager =
-    isCertManagerCert || isCertManagerIssuer || isCertManagerClusterIssuer
+    isCertManagerCert ||
+    isCertManagerIssuer ||
+    isCertManagerClusterIssuer ||
+    isCertManagerRequest ||
+    isCertManagerOrder ||
+    isCertManagerChallenge
   const hasOverview = isArgoAppProject || isArgoAppSet || isFlux || isIstio || isCertManager
-  const hasEvents = isFlux
+  const hasEvents = isFlux || isCertManager
   const initialTab = isArgoApp
     ? 'resources'
     : hasKarpenterNodes
@@ -416,6 +441,9 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
         {hasKarpenterNodes && (
           <TabsTrigger value="nodes">{isKarpenterNodeClaim ? 'Node' : 'Nodes'}</TabsTrigger>
         )}
+        {isCertManagerCert && <TabsTrigger value="requests">Requests</TabsTrigger>}
+        {isCertManagerRequest && <TabsTrigger value="orders">Orders</TabsTrigger>}
+        {isCertManagerOrder && <TabsTrigger value="challenges">Challenges</TabsTrigger>}
         {hasEvents && <TabsTrigger value="events">Events</TabsTrigger>}
         <TabsTrigger value="yaml">YAML</TabsTrigger>
       </TabsList>
@@ -561,6 +589,102 @@ function CustomResourceTabs({ contextName, resource }: { contextName: string | n
             namespace={resource.namespace}
             name={resource.name}
             cluster={isCertManagerClusterIssuer}
+          />
+        </TabsContent>
+      )}
+      {isCertManagerRequest && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <CertificateRequestDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isCertManagerOrder && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <OrderDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isCertManagerChallenge && (
+        <TabsContent value="overview" className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <ChallengeDetailBody
+            contextName={contextName}
+            namespace={resource.namespace}
+            name={resource.name}
+          />
+        </TabsContent>
+      )}
+      {isCertManagerCert && (
+        <TabsContent value="requests" className="min-h-0 flex-1 p-0">
+          <CertManagerChainTab
+            contextName={contextName}
+            parentNamespace={resource.namespace}
+            parentName={resource.name}
+            childGroup={CERT_MANAGER_GROUP}
+            childResource={CERT_MANAGER_CERTIFICATEREQUEST_RESOURCE}
+            childKind="CertificateRequest"
+            headers={['Name', 'Approved', 'Ready', 'Issuer', 'Age']}
+            load={api.certManagerCertificateRequestsFor}
+            renderCells={(r) => [
+              <span className="font-mono">{r.name}</span>,
+              <ConditionPill status={r.approved} />,
+              <ConditionPill status={r.ready} />,
+              r.issuer || '—',
+              formatAge(r.createdAt),
+            ]}
+            absentLabel="The cert-manager.io CRDs are not present."
+            emptyLabel="No CertificateRequests for this Certificate yet."
+          />
+        </TabsContent>
+      )}
+      {isCertManagerRequest && (
+        <TabsContent value="orders" className="min-h-0 flex-1 p-0">
+          <CertManagerChainTab
+            contextName={contextName}
+            parentNamespace={resource.namespace}
+            parentName={resource.name}
+            childGroup={CERT_MANAGER_ACME_GROUP}
+            childResource={CERT_MANAGER_ORDER_RESOURCE}
+            childKind="Order"
+            headers={['Name', 'State', 'Reason', 'Age']}
+            load={api.certManagerOrdersFor}
+            renderCells={(r) => [
+              <span className="font-mono">{r.name}</span>,
+              <CertManagerStatePill state={r.state} />,
+              <span className="text-muted-foreground">{r.reason || '—'}</span>,
+              formatAge(r.createdAt),
+            ]}
+            absentLabel="No ACME issuer — acme.cert-manager.io Orders CRD is not present."
+            emptyLabel="No Orders for this request (non-ACME issuer or not yet created)."
+          />
+        </TabsContent>
+      )}
+      {isCertManagerOrder && (
+        <TabsContent value="challenges" className="min-h-0 flex-1 p-0">
+          <CertManagerChainTab
+            contextName={contextName}
+            parentNamespace={resource.namespace}
+            parentName={resource.name}
+            childGroup={CERT_MANAGER_ACME_GROUP}
+            childResource={CERT_MANAGER_CHALLENGE_RESOURCE}
+            childKind="Challenge"
+            headers={['Name', 'State', 'Type', 'DNS Name', 'Reason', 'Age']}
+            load={api.certManagerChallengesFor}
+            renderCells={(r) => [
+              <span className="font-mono">{r.name}</span>,
+              <CertManagerStatePill state={r.state} />,
+              r.type || '—',
+              <span className="font-mono">{r.dnsName || '—'}</span>,
+              <span className="text-muted-foreground">{r.reason || '—'}</span>,
+              formatAge(r.createdAt),
+            ]}
+            absentLabel="acme.cert-manager.io Challenges CRD is not present."
+            emptyLabel="No Challenges for this Order (already validated or not yet created)."
           />
         </TabsContent>
       )}

@@ -134,6 +134,9 @@ export type ResourceView =
   | 'certmanagercertificates'
   | 'certmanagerissuers'
   | 'certmanagerclusterissuers'
+  | 'certmanagercertificaterequests'
+  | 'certmanagerorders'
+  | 'certmanagerchallenges'
 
 export type ResourceKind =
   | 'Pod'

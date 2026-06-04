@@ -1,24 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { api, type CertManagerCertificateInfo } from '@/lib/api'
+import { api, type CertManagerOrderInfo } from '@/lib/api'
 import { formatAge } from '@/lib/time'
 import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { COL_MD, COL_SM } from '@/features/_shared/columnSizes'
-import { ConditionPill } from '@/features/_shared/ConditionPill'
 import { type ByContext } from '@/store/resources'
 import { useCRDStore } from '@/store/crds'
 import { useIsAggregated, useUIStore } from '@/store/ui'
-import {
-  CERT_MANAGER_CERTIFICATE_RESOURCE,
-  CERT_MANAGER_GROUP,
-} from './certManagerKinds'
-import { ExpiryCell } from './ExpiryCell'
-import { RenewCertificateButton } from './RenewCertificateButton'
+import { CERT_MANAGER_ACME_GROUP, CERT_MANAGER_ORDER_RESOURCE } from './certManagerKinds'
+import { CertManagerStatePill } from './CertManagerStatePill'
 
-const columnHelper = createColumnHelper<CertManagerCertificateInfo>()
-const EMPTY: CertManagerCertificateInfo[] = []
+const columnHelper = createColumnHelper<CertManagerOrderInfo>()
+const EMPTY: CertManagerOrderInfo[] = []
 
-export function CertificatesView() {
+export function OrdersView() {
   const selectedContext = useUIStore((s) => s.selectedContext)
   const isAggregated = useIsAggregated()
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
@@ -26,12 +21,11 @@ export function CertificatesView() {
   const crd = useCRDStore(
     (s) =>
       s.crds.find(
-        (c) =>
-          c.group === CERT_MANAGER_GROUP && c.resource === CERT_MANAGER_CERTIFICATE_RESOURCE,
+        (c) => c.group === CERT_MANAGER_ACME_GROUP && c.resource === CERT_MANAGER_ORDER_RESOURCE,
       ) ?? null,
   )
 
-  const [rows, setRows] = useState<CertManagerCertificateInfo[]>(EMPTY)
+  const [rows, setRows] = useState<CertManagerOrderInfo[]>(EMPTY)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -60,13 +54,13 @@ export function CertificatesView() {
     () => [
       columnHelper.accessor('namespace', { header: 'Namespace', size: COL_MD }),
       columnHelper.accessor('name', { header: 'Name' }),
-      columnHelper.accessor('ready', {
-        header: 'Ready',
+      columnHelper.accessor('state', {
+        header: 'State',
         size: COL_SM,
-        cell: (i) => <ConditionPill status={i.getValue()} />,
+        cell: (i) => <CertManagerStatePill state={i.getValue()} />,
       }),
-      columnHelper.accessor('secretName', {
-        header: 'Secret',
+      columnHelper.accessor('dnsNames', {
+        header: 'DNS Names',
         size: COL_MD,
         cell: (i) =>
           i.getValue() ? (
@@ -75,33 +69,14 @@ export function CertificatesView() {
             <span className="text-muted-foreground">—</span>
           ),
       }),
-      columnHelper.accessor('issuer', {
-        header: 'Issuer',
+      columnHelper.accessor('reason', {
+        header: 'Reason',
         size: COL_MD,
-        cell: (i) => i.getValue() || <span className="text-muted-foreground">—</span>,
-      }),
-      columnHelper.accessor('notAfter', {
-        header: 'Expiry',
-        size: COL_MD,
-        cell: (i) => <ExpiryCell iso={i.getValue()} />,
-        sortingFn: 'datetime',
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: 'Actions',
-        size: 120,
-        cell: (i) => {
-          const row = i.row.original
-          if (!selectedContext) return null
-          return (
-            <RenewCertificateButton
-              contextName={selectedContext}
-              namespace={row.namespace}
-              name={row.name}
-              variant="row"
-            />
-          )
-        },
+        cell: (i) => (
+          <span className="truncate text-xs text-muted-foreground" title={i.getValue()}>
+            {i.getValue() || '—'}
+          </span>
+        ),
       }),
       columnHelper.accessor('createdAt', {
         header: 'Age',
@@ -110,26 +85,20 @@ export function CertificatesView() {
         sortingFn: 'datetime',
       }),
     ],
-    [selectedContext],
+    [],
   )
 
-  const data = useMemo<ByContext<CertManagerCertificateInfo>>(
+  const data = useMemo<ByContext<CertManagerOrderInfo>>(
     () => (selectedContext ? { [selectedContext]: rows } : {}),
     [selectedContext, rows],
   )
-  const setData = useCallback(
-    (_ctx: string, list: CertManagerCertificateInfo[]) => setRows(list),
-    [],
-  )
-  const fetch = useCallback(
-    (ctx: string, ns: string) => api.listCertManagerCertificates(ctx, ns),
-    [],
-  )
+  const setData = useCallback((_ctx: string, list: CertManagerOrderInfo[]) => setRows(list), [])
+  const fetch = useCallback((ctx: string, ns: string) => api.listCertManagerOrders(ctx, ns), [])
   const onRowClick = useCallback(
-    (row: CertManagerCertificateInfo, ctx: string) => {
+    (row: CertManagerOrderInfo, ctx: string) => {
       if (!crd) return
       setSelectedResource({
-        kind: 'Certificate',
+        kind: 'Order',
         namespace: row.namespace,
         name: row.name,
         context: ctx,
@@ -142,7 +111,7 @@ export function CertificatesView() {
   if (isAggregated) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 text-center text-xs text-muted-foreground">
-        cert-manager Certificates are only available in single-context mode.
+        ACME Orders are only available in single-context mode.
       </div>
     )
   }
@@ -150,10 +119,10 @@ export function CertificatesView() {
   if (!crd) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-        <div className="text-sm">cert-manager is not installed in this cluster.</div>
+        <div className="text-sm">No ACME issuer in this cluster.</div>
         <div className="max-w-md text-xs text-muted-foreground">
-          The <code className="rounded bg-muted px-1">certificates.cert-manager.io</code> CRD is not
-          present.
+          The <code className="rounded bg-muted px-1">orders.acme.cert-manager.io</code> CRD is not
+          present — Orders only exist when an ACME (e.g. Let&apos;s Encrypt) issuer is configured.
         </div>
       </div>
     )
@@ -162,7 +131,7 @@ export function CertificatesView() {
   if (error) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 text-xs text-destructive">
-        Failed to start watch for Certificate: {error}
+        Failed to start watch for Order: {error}
       </div>
     )
   }
@@ -170,15 +139,15 @@ export function CertificatesView() {
   if (!ready) {
     return (
       <div className="flex flex-1 items-center justify-center text-xs text-muted-foreground">
-        Starting watch for Certificate…
+        Starting watch for Order…
       </div>
     )
   }
 
   return (
     <ResourceTable
-      kind={`cr:${CERT_MANAGER_GROUP}/${CERT_MANAGER_CERTIFICATE_RESOURCE}`}
-      noun={{ singular: 'certificate', plural: 'certificates' }}
+      kind={`cr:${CERT_MANAGER_ACME_GROUP}/${CERT_MANAGER_ORDER_RESOURCE}`}
+      noun={{ singular: 'order', plural: 'orders' }}
       scope="namespaced"
       data={data}
       setData={setData}

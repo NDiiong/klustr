@@ -299,6 +299,9 @@ export const CERT_MANAGER_GROUP_NAV: ResourceGroup = {
   icon: ShieldCheck,
   items: [
     { label: 'Certificates', view: 'certmanagercertificates', icon: ShieldCheck },
+    { label: 'Requests', view: 'certmanagercertificaterequests', icon: ClipboardList },
+    { label: 'Orders', view: 'certmanagerorders', icon: ScrollText },
+    { label: 'Challenges', view: 'certmanagerchallenges', icon: ScanSearch },
     { label: 'Issuers', view: 'certmanagerissuers', icon: Stamp },
     { label: 'ClusterIssuers', view: 'certmanagerclusterissuers', icon: Globe },
   ],

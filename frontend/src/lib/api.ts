@@ -178,6 +178,15 @@ import {
   ListCertManagerClusterIssuers,
   GetCertManagerClusterIssuer,
   RenewCertificate,
+  ListCertManagerCertificateRequests,
+  GetCertManagerCertificateRequest,
+  CertManagerCertificateRequestsFor,
+  ListCertManagerOrders,
+  GetCertManagerOrder,
+  CertManagerOrdersFor,
+  ListCertManagerChallenges,
+  GetCertManagerChallenge,
+  CertManagerChallengesFor,
   ListNamespaces,
   ListNodes,
   ListNodePoolNodes,
@@ -466,6 +475,12 @@ export type CertManagerCertificateInfo = kube.CertManagerCertificateInfo
 export type CertManagerCertificateDetail = kube.CertManagerCertificateDetail
 export type CertManagerIssuerInfo = kube.CertManagerIssuerInfo
 export type CertManagerIssuerDetail = kube.CertManagerIssuerDetail
+export type CertManagerCertificateRequestInfo = kube.CertManagerCertificateRequestInfo
+export type CertManagerCertificateRequestDetail = kube.CertManagerCertificateRequestDetail
+export type CertManagerOrderInfo = kube.CertManagerOrderInfo
+export type CertManagerOrderDetail = kube.CertManagerOrderDetail
+export type CertManagerChallengeInfo = kube.CertManagerChallengeInfo
+export type CertManagerChallengeDetail = kube.CertManagerChallengeDetail
 export type IstioVirtualServiceInfo = kube.IstioVirtualServiceInfo
 export type IstioVirtualServiceDetail = kube.IstioVirtualServiceDetail
 export type IstioDestinationRuleInfo = kube.IstioDestinationRuleInfo
@@ -1125,6 +1140,54 @@ export const api = {
   ): Promise<CertManagerIssuerDetail> => GetCertManagerClusterIssuer(contextName, name),
   renewCertificate: (contextName: string, namespace: string, name: string): Promise<void> =>
     RenewCertificate(contextName, namespace, name),
+  listCertManagerCertificateRequests: (
+    contextName: string,
+    namespace: string,
+  ): Promise<CertManagerCertificateRequestInfo[]> =>
+    ListCertManagerCertificateRequests(contextName, namespace),
+  getCertManagerCertificateRequest: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<CertManagerCertificateRequestDetail> =>
+    GetCertManagerCertificateRequest(contextName, namespace, name),
+  certManagerCertificateRequestsFor: (
+    contextName: string,
+    namespace: string,
+    certName: string,
+  ): Promise<CertManagerCertificateRequestInfo[]> =>
+    CertManagerCertificateRequestsFor(contextName, namespace, certName),
+  listCertManagerOrders: (
+    contextName: string,
+    namespace: string,
+  ): Promise<CertManagerOrderInfo[]> => ListCertManagerOrders(contextName, namespace),
+  getCertManagerOrder: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<CertManagerOrderDetail> => GetCertManagerOrder(contextName, namespace, name),
+  certManagerOrdersFor: (
+    contextName: string,
+    namespace: string,
+    requestName: string,
+  ): Promise<CertManagerOrderInfo[]> =>
+    CertManagerOrdersFor(contextName, namespace, requestName),
+  listCertManagerChallenges: (
+    contextName: string,
+    namespace: string,
+  ): Promise<CertManagerChallengeInfo[]> => ListCertManagerChallenges(contextName, namespace),
+  getCertManagerChallenge: (
+    contextName: string,
+    namespace: string,
+    name: string,
+  ): Promise<CertManagerChallengeDetail> =>
+    GetCertManagerChallenge(contextName, namespace, name),
+  certManagerChallengesFor: (
+    contextName: string,
+    namespace: string,
+    orderName: string,
+  ): Promise<CertManagerChallengeInfo[]> =>
+    CertManagerChallengesFor(contextName, namespace, orderName),
   version: (): Promise<string> => Version(),
   checkForUpdate: (): Promise<UpdateResult> => CheckForUpdate(),
 }
