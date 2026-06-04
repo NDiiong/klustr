@@ -1075,6 +1075,38 @@ func (a *App) GetIstioPeerAuthentication(contextName, namespace, name string) (*
 }
 
 // ---------------------------------------------------------------------------
+// cert-manager bindings.
+// ---------------------------------------------------------------------------
+
+func (a *App) ListCertManagerCertificates(contextName, namespace string) []kube.CertManagerCertificateInfo {
+	return a.clients.ListCertManagerCertificates(contextName, namespace)
+}
+
+func (a *App) GetCertManagerCertificate(contextName, namespace, name string) (*kube.CertManagerCertificateDetail, error) {
+	return a.clients.GetCertManagerCertificate(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListCertManagerIssuers(contextName, namespace string) []kube.CertManagerIssuerInfo {
+	return a.clients.ListCertManagerIssuers(contextName, namespace)
+}
+
+func (a *App) GetCertManagerIssuer(contextName, namespace, name string) (*kube.CertManagerIssuerDetail, error) {
+	return a.clients.GetCertManagerIssuer(a.ctx, contextName, namespace, name)
+}
+
+func (a *App) ListCertManagerClusterIssuers(contextName string) []kube.CertManagerIssuerInfo {
+	return a.clients.ListCertManagerClusterIssuers(contextName)
+}
+
+func (a *App) GetCertManagerClusterIssuer(contextName, name string) (*kube.CertManagerIssuerDetail, error) {
+	return a.clients.GetCertManagerClusterIssuer(a.ctx, contextName, name)
+}
+
+func (a *App) RenewCertificate(contextName, namespace, name string) error {
+	return a.clients.RenewCertificate(a.ctx, contextName, namespace, name)
+}
+
+// ---------------------------------------------------------------------------
 // Karpenter bindings.
 // ---------------------------------------------------------------------------
 

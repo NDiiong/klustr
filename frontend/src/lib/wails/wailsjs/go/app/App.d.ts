@@ -33,6 +33,12 @@ export function GetCSIDriver(arg1:string,arg2:string):Promise<kube.CSIDriverDeta
 
 export function GetCSINode(arg1:string,arg2:string):Promise<kube.CSINodeDetail>;
 
+export function GetCertManagerCertificate(arg1:string,arg2:string,arg3:string):Promise<kube.CertManagerCertificateDetail>;
+
+export function GetCertManagerClusterIssuer(arg1:string,arg2:string):Promise<kube.CertManagerIssuerDetail>;
+
+export function GetCertManagerIssuer(arg1:string,arg2:string,arg3:string):Promise<kube.CertManagerIssuerDetail>;
+
 export function GetCertificateSigningRequest(arg1:string,arg2:string):Promise<kube.CertificateSigningRequestDetail>;
 
 export function GetClusterOverview(arg1:string):Promise<kube.ClusterOverview>;
@@ -204,6 +210,12 @@ export function ListCRDs(arg1:string):Promise<Array<kube.CRDInfo>>;
 export function ListCSIDrivers(arg1:string):Promise<Array<kube.CSIDriverInfo>>;
 
 export function ListCSINodes(arg1:string):Promise<Array<kube.CSINodeInfo>>;
+
+export function ListCertManagerCertificates(arg1:string,arg2:string):Promise<Array<kube.CertManagerCertificateInfo>>;
+
+export function ListCertManagerClusterIssuers(arg1:string):Promise<Array<kube.CertManagerIssuerInfo>>;
+
+export function ListCertManagerIssuers(arg1:string,arg2:string):Promise<Array<kube.CertManagerIssuerInfo>>;
 
 export function ListCertificateSigningRequests(arg1:string):Promise<Array<kube.CertificateSigningRequestInfo>>;
 
@@ -396,6 +408,8 @@ export function ReconcileFluxResource(arg1:string,arg2:string,arg3:string,arg4:s
 export function RefreshArgoApplication(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
 export function RemoveHelmRepo(arg1:string):Promise<void>;
+
+export function RenewCertificate(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function ResizeExec(arg1:string,arg2:number,arg3:number):Promise<void>;
 

@@ -62,6 +62,18 @@ export function GetCSINode(arg1, arg2) {
   return window['go']['app']['App']['GetCSINode'](arg1, arg2);
 }
 
+export function GetCertManagerCertificate(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetCertManagerCertificate'](arg1, arg2, arg3);
+}
+
+export function GetCertManagerClusterIssuer(arg1, arg2) {
+  return window['go']['app']['App']['GetCertManagerClusterIssuer'](arg1, arg2);
+}
+
+export function GetCertManagerIssuer(arg1, arg2, arg3) {
+  return window['go']['app']['App']['GetCertManagerIssuer'](arg1, arg2, arg3);
+}
+
 export function GetCertificateSigningRequest(arg1, arg2) {
   return window['go']['app']['App']['GetCertificateSigningRequest'](arg1, arg2);
 }
@@ -404,6 +416,18 @@ export function ListCSIDrivers(arg1) {
 
 export function ListCSINodes(arg1) {
   return window['go']['app']['App']['ListCSINodes'](arg1);
+}
+
+export function ListCertManagerCertificates(arg1, arg2) {
+  return window['go']['app']['App']['ListCertManagerCertificates'](arg1, arg2);
+}
+
+export function ListCertManagerClusterIssuers(arg1) {
+  return window['go']['app']['App']['ListCertManagerClusterIssuers'](arg1);
+}
+
+export function ListCertManagerIssuers(arg1, arg2) {
+  return window['go']['app']['App']['ListCertManagerIssuers'](arg1, arg2);
 }
 
 export function ListCertificateSigningRequests(arg1) {
@@ -788,6 +812,10 @@ export function RefreshArgoApplication(arg1, arg2, arg3, arg4) {
 
 export function RemoveHelmRepo(arg1) {
   return window['go']['app']['App']['RemoveHelmRepo'](arg1);
+}
+
+export function RenewCertificate(arg1, arg2, arg3) {
+  return window['go']['app']['App']['RenewCertificate'](arg1, arg2, arg3);
 }
 
 export function ResizeExec(arg1, arg2, arg3) {

@@ -1066,6 +1066,195 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class CertManagerCondition {
+	    type: string;
+	    status: string;
+	    reason: string;
+	    message: string;
+	    lastTransitionTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerCondition(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.status = source["status"];
+	        this.reason = source["reason"];
+	        this.message = source["message"];
+	        this.lastTransitionTime = source["lastTransitionTime"];
+	    }
+	}
+	export class CertManagerCertificateDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    secretName: string;
+	    issuer: string;
+	    commonName: string;
+	    notAfter: string;
+	    renewalTime: string;
+	    createdAt: string;
+	    conditions: CertManagerCondition[];
+	    issuerKind: string;
+	    issuerGroup: string;
+	    dnsNames: string[];
+	    ipAddresses: string[];
+	    uris: string[];
+	    usages: string[];
+	    notBefore: string;
+	    duration: string;
+	    renewBefore: string;
+	    isCA: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerCertificateDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.secretName = source["secretName"];
+	        this.issuer = source["issuer"];
+	        this.commonName = source["commonName"];
+	        this.notAfter = source["notAfter"];
+	        this.renewalTime = source["renewalTime"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], CertManagerCondition);
+	        this.issuerKind = source["issuerKind"];
+	        this.issuerGroup = source["issuerGroup"];
+	        this.dnsNames = source["dnsNames"];
+	        this.ipAddresses = source["ipAddresses"];
+	        this.uris = source["uris"];
+	        this.usages = source["usages"];
+	        this.notBefore = source["notBefore"];
+	        this.duration = source["duration"];
+	        this.renewBefore = source["renewBefore"];
+	        this.isCA = source["isCA"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class CertManagerCertificateInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    secretName: string;
+	    issuer: string;
+	    commonName: string;
+	    notAfter: string;
+	    renewalTime: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerCertificateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.secretName = source["secretName"];
+	        this.issuer = source["issuer"];
+	        this.commonName = source["commonName"];
+	        this.notAfter = source["notAfter"];
+	        this.renewalTime = source["renewalTime"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
+	
+	export class CertManagerIssuerDetail {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    type: string;
+	    createdAt: string;
+	    conditions: CertManagerCondition[];
+	    acmeServer: string;
+	    acmeEmail: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerIssuerDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.type = source["type"];
+	        this.createdAt = source["createdAt"];
+	        this.conditions = this.convertValues(source["conditions"], CertManagerCondition);
+	        this.acmeServer = source["acmeServer"];
+	        this.acmeEmail = source["acmeEmail"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class CertManagerIssuerInfo {
+	    name: string;
+	    namespace: string;
+	    ready: string;
+	    status: string;
+	    type: string;
+	    createdAt: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CertManagerIssuerInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.namespace = source["namespace"];
+	        this.ready = source["ready"];
+	        this.status = source["status"];
+	        this.type = source["type"];
+	        this.createdAt = source["createdAt"];
+	    }
+	}
 	export class CertificateSigningRequestDetail {
 	    name: string;
 	    uid: string;
