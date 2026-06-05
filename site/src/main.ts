@@ -33,6 +33,7 @@ const BASE = import.meta.env.BASE_URL
 type Shot = { file: string; title: string; theme: string }
 
 const SHOTS: Shot[] = [
+  { file: '01-welcome-default-dark.png', title: 'Connections', theme: 'Default Dark' },
   { file: '02-pods-aggregated-dracula.png', title: 'Aggregated pods', theme: 'Dracula' },
   { file: '03-cluster-overview-nord.png', title: 'Cluster overview', theme: 'Nord' },
   { file: '04-nodes-usage-one-dark.png', title: 'Node usage & pressure', theme: 'One Dark' },
@@ -48,7 +49,6 @@ const SHOTS: Shot[] = [
   { file: '12-pod-detail-monokai-light.png', title: 'Pod detail', theme: 'Monokai Light' },
   { file: '14-read-only-tokyo-night.png', title: 'Read-only mode', theme: 'Tokyo Night' },
   { file: '16-terminal-drawer-one-dark.png', title: 'Terminal drawer', theme: 'One Dark' },
-  { file: '01-welcome-default-dark.png', title: 'Connections', theme: 'Default Dark' },
 ]
 
 // ── Screenshots gallery ──────────────────────────────────────────────
