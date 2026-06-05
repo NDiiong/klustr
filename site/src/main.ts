@@ -4,6 +4,7 @@ import {
   Copy,
   Download,
   ArrowDown,
+  ArrowUp,
   Check,
   ShieldCheck,
   Zap,
@@ -275,13 +276,21 @@ if (reduceMotion) {
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
 }
 
-// ── Sticky nav state ─────────────────────────────────────────────────
+// ── Sticky nav state + back-to-top ───────────────────────────────────
 const nav = document.getElementById('nav')
-if (nav) {
-  const onScroll = () => nav.classList.toggle('nav-scrolled', window.scrollY > 8)
+const toTop = document.getElementById('to-top')
+if (nav || toTop) {
+  const onScroll = () => {
+    const y = window.scrollY
+    nav?.classList.toggle('nav-scrolled', y > 8)
+    toTop?.classList.toggle('show', y > 600)
+  }
   window.addEventListener('scroll', onScroll, { passive: true })
   onScroll()
 }
+toTop?.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+})
 
 // ── Brand (OS) logos via simple-icons ────────────────────────────────
 const BRANDS: Record<string, { path: string; color: string }> = {
@@ -312,6 +321,7 @@ createIcons({
     Copy,
     Download,
     ArrowDown,
+    ArrowUp,
     Check,
     ShieldCheck,
     Zap,

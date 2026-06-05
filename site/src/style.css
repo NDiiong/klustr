@@ -335,6 +335,47 @@ pre.cmd .comment,
 
 [data-lucide] { width: 1em; height: 1em; stroke-width: 1.75; }
 
+/* ── Back-to-top ────────────────────────────────────────────────────── */
+
+#to-top {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  color: var(--color-muted-foreground);
+  background: oklch(0.190 0.020 264 / 0.72);
+  border: 1px solid var(--color-border-strong);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px -12px oklch(0 0 0 / 0.7);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+#to-top.show {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+#to-top:hover {
+  color: var(--color-foreground);
+  border-color: oklch(1 0 0 / 0.24);
+  background: oklch(0.225 0.022 264 / 0.88);
+}
+#to-top [data-lucide] { width: 1.15rem; height: 1.15rem; }
+@supports (padding: max(0px)) {
+  #to-top {
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
 /* ── Motion ─────────────────────────────────────────────────────────── */
 
 @keyframes fade-up {
@@ -354,4 +395,5 @@ pre.cmd .comment,
   * { scroll-behavior: auto !important; }
   .reveal { opacity: 1 !important; animation: none !important; }
   .live-dot { animation: none !important; }
+  #to-top { transform: none; transition: opacity 0.2s ease; }
 }
