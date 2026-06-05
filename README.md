@@ -41,7 +41,7 @@
 
 ## What is Klustr?
 
-Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://wails.io/) (Go + native webview) and React. It uses your existing `~/.kube/config` and speaks the standard Kubernetes API directly — **nothing is deployed in the cluster**. Drop the binary in, point at any context, and you're looking at a live view of everything you have permission to see — built-in resources, full **RBAC** with a **subject → effective-permissions** review, **Custom Resources (CRDs)**, **Helm releases**, **Argo CD Applications**, **Flux CD reconcilers**, and **Gateway API** routes included. No extra logins, no `argocd`, `flux` or `helm` CLI required — only your kubeconfig.
+Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://wails.io/) (Go + native webview) and React. It uses your existing `~/.kube/config` and speaks the standard Kubernetes API directly — **nothing is deployed in the cluster**. Drop the binary in, point at any context, and you're looking at a live view of everything you have permission to see — built-in resources, full **RBAC** with a **subject → effective-permissions** review, **Custom Resources (CRDs)**, **Helm releases**, **Argo CD Applications**, **Flux CD reconcilers**, **Gateway API** routes, and **cert-manager** certificates included. No extra logins, no `argocd`, `flux` or `helm` CLI required — only your kubeconfig.
 
 ## Features
 
@@ -56,6 +56,7 @@ Klustr is a cross-platform Kubernetes desktop client built with [Wails](https://
 - 🚢 **Argo CD.** Sync, Refresh, Rollback and cascade-aware Delete through the Kubernetes API — no `argocd-server`, no `argocd` CLI, no Argo login.
 - 🚀 **Flux CD.** Kustomization · HelmRelease · GitRepository · HelmRepository · OCIRepository · Bucket · Provider · Alert · Receiver — each with Reconcile + Suspend/Resume buttons that hit the standard Flux annotations, no `flux` CLI.
 - 🌉 **Gateway API.** Typed informers; **listener table**, per-rule **match → backend → weight** matrix and `RouteParentStatus` so a misrouted parent or `RefNotPermitted` backend is one click away. Vendor-neutral.
+- 🔐 **cert-manager.** Certificates, Issuers / ClusterIssuers, and the full issuance chain — CertificateRequest → Order → Challenge — with ready/expiry status and a drill-down across the chain. One-click **Renew**, no `cmctl` CLI.
 - 📜 **Logs.** Stern-style multi-pod streaming with per-pod ANSI colors, follow, save and regex.
 - 🖥️ **In-app exec.** SPDY shell into any container.
 - 🔧 **YAML edit.** Monaco editor with a server-side dry-run diff before apply.
@@ -186,6 +187,7 @@ Full design notes, conventions and the "add a new resource kind" recipe live in 
 - [x] Custom Resource Definitions (CRDs)
 - [x] Helm support — release browser, dry-run diff, install / upgrade / rollback / uninstall, repo management
 - [x] Gateway API — Gateways, HTTPRoutes, GRPCRoutes, GatewayClasses, ReferenceGrants (typed informers, status pills, listener / rule / RouteParentStatus tables)
+- [x] cert-manager — Certificates, Issuers / ClusterIssuers, CertificateRequests, Orders, Challenges (issuance-chain drill-down, ready/expiry status, one-click Renew)
 - [x] Multi-cluster aggregated mode + named context groups + per-context health ping
 - [x] Notarized macOS build — signed with a Developer ID Application certificate and notarized by Apple
 - [x] Linux (amd64) release distribution
