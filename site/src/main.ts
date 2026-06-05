@@ -32,16 +32,22 @@ const BASE = import.meta.env.BASE_URL
 type Shot = { file: string; title: string; theme: string }
 
 const SHOTS: Shot[] = [
-  { file: '03-cluster-overview-nord.png', title: 'Cluster overview', theme: 'Nord' },
   { file: '02-pods-aggregated-dracula.png', title: 'Aggregated pods', theme: 'Dracula' },
-  { file: '05-argo-sync-one-dark.png', title: 'Argo CD applications', theme: 'One Dark' },
-  { file: '04-helm-upgrade-tokyo-night-day.png', title: 'Helm upgrade', theme: 'Tokyo Night Day' },
-  { file: '06-gateway-httproutes-monokai.png', title: 'Gateway API · HTTPRoutes', theme: 'Monokai' },
-  { file: '07-logs-audit-stream-default-dark.png', title: 'Multi-pod log stream', theme: 'Default Dark' },
-  { file: '08-pod-detail-tokyo-night.png', title: 'Pod detail', theme: 'Tokyo Night' },
-  { file: '09-yaml-diff-monokai-light.png', title: 'YAML edit with diff', theme: 'Monokai Light' },
+  { file: '03-cluster-overview-nord.png', title: 'Cluster overview', theme: 'Nord' },
+  { file: '04-nodes-usage-one-dark.png', title: 'Node usage & pressure', theme: 'One Dark' },
+  { file: '05-helm-upgrade-tokyo-night-day.png', title: 'Helm upgrade', theme: 'Tokyo Night Day' },
+  { file: '06-argo-applications-one-light.png', title: 'Argo CD applications', theme: 'One Light' },
+  { file: '07-flux-kustomization-monokai.png', title: 'Flux CD', theme: 'Monokai' },
+  { file: '08-certmanager-chain-nord-light.png', title: 'cert-manager chain', theme: 'Nord Light' },
+  { file: '09-gateway-httproutes-tokyo-night.png', title: 'Gateway API · HTTPRoutes', theme: 'Tokyo Night' },
+  { file: '10-pod-diagnosis-default-light.png', title: 'Pod diagnosis', theme: 'Default Light' },
+  { file: '11-logs-stream-dracula-light.png', title: 'Multi-pod log stream', theme: 'Dracula Light' },
+  { file: '13-keda-hpa-nord.png', title: 'KEDA-driven HPA', theme: 'Nord' },
+  { file: '15-yaml-diff-default-dark.png', title: 'YAML edit with diff', theme: 'Default Dark' },
+  { file: '12-pod-detail-monokai-light.png', title: 'Pod detail', theme: 'Monokai Light' },
+  { file: '14-read-only-tokyo-night.png', title: 'Read-only mode', theme: 'Tokyo Night' },
+  { file: '16-terminal-drawer-one-dark.png', title: 'Terminal drawer', theme: 'One Dark' },
   { file: '01-welcome-default-dark.png', title: 'Connections', theme: 'Default Dark' },
-  { file: '10-port-forward-dracula-light.png', title: 'Port-forwarding', theme: 'Dracula Light' },
 ]
 
 // ── Screenshots gallery ──────────────────────────────────────────────
