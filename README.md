@@ -73,14 +73,20 @@ Every shot is captured live from real clusters. Each is rendered in a different 
 
 |   |   |
 |---|---|
-| ![Cluster overview — Nord](docs/screenshots/03-cluster-overview-nord.png) | ![Pods aggregated — Dracula](docs/screenshots/02-pods-aggregated-dracula.png) |
-| **Cluster overview** — CPU / memory / pod donuts, warnings feed | **Aggregated pods** — two clusters in one table, status pill variety |
-| ![Argo CD Applications — One Dark](docs/screenshots/05-argo-sync-one-dark.png) | ![Helm Upgrade — Tokyo Night Day](docs/screenshots/04-helm-upgrade-tokyo-night-day.png) |
-| **Argo CD** — Sync / Health pills, per-row Sync & Refresh without `argocd` CLI | **Helm Upgrade** — values editor, Wait / Atomic options, dry-run preview |
-| ![HTTPRoutes — Monokai](docs/screenshots/06-gateway-httproutes-monokai.png) | ![Logs streaming — Default Dark](docs/screenshots/07-logs-audit-stream-default-dark.png) |
-| **Gateway API** — HTTPRoutes with parents, hostnames, accepted pills | **Aggregated logs** — multi-pod stream, per-pod ANSI colors, level highlighting |
-| ![Pod detail — Tokyo Night](docs/screenshots/08-pod-detail-tokyo-night.png) | ![YAML edit — Monokai Light](docs/screenshots/09-yaml-diff-monokai-light.png) |
-| **Pod detail** — env, containers, conditions, clickable owner & node | **YAML edit** — Monaco editor with diff before apply |
+| ![Aggregated pods — Dracula](docs/screenshots/02-pods-aggregated-dracula.png) | ![Cluster overview — Nord](docs/screenshots/03-cluster-overview-nord.png) |
+| **Aggregated pods** — two clusters in one table, `Context` column, status pill variety | **Cluster overview** — CPU / memory / pod donuts, live warnings feed |
+| ![Nodes usage — One Dark](docs/screenshots/04-nodes-usage-one-dark.png) | ![KEDA HPA — Nord](docs/screenshots/13-keda-hpa-nord.png) |
+| **Node usage** — CPU / memory bars and pressure conditions per node | **KEDA HPA** — autoscaler detail with the cron trigger humanized |
+| ![Helm Upgrade — Tokyo Night Day](docs/screenshots/05-helm-upgrade-tokyo-night-day.png) | ![YAML diff — Default Dark](docs/screenshots/15-yaml-diff-default-dark.png) |
+| **Helm Upgrade** — values editor, Wait / Atomic options, dry-run preview | **YAML edit** — Monaco editor with a server-side diff before apply |
+| ![Argo CD Applications — One Light](docs/screenshots/06-argo-applications-one-light.png) | ![Flux Kustomization — Monokai](docs/screenshots/07-flux-kustomization-monokai.png) |
+| **Argo CD** — Sync / Health pills, per-row Sync & Refresh without `argocd` CLI | **Flux CD** — Kustomization conditions, source & applied revision, Reconcile / Suspend |
+| ![cert-manager chain — Nord Light](docs/screenshots/08-certmanager-chain-nord-light.png) | ![HTTPRoutes — Tokyo Night](docs/screenshots/09-gateway-httproutes-tokyo-night.png) |
+| **cert-manager** — certificate readiness, issuer, SANs and the issuance chain | **Gateway API** — HTTPRoutes with parents, hostnames, accepted pills |
+| ![Pod diagnosis — Default Light](docs/screenshots/10-pod-diagnosis-default-light.png) | ![Logs streaming — Dracula Light](docs/screenshots/11-logs-stream-dracula-light.png) |
+| **Pod diagnosis** — a card explaining *why* a pod is unhealthy (CrashLoopBackOff, OOMKilled…) | **Aggregated logs** — multi-pod stream, per-pod colors, level highlighting |
+| ![Read-only mode — Tokyo Night](docs/screenshots/14-read-only-tokyo-night.png) | ![Terminal drawer — One Dark](docs/screenshots/16-terminal-drawer-one-dark.png) |
+| **Read-only mode** — a per-context safety switch that blocks every mutation | **Terminal** — embedded shell drawer wired to the active context |
 
 ## Install
 
