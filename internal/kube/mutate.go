@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -219,6 +220,96 @@ func (m *ClientManager) ApplyResourceYAML(ctx context.Context, contextName, yaml
 		metav1.PatchOptions{FieldManager: "klustr", Force: &force},
 	)
 	return err
+}
+
+// MutationDiff is the before/after preview shown before a YAML apply is
+// committed. Before is the current live object ("" when the apply would
+// create it); After is what the server predicts the object becomes. Both come
+// from a server-side dry-run, so defaulting, admission and mutating webhooks
+// are already reflected — the same truthfulness Helm's --dry-run gives, unlike
+// a plain text diff of the user's edits.
+type MutationDiff struct {
+	Kind   string `json:"kind"`
+	Name   string `json:"name"`
+	Action string `json:"action"`
+	Before string `json:"before"`
+	After  string `json:"after"`
+}
+
+// DryRunApplyResourceYAML runs the same server-side apply as
+// ApplyResourceYAML but with DryRun=All, returning the live object and the
+// server-predicted result so the UI can diff them before the user commits.
+func (m *ClientManager) DryRunApplyResourceYAML(ctx context.Context, contextName, yamlBody string) (*MutationDiff, error) {
+	obj := &unstructured.Unstructured{}
+	if err := yaml.Unmarshal([]byte(yamlBody), &obj.Object); err != nil {
+		return nil, fmt.Errorf("invalid YAML: %w", err)
+	}
+	gvk := obj.GroupVersionKind()
+	if gvk.Kind == "" {
+		return nil, fmt.Errorf("YAML missing kind")
+	}
+	gvr, err := m.resolveGVK(contextName, gvk)
+	if err != nil {
+		return nil, err
+	}
+	dyn, err := m.dynamicClient(contextName)
+	if err != nil {
+		return nil, err
+	}
+	data, err := yaml.YAMLToJSON([]byte(yamlBody))
+	if err != nil {
+		return nil, fmt.Errorf("yaml→json: %w", err)
+	}
+
+	ri := resourceFor(dyn, gvr, obj.GetNamespace())
+
+	before := ""
+	action := "create"
+	if cur, err := ri.Get(ctx, obj.GetName(), metav1.GetOptions{}); err == nil {
+		action = "update"
+		if before, err = sanitizedYAML(cur); err != nil {
+			return nil, err
+		}
+	} else if !apierrors.IsNotFound(err) {
+		return nil, err
+	}
+
+	force := true
+	predicted, err := ri.Patch(
+		ctx,
+		obj.GetName(),
+		types.ApplyPatchType,
+		data,
+		metav1.PatchOptions{
+			FieldManager: "klustr",
+			Force:        &force,
+			DryRun:       []string{metav1.DryRunAll},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	after, err := sanitizedYAML(predicted)
+	if err != nil {
+		return nil, err
+	}
+	return &MutationDiff{
+		Kind:   gvk.Kind,
+		Name:   obj.GetName(),
+		Action: action,
+		Before: before,
+		After:  after,
+	}, nil
+}
+
+func sanitizedYAML(obj *unstructured.Unstructured) (string, error) {
+	clone := obj.DeepCopy()
+	sanitizeForYAML(clone)
+	data, err := yaml.Marshal(clone.Object)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 func (m *ClientManager) DeleteResource(ctx context.Context, contextName, kind, namespace, name string) error {

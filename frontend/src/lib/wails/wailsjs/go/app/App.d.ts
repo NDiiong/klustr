@@ -23,6 +23,8 @@ export function DeleteResource(arg1:string,arg2:string,arg3:string,arg4:string):
 
 export function DenyCertificateSigningRequest(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function DryRunApplyResourceYAML(arg1:string,arg2:string):Promise<kube.MutationDiff>;
+
 export function EnsureCustomResourceWatch(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
 export function FetchMetricsServerManifest():Promise<string>;

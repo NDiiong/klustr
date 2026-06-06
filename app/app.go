@@ -255,6 +255,10 @@ func (a *App) ApplyResourceYAML(contextName, yamlBody string) error {
 	return a.clients.ApplyResourceYAML(a.ctx, contextName, yamlBody)
 }
 
+func (a *App) DryRunApplyResourceYAML(contextName, yamlBody string) (*kube.MutationDiff, error) {
+	return a.clients.DryRunApplyResourceYAML(a.ctx, contextName, yamlBody)
+}
+
 func (a *App) DeleteResource(contextName, kind, namespace, name string) error {
 	return a.clients.DeleteResource(a.ctx, contextName, kind, namespace, name)
 }

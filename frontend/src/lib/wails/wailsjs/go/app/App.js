@@ -42,6 +42,10 @@ export function DenyCertificateSigningRequest(arg1, arg2, arg3) {
   return window['go']['app']['App']['DenyCertificateSigningRequest'](arg1, arg2, arg3);
 }
 
+export function DryRunApplyResourceYAML(arg1, arg2) {
+  return window['go']['app']['App']['DryRunApplyResourceYAML'](arg1, arg2);
+}
+
 export function EnsureCustomResourceWatch(arg1, arg2, arg3, arg4) {
   return window['go']['app']['App']['EnsureCustomResourceWatch'](arg1, arg2, arg3, arg4);
 }

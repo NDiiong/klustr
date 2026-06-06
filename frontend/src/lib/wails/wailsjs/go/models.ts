@@ -5266,6 +5266,26 @@ export namespace kube {
 	}
 	
 	
+	export class MutationDiff {
+	    kind: string;
+	    name: string;
+	    action: string;
+	    before: string;
+	    after: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MutationDiff(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.name = source["name"];
+	        this.action = source["action"];
+	        this.before = source["before"];
+	        this.after = source["after"];
+	    }
+	}
 	export class NamespaceDetail {
 	    name: string;
 	    uid: string;

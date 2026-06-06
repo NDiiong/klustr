@@ -1,6 +1,7 @@
 import {
   AddHelmRepo,
   ApplyResourceYAML,
+  DryRunApplyResourceYAML,
   FetchMetricsServerManifest,
   IsMetricsServerKlustrManaged,
   RecommendInsecureKubeletTLS,
@@ -408,6 +409,7 @@ export type HelmRepoInfo = kube.HelmRepoInfo
 export type HelmChartSearchResult = kube.HelmChartSearchResult
 export type HelmInstallOptions = kube.HelmInstallOptions
 export type HelmDryRunResult = kube.HelmDryRunResult
+export type MutationDiff = kube.MutationDiff
 export type ArgoApplicationResource = kube.ArgoApplicationResource
 export type ArgoApplicationInfo = kube.ArgoApplicationInfo
 export type ArgoApplicationHistoryEntry = kube.ArgoApplicationHistoryEntry
@@ -792,6 +794,8 @@ export const api = {
     GetResourceYAML(ctx, kind, ns, name),
   applyResourceYAML: (ctx: string, yamlBody: string): Promise<void> =>
     ApplyResourceYAML(ctx, yamlBody),
+  dryRunApplyResourceYAML: (ctx: string, yamlBody: string): Promise<MutationDiff> =>
+    DryRunApplyResourceYAML(ctx, yamlBody),
   fetchMetricsServerManifest: (): Promise<string> => FetchMetricsServerManifest(),
   recommendInsecureKubeletTLS: (ctx: string): Promise<boolean> =>
     RecommendInsecureKubeletTLS(ctx),
