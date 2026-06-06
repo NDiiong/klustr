@@ -11,8 +11,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { parseDocument } from 'yaml'
-import { api } from '@/lib/api'
+import { api, type MutationDiff } from '@/lib/api'
 import { useUIStore } from '@/store/ui'
+import { Spinner } from '@/components/ui/spinner'
 import { CopyButton } from './Copyable'
 
 const Editor = lazy(() => import('@monaco-editor/react').then((m) => ({ default: m.Editor })))
@@ -28,6 +29,17 @@ type Props = {
   namespace: string
   name: string
   gvr?: { group: string; version: string; resource: string }
+}
+
+// K8s "invalid"/"immutable" errors echo the entire offending object inline, so
+// the operative message ("field is immutable") drowns in a wall of JSON.
+// Collapse the dumped object to a placeholder so the summary line stays legible
+// — the full server response is still available below it.
+function summarizeServerError(raw: string): string {
+  return raw
+    .replace(/\{.*\}/s, '{…}')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Props) {
@@ -67,6 +79,13 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
     // eslint-disable-next-line react-hooks/exhaustive-deps -- depending on the gvr object identity would re-fire whenever the parent rebuilds it; the destructured primitive fields below are the real inputs
   }, [contextName, kind, namespace, name, gvr?.group, gvr?.version, gvr?.resource])
 
+  const dryRun = useMutation({
+    mutationFn: async (): Promise<MutationDiff> => {
+      if (!contextName) throw new Error('no context')
+      return api.dryRunApplyResourceYAML(contextName, draft)
+    },
+  })
+
   const apply = useMutation({
     mutationFn: async () => {
       if (!contextName) throw new Error('no context')
@@ -80,7 +99,18 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
     },
   })
 
+  const openReview = () => {
+    apply.reset()
+    dryRun.reset()
+    setDiffOpen(true)
+    dryRun.mutate()
+  }
+
   const dirty = draft !== source
+
+  const reviewError = dryRun.error ?? apply.error
+  const reviewErrorFull = reviewError != null ? String(reviewError) : ''
+  const reviewErrorSummary = summarizeServerError(reviewErrorFull)
 
   const formatDraft = () => {
     if (!draft.trim()) return
@@ -128,7 +158,7 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
             <Button
               type="button"
               size="xs"
-              onClick={() => setDiffOpen(true)}
+              onClick={openReview}
               disabled={!dirty || apply.isPending}
             >
               Review & apply
@@ -194,23 +224,44 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
           )}
         </Suspense>
       </div>
-      <Dialog open={diffOpen} onOpenChange={(o) => !apply.isPending && setDiffOpen(o)}>
+      <Dialog
+        open={diffOpen}
+        onOpenChange={(o) => !apply.isPending && !dryRun.isPending && setDiffOpen(o)}
+      >
         <DialogContent className="flex h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
           <DialogHeader className="border-b border-border px-6 py-4">
-            <DialogTitle>Apply changes to {kind.toLowerCase()}/{name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Apply changes to {kind.toLowerCase()}/{name}
+              {dryRun.data && (
+                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {dryRun.data.action}
+                </span>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Review the diff between the current resource (left) and your draft (right). Apply will
-              perform a server-side apply.
+              Server-side dry-run: the live object (left) vs what the server predicts after
+              defaulting and admission (right). Nothing is written until you click Apply.
             </DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1">
+            {dryRun.isPending && (
+              <div className="flex h-full items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Spinner size="sm" />
+                Running server-side dry-run…
+              </div>
+            )}
+            {dryRun.isError && (
+              <div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">
+                The server rejected this change during dry-run — see the error below.
+              </div>
+            )}
             <Suspense fallback={<div className="flex h-full items-center justify-center text-xs text-muted-foreground">Loading diff…</div>}>
-              {diffOpen && (
+              {dryRun.data && (
                 <DiffEditor
                   height="100%"
                   language="yaml"
-                  original={source}
-                  modified={draft}
+                  original={dryRun.data.before}
+                  modified={dryRun.data.after}
                   theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
                   options={{
                     readOnly: true,
@@ -227,16 +278,35 @@ export function ResourceYAMLTab({ contextName, kind, namespace, name, gvr }: Pro
               )}
             </Suspense>
           </div>
-          {apply.error && (
-            <div className="border-t border-destructive/40 bg-destructive/10 px-6 py-2 text-xs font-mono text-destructive break-words">
-              {String(apply.error)}
+          {reviewError != null && (
+            <div className="border-t border-destructive/40 bg-destructive/10 px-6 py-2 text-xs text-destructive">
+              <p className="font-medium break-words">{reviewErrorSummary}</p>
+              {reviewErrorSummary !== reviewErrorFull && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer select-none text-[11px] text-destructive/80 hover:text-destructive">
+                    Full server response
+                  </summary>
+                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-destructive/90">
+                    {reviewErrorFull}
+                  </pre>
+                </details>
+              )}
             </div>
           )}
           <DialogFooter className="mx-0 mb-0 flex-row items-center justify-end gap-2 border-t border-border bg-transparent px-6 py-3 sm:gap-2">
-            <Button type="button" variant="outline" onClick={() => setDiffOpen(false)} disabled={apply.isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDiffOpen(false)}
+              disabled={apply.isPending || dryRun.isPending}
+            >
               Cancel
             </Button>
-            <Button type="button" onClick={() => apply.mutate()} disabled={apply.isPending}>
+            <Button
+              type="button"
+              onClick={() => apply.mutate()}
+              disabled={apply.isPending || dryRun.isPending || !dryRun.data}
+            >
               {apply.isPending ? 'Applying…' : 'Apply'}
             </Button>
           </DialogFooter>
