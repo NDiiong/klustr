@@ -26,6 +26,10 @@ import {
   ChevronRight,
 } from 'lucide'
 import { siApple, siArchlinux, siUbuntu, siLinux } from 'simple-icons'
+import * as Swetrix from 'swetrix'
+
+Swetrix.init('DaI17c1xdlkD', { respectDNT: true })
+Swetrix.trackViews()
 
 const REPO = 'SametKUM/klustr'
 const BASE = import.meta.env.BASE_URL
