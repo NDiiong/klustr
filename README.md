@@ -9,12 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SametKUM/klustr/releases/latest">
-    <img src="https://img.shields.io/github/v/release/SametKUM/klustr?style=flat-square&cacheSeconds=300&v=2" alt="Latest release">
-  </a>
-  <a href="https://github.com/SametKUM/klustr/actions/workflows/release.yml">
-    <img src="https://github.com/SametKUM/klustr/actions/workflows/release.yml/badge.svg" alt="Release">
-  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/SametKUM/klustr?style=flat-square&cacheSeconds=300" alt="License">
   </a>
@@ -22,6 +16,12 @@
     <img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FSametKUM%2Fklustr.svg?type=shield" alt="FOSSA Status">
   </a>
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=flat-square&cacheSeconds=300" alt="Platforms">
+  <a href="https://github.com/SametKUM/klustr/releases/latest">
+    <img src="https://img.shields.io/github/v/release/SametKUM/klustr?style=flat-square&cacheSeconds=300&v=2" alt="Latest release">
+  </a>
+  <a href="https://github.com/SametKUM/klustr/actions/workflows/release.yml">
+    <img src="https://github.com/SametKUM/klustr/actions/workflows/release.yml/badge.svg" alt="Release">
+  </a>
 </p>
 
 <p align="center">
