@@ -1,5 +1,4 @@
-import { FaAws, FaDigitalOcean, FaLinode, FaMicrosoft } from 'react-icons/fa'
-import { SiDocker, SiGooglecloud, SiKubernetes } from 'react-icons/si'
+import { FaAws, FaDigitalOcean, FaLinode, FaMicrosoft, SiDocker, SiGooglecloud, SiKubernetes } from './brandIcons'
 import { Box } from 'lucide-react'
 import type { ContextInfo } from '@/lib/api'
 import kindLogoUrl from './kind.png'

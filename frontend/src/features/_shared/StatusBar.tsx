@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowUpCircle, Boxes, Folder, Network } from 'lucide-react'
-import { SiGithub } from 'react-icons/si'
+import { SiGithub } from './brandIcons'
 import { useActiveContexts, useIsAggregated, useUIStore } from '@/store/ui'
 import { usePortForwards } from '@/store/portForwards'
 import { api, type UpdateResult } from '@/lib/api'

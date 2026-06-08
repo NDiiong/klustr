@@ -60,7 +60,7 @@ import {
   Waypoints,
   Webhook,
 } from 'lucide-react'
-import { SiArgo, SiIstio } from 'react-icons/si'
+import { SiArgo, SiIstio } from './brandIcons'
 
 import type { ResourceKind, ResourceView } from '@/store/ui'
 
