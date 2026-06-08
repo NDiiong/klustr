@@ -54,13 +54,12 @@ import {
   Ship,
   Sprout,
   Stamp,
-  TreePine,
   TrendingUp,
   User,
   Waypoints,
   Webhook,
 } from 'lucide-react'
-import { SiArgo, SiIstio } from './brandIcons'
+import { Karpenter, SiArgo, SiIstio } from './brandIcons'
 
 import type { ResourceKind, ResourceView } from '@/store/ui'
 
@@ -251,7 +250,7 @@ export const GATEWAY_GROUP: ResourceGroup = {
 // the CR list is empty if RBAC denies, which is the correct fallback.
 export const KARPENTER_GROUP: ResourceGroup = {
   label: 'Karpenter',
-  icon: TreePine,
+  icon: Karpenter,
   items: [
     { label: 'NodePools', view: 'karpenternodepools', icon: Sprout },
     { label: 'NodeClaims', view: 'karpenternodeclaims', icon: Server },
