@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/github/v/release/SametKUM/klustr?style=flat-square&cacheSeconds=300&v=2" alt="Latest release">
   </a>
   <a href="https://github.com/SametKUM/klustr/actions/workflows/release.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/SametKUM/klustr/release.yml?style=flat-square&cacheSeconds=300&label=build" alt="Build">
+    <img src="https://github.com/SametKUM/klustr/actions/workflows/release.yml/badge.svg" alt="Release">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/SametKUM/klustr?style=flat-square&cacheSeconds=300" alt="License">
