@@ -18,6 +18,9 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/github/license/SametKUM/klustr?style=flat-square&cacheSeconds=300" alt="License">
   </a>
+  <a href="https://app.fossa.com/projects/git%2Bgithub.com%2FSametKUM%2Fklustr?ref=badge_shield">
+    <img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FSametKUM%2Fklustr.svg?type=shield" alt="FOSSA Status">
+  </a>
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=flat-square&cacheSeconds=300" alt="Platforms">
 </p>
 
