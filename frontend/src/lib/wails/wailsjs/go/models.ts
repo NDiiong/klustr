@@ -5936,6 +5936,8 @@ export namespace kube {
 	    node: string;
 	    podIP: string;
 	    createdAt: string;
+	    deployment: string;
+	    images: string;
 	    cpuRequestMC: number;
 	    cpuLimitMC: number;
 	    memRequestB: number;
@@ -5961,6 +5963,8 @@ export namespace kube {
 	        this.node = source["node"];
 	        this.podIP = source["podIP"];
 	        this.createdAt = source["createdAt"];
+	        this.deployment = source["deployment"];
+	        this.images = source["images"];
 	        this.cpuRequestMC = source["cpuRequestMC"];
 	        this.cpuLimitMC = source["cpuLimitMC"];
 	        this.memRequestB = source["memRequestB"];

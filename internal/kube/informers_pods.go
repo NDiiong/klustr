@@ -3,6 +3,7 @@ package kube
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -36,6 +37,8 @@ type PodInfo struct {
 	Node           string              `json:"node"`
 	PodIP          string              `json:"podIP"`
 	CreatedAt      string              `json:"createdAt"`
+	Deployment     string              `json:"deployment"`
+	Images         string              `json:"images"`
 	CPURequestMC   int64               `json:"cpuRequestMC"`
 	CPULimitMC     int64               `json:"cpuLimitMC"`
 	MemRequestB    int64               `json:"memRequestB"`
@@ -843,6 +846,13 @@ func (w *contextWatcher) podInfoFrom(p *corev1.Pod) PodInfo {
 	for range p.Spec.Volumes {
 		volumeCount++
 	}
+	images := make([]string, 0, len(p.Spec.InitContainers)+len(p.Spec.Containers))
+	for _, c := range p.Spec.InitContainers {
+		images = append(images, c.Image)
+	}
+	for _, c := range p.Spec.Containers {
+		images = append(images, c.Image)
+	}
 	return PodInfo{
 		Name:           p.Name,
 		Namespace:      p.Namespace,
@@ -852,6 +862,8 @@ func (w *contextWatcher) podInfoFrom(p *corev1.Pod) PodInfo {
 		Node:           p.Spec.NodeName,
 		PodIP:          p.Status.PodIP,
 		CreatedAt:      p.CreationTimestamp.UTC().Format(time.RFC3339),
+		Deployment:     w.podDeploymentName(p),
+		Images:         strings.Join(images, ", "),
 		CPURequestMC:   cpuReq,
 		CPULimitMC:     cpuLim,
 		MemRequestB:    memReq,
@@ -863,6 +875,24 @@ func (w *contextWatcher) podInfoFrom(p *corev1.Pod) PodInfo {
 		VolumeRequestB: volumeReq,
 		VolumeLimitB:   volumeLim,
 	}
+}
+
+func (w *contextWatcher) podDeploymentName(p *corev1.Pod) string {
+	owner := controllerOwnerRef(p.OwnerReferences)
+	if owner == nil {
+		return ""
+	}
+	if owner.Kind == "Deployment" {
+		return owner.Name
+	}
+	if owner.Kind != "ReplicaSet" {
+		return ""
+	}
+	grandparent := w.replicaSetController(p.Namespace, owner.Name)
+	if grandparent == nil || grandparent.Kind != "Deployment" {
+		return ""
+	}
+	return grandparent.Name
 }
 
 func (w *contextWatcher) podVolumeTotals(p *corev1.Pod) (requestB, limitB int64) {

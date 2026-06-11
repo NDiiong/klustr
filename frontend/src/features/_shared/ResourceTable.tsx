@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -43,6 +44,7 @@ export type ResourceTableProps<T> = {
   fetch: (contextName: string, namespace: string) => Promise<T[]>
   columns: ColumnDef<T, any>[]
   defaultSort?: SortingState
+  toolbarActions?: ReactNode
   onRowClick?: (row: T, contextName: string) => void
 }
 
@@ -102,6 +104,7 @@ export function ResourceTable<T>({
   fetch,
   columns,
   defaultSort,
+  toolbarActions,
   onRowClick,
 }: ResourceTableProps<T>) {
   const activeContexts = useActiveContexts()
@@ -484,6 +487,7 @@ export function ResourceTable<T>({
           {scopeLabel}
           {contextLabel}
         </span>
+        {toolbarActions}
         <div className="relative ml-auto w-64 max-w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/70" />
           <input
