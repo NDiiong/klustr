@@ -56,18 +56,32 @@ export function RestartWorkloadDialog({ contextName, resource, open, onOpenChang
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Restart {resource.kind}?</AlertDialogTitle>
+          <AlertDialogTitle className="text-base font-semibold tracking-normal">
+            Restart {resource.kind}?
+          </AlertDialogTitle>
           <AlertDialogDescription asChild>
-            <div className="space-y-2">
+            <div className="space-y-3 text-sm leading-6 text-muted-foreground">
               <p>
                 Triggers a rolling restart of{' '}
-                <span className="font-mono text-xs allow-select">{resource.kind.toLowerCase()}/{resource.name}</span>
-                {' '}in <span className="font-mono text-xs allow-select">{resource.namespace}</span> by patching{' '}
-                <code className="font-mono text-xs">spec.template.metadata.annotations</code>{' '}
-                — equivalent to <code className="font-mono text-xs">kubectl rollout restart</code>.
+                <span className="allow-select rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  {resource.kind.toLowerCase()}/{resource.name}
+                </span>
+                {' '}in{' '}
+                <span className="allow-select rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  {resource.namespace}
+                </span>{' '}
+                by patching{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  spec.template.metadata.annotations
+                </code>{' '}
+                — equivalent to{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  kubectl rollout restart
+                </code>
+                .
               </p>
               {restart.error && (
-                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
+                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs leading-5 text-destructive break-words">
                   {String(restart.error)}
                 </p>
               )}

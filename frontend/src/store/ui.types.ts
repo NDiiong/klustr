@@ -224,4 +224,7 @@ export type DetailTab = 'overview' | 'logs' | 'exec' | 'shell' | 'events' | 'his
 export type PendingAction =
   | { kind: 'delete'; resource: SelectedResource }
   | { kind: 'portforward'; resource: SelectedResource }
+  | { kind: 'pause'; resource: SelectedResource }
+  | { kind: 'resize-pod'; resource: SelectedResource }
   | { kind: 'restart'; resource: SelectedResource }
+  | { kind: 'scale'; resource: SelectedResource }

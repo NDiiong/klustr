@@ -1,4 +1,4 @@
-import { Copy, FileCode2, FileText, Network, RotateCcw, ScanEye, ScrollText, Terminal, Trash2 } from 'lucide-react'
+import { Copy, FileCode2, FileText, Network, Pause, RotateCcw, Scaling, ScanEye, ScrollText, Sliders, Terminal, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   ContextMenu,
@@ -48,6 +48,7 @@ type Props = {
   namespace: string
   name: string
   canPortForward?: boolean
+  podDeployment?: string
   children: React.ReactNode
 }
 
@@ -57,6 +58,7 @@ export function RowContextMenu({
   namespace,
   name,
   canPortForward,
+  podDeployment,
   children,
 }: Props) {
   const openResource = useUIStore((s) => s.openResource)
@@ -64,6 +66,9 @@ export function RowContextMenu({
   const readOnly = useUIStore((s) => s.globalReadOnly)
 
   const resource: SelectedResource = { kind, namespace, name, context: contextName }
+  const podDeploymentResource: SelectedResource | null = podDeployment
+    ? { kind: 'Deployment', namespace, name: podDeployment, context: contextName }
+    : null
   const isPod = POD_KINDS.has(kind)
   const hasLogs = WORKLOAD_LOG_KINDS.has(kind)
   const hasEvents = EVENT_BEARING_KINDS.has(kind)
@@ -105,6 +110,28 @@ export function RowContextMenu({
             <span>Port-forward</span>
           </ContextMenuItem>
         )}
+        {!readOnly && isPod && (
+          <ContextMenuItem onSelect={() => setPendingAction({ kind: 'resize-pod', resource })}>
+            <Scaling />
+            <span>Resize</span>
+          </ContextMenuItem>
+        )}
+        {!readOnly && isPod && podDeploymentResource && (
+          <>
+            <ContextMenuItem onSelect={() => setPendingAction({ kind: 'pause', resource: podDeploymentResource })}>
+              <Pause />
+              <span>Pause</span>
+            </ContextMenuItem>
+            <ContextMenuItem onSelect={() => setPendingAction({ kind: 'restart', resource: podDeploymentResource })}>
+              <RotateCcw />
+              <span>Restart</span>
+            </ContextMenuItem>
+            <ContextMenuItem onSelect={() => setPendingAction({ kind: 'scale', resource: podDeploymentResource })}>
+              <Sliders />
+              <span>Scale</span>
+            </ContextMenuItem>
+          </>
+        )}
         {hasEvents && (
           <ContextMenuItem onSelect={() => open('events')}>
             <FileText />
@@ -115,10 +142,10 @@ export function RowContextMenu({
           <FileCode2 />
           <span>Edit YAML</span>
         </ContextMenuItem>
-        {!readOnly && isRestartable && (
+        {!readOnly && !isPod && isRestartable && (
           <ContextMenuItem onSelect={() => setPendingAction({ kind: 'restart', resource })}>
             <RotateCcw />
-            <span>Rolling restart</span>
+            <span>Restart</span>
           </ContextMenuItem>
         )}
         <ContextMenuSeparator />

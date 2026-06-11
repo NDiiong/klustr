@@ -30,8 +30,50 @@ type Props = {
   resource: SelectedResource
 }
 
+type DialogProps = Props & {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
 export function ScaleResourceButton({ contextName, resource }: Props) {
   const [open, setOpen] = useState(false)
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="xs" variant="outline">
+              <Sliders />
+              Scale
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Change replica count via the scale subresource</TooltipContent>
+      </Tooltip>
+      <ScaleResourceDialogContent
+        contextName={contextName}
+        resource={resource}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </Dialog>
+  )
+}
+
+export function ScaleResourceDialog({ contextName, resource, open, onOpenChange }: DialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <ScaleResourceDialogContent
+        contextName={contextName}
+        resource={resource}
+        open={open}
+        onOpenChange={onOpenChange}
+      />
+    </Dialog>
+  )
+}
+
+function ScaleResourceDialogContent({ contextName, resource, open, onOpenChange }: DialogProps) {
   const [replicas, setReplicas] = useState<number>(0)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -55,7 +97,7 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
     },
     onSuccess: () => {
       toast.success(`Scaled ${resource.kind.toLowerCase()}/${resource.name} to ${replicas}`)
-      setOpen(false)
+      onOpenChange(false)
     },
   })
 
@@ -63,43 +105,31 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
   const bump = (delta: number) => setReplicas((r) => clamp(r + delta))
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o)
-        if (o) scale.reset()
-      }}
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button size="xs" variant="outline">
-              <Sliders />
-              Scale
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Change replica count via the scale subresource</TooltipContent>
-      </Tooltip>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Scale {resource.kind}</DialogTitle>
+          <DialogTitle className="text-base font-semibold tracking-normal">
+            Scale {resource.kind}
+          </DialogTitle>
           <DialogDescription asChild>
-            <div className="space-y-2">
+            <div className="space-y-3 text-sm leading-6 text-muted-foreground">
               <p>
                 Replicas for{' '}
-                <span className="font-mono text-xs">
+                <span className="allow-select rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
                   {resource.kind.toLowerCase()}/{resource.name}
                 </span>{' '}
-                in <span className="font-mono text-xs">{resource.namespace}</span>.
+                in{' '}
+                <span className="allow-select rounded bg-muted px-1.5 py-0.5 font-mono text-[13px] text-foreground">
+                  {resource.namespace}
+                </span>
+                .
               </p>
               {loadError && (
-                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
+                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs leading-5 text-destructive break-words">
                   Failed to read current replicas: {loadError}
                 </p>
               )}
               {scale.error && (
-                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs text-destructive break-words">
+                <p className="rounded border border-destructive/40 bg-destructive/10 p-2 font-mono text-xs leading-5 text-destructive break-words">
                   {String(scale.error)}
                 </p>
               )}
@@ -107,7 +137,7 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-3">
-          <label htmlFor="scale-replicas-input" className="text-sm text-muted-foreground">
+          <label htmlFor="scale-replicas-input" className="text-sm font-medium text-foreground">
             Replicas
           </label>
           <div className="flex items-center rounded-md border border-border bg-background">
@@ -144,7 +174,7 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
                   bump(-1)
                 }
               }}
-              className="h-7 w-16 bg-transparent text-center text-sm focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="h-8 w-20 bg-transparent text-center text-sm font-medium focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
             <Button
               type="button"
@@ -161,7 +191,7 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
           {loading && <Spinner size="lg" />}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={scale.isPending}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={scale.isPending}>
             Cancel
           </Button>
           <Button
@@ -172,6 +202,5 @@ export function ScaleResourceButton({ contextName, resource }: Props) {
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
   )
 }

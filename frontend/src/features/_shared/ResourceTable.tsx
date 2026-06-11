@@ -487,7 +487,6 @@ export function ResourceTable<T>({
           {scopeLabel}
           {contextLabel}
         </span>
-        {toolbarActions}
         <div className="relative ml-auto w-64 max-w-full">
           <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/70" />
           <input
@@ -518,6 +517,7 @@ export function ResourceTable<T>({
             </button>
           )}
         </div>
+        {toolbarActions}
         <ColumnControls table={table} onReset={() => resetPrefs(kind)} />
       </div>
       <div className="flex-1 overflow-auto">
@@ -681,6 +681,8 @@ export function ResourceTable<T>({
                 const flashing = flashKey !== null && flashKey === identityKey(ctx, identity)
                 const canPortForward =
                   kind === 'Pod' ? (tagged as { hasPorts?: boolean }).hasPorts === true : false
+                const podDeployment =
+                  kind === 'Pod' ? (tagged as { deployment?: string }).deployment : undefined
                 const rowEl = (
                   <tr
                     key={row.id}
@@ -724,6 +726,7 @@ export function ResourceTable<T>({
                     namespace={identity.namespace ?? ''}
                     name={identity.name}
                     canPortForward={canPortForward}
+                    podDeployment={podDeployment}
                   >
                     {rowEl}
                   </RowContextMenu>

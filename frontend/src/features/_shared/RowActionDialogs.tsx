@@ -1,10 +1,13 @@
 import { DeleteResourceDialog } from './DeleteResourceButton'
+import { PauseDeploymentDialog } from './PauseDeploymentButton'
 import { RestartWorkloadDialog } from './RestartWorkloadButton'
+import { ScaleResourceDialog } from './ScaleResourceButton'
 import {
   DeleteArgoApplicationDialog,
   isArgoApplication,
 } from '@/features/argocd/DeleteArgoApplicationButton'
 import { PortForwardDialog } from '@/features/portforward/PortForwardButton'
+import { ResizePodDialog } from '@/features/pods/ResizePodButton'
 import { useUIStore } from '@/store/ui'
 
 export function RowActionDialogs() {
@@ -47,6 +50,40 @@ export function RowActionDialogs() {
       <RestartWorkloadDialog
         contextName={contextName}
         resource={pendingAction.resource}
+        open
+        onOpenChange={onOpenChange}
+      />
+    )
+  }
+
+  if (pendingAction.kind === 'pause') {
+    return (
+      <PauseDeploymentDialog
+        contextName={contextName}
+        resource={pendingAction.resource}
+        open
+        onOpenChange={onOpenChange}
+      />
+    )
+  }
+
+  if (pendingAction.kind === 'scale') {
+    return (
+      <ScaleResourceDialog
+        contextName={contextName}
+        resource={pendingAction.resource}
+        open
+        onOpenChange={onOpenChange}
+      />
+    )
+  }
+
+  if (pendingAction.kind === 'resize-pod') {
+    return (
+      <ResizePodDialog
+        contextName={contextName}
+        namespace={pendingAction.resource.namespace}
+        podName={pendingAction.resource.name}
         open
         onOpenChange={onOpenChange}
       />

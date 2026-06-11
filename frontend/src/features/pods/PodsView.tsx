@@ -314,16 +314,6 @@ export function PodsView() {
       columns={columns}
       toolbarActions={(
         <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={refresh}
-            disabled={refreshing || activeContexts.length === 0}
-            title="Refresh pod metrics"
-          >
-            <RefreshCw className={`size-3 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
           <select
             aria-label="Pod metrics refresh interval"
             value={refreshIntervalMs}
@@ -336,6 +326,16 @@ export function PodsView() {
               </option>
             ))}
           </select>
+          <Button
+            size="icon-sm"
+            variant="outline"
+            onClick={refresh}
+            disabled={refreshing || activeContexts.length === 0}
+            title="Refresh pod metrics"
+            aria-label="Refresh pod metrics"
+          >
+            <RefreshCw className={`size-3 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       )}
       onRowClick={(row, ctx) =>
