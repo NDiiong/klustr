@@ -7,6 +7,10 @@ type Props = {
   memUsageB: number
   memRequestB: number
   memLimitB: number
+  volUsageB: number
+  volRequestB: number
+  volLimitB: number
+  volStatsAvailable: boolean
 }
 
 export function PodResourceBars({
@@ -16,11 +20,16 @@ export function PodResourceBars({
   memUsageB,
   memRequestB,
   memLimitB,
+  volUsageB,
+  volRequestB,
+  volLimitB,
+  volStatsAvailable,
 }: Props) {
   const cpu = computeBar(cpuUsageMC, cpuRequestMC, cpuLimitMC)
   const mem = computeBar(memUsageB, memRequestB, memLimitB)
+  const vol = volStatsAvailable ? computeBar(volUsageB, volRequestB, volLimitB) : null
 
-  if (!cpu && !mem) {
+  if (!cpu && !mem && !vol) {
     return <span className="text-muted-foreground">—</span>
   }
 
@@ -30,6 +39,7 @@ export function PodResourceBars({
         <div className="flex w-28 flex-col gap-1">
           <MiniBar label="C" value={cpu} usageColorClass={usageColor(cpu)} />
           <MiniBar label="M" value={mem} usageColorClass={usageColor(mem)} />
+          <MiniBar label="V" value={vol} usageColorClass={usageColor(vol)} />
         </div>
       </HoverCardTrigger>
       <HoverCardContent
@@ -45,6 +55,7 @@ export function PodResourceBars({
             usage={formatCPU(cpuUsageMC)}
             request={cpuRequestMC > 0 ? formatCPU(cpuRequestMC) : '—'}
             limit={cpuLimitMC > 0 ? formatCPU(cpuLimitMC) : '—'}
+            percent={formatUsedPercent(cpuUsageMC, cpuLimitMC)}
           />
           <div className="col-span-2 my-1 h-px bg-border/60" />
           <ResourceBlock
@@ -53,6 +64,16 @@ export function PodResourceBars({
             usage={formatMem(memUsageB)}
             request={memRequestB > 0 ? formatMem(memRequestB) : '—'}
             limit={memLimitB > 0 ? formatMem(memLimitB) : '—'}
+            percent={formatUsedPercent(memUsageB, memLimitB)}
+          />
+          <div className="col-span-2 my-1 h-px bg-border/60" />
+          <ResourceBlock
+            badge="VOL"
+            badgeClass="bg-violet-500/15 text-violet-400"
+            usage={volStatsAvailable ? formatMem(volUsageB) : '—'}
+            request={volRequestB > 0 ? formatMem(volRequestB) : '—'}
+            limit={volLimitB > 0 ? formatMem(volLimitB) : '—'}
+            percent={volStatsAvailable ? formatUsedPercent(volUsageB, volLimitB) : '—'}
           />
         </div>
       </HoverCardContent>
@@ -66,12 +87,14 @@ function ResourceBlock({
   usage,
   request,
   limit,
+  percent,
 }: {
   badge: string
   badgeClass: string
   usage: string
   request: string
   limit: string
+  percent?: string
 }) {
   return (
     <>
@@ -86,6 +109,12 @@ function ResourceBlock({
       <span className="whitespace-nowrap text-right tabular-nums">{request}</span>
       <span className="opacity-70">limit</span>
       <span className="whitespace-nowrap text-right tabular-nums">{limit}</span>
+      {percent !== undefined && (
+        <>
+          <span className="opacity-70">used</span>
+          <span className="whitespace-nowrap text-right tabular-nums">{percent}</span>
+        </>
+      )}
     </>
   )
 }
@@ -153,6 +182,11 @@ function formatCPU(mc: number): string {
   if (mc <= 0) return '0'
   if (mc < 1000) return mc + 'm'
   return (mc / 1000).toFixed(mc % 1000 === 0 ? 0 : 2) + ' cores'
+}
+
+function formatUsedPercent(usage: number, limit: number): string {
+  if (limit <= 0) return '—'
+  return ((usage / limit) * 100).toFixed(1) + '%'
 }
 
 function formatMem(bytes: number): string {

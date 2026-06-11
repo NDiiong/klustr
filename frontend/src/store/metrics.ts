@@ -46,7 +46,7 @@ export const useMetrics = create<MetricsState>((set) => ({
       const byPod: MetricsByPod = {}
       for (const m of list) byPod[podKey(m.namespace, m.name)] = m
       return {
-        available: { ...s.available, [ctx]: true },
+        available: { ...s.available, [ctx]: list.some((m) => m.resourceMetricsAvailable) },
         byPodByContext: { ...s.byPodByContext, [ctx]: byPod },
       }
     }),

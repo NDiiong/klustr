@@ -1826,11 +1826,31 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	export class VolumeMountDetail {
+	    name: string;
+	    mountPath: string;
+	    readOnly: boolean;
+	    subPath: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new VolumeMountDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.mountPath = source["mountPath"];
+	        this.readOnly = source["readOnly"];
+	        this.subPath = source["subPath"];
+	    }
+	}
 	export class ContainerResources {
 	    cpuRequest: string;
 	    cpuLimit: string;
 	    memRequest: string;
 	    memLimit: string;
+	    ephemeralStorageRequest: string;
+	    ephemeralStorageLimit: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ContainerResources(source);
@@ -1842,6 +1862,8 @@ export namespace kube {
 	        this.cpuLimit = source["cpuLimit"];
 	        this.memRequest = source["memRequest"];
 	        this.memLimit = source["memLimit"];
+	        this.ephemeralStorageRequest = source["ephemeralStorageRequest"];
+	        this.ephemeralStorageLimit = source["ephemeralStorageLimit"];
 	    }
 	}
 	export class ContainerEnvFrom {
@@ -1960,6 +1982,7 @@ export namespace kube {
 	    envFrom: ContainerEnvFrom[];
 	    resources: ContainerResources;
 	    allocated: ContainerResources;
+	    volumeMounts: VolumeMountDetail[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ContainerDetail(source);
@@ -1980,6 +2003,7 @@ export namespace kube {
 	        this.envFrom = this.convertValues(source["envFrom"], ContainerEnvFrom);
 	        this.resources = this.convertValues(source["resources"], ContainerResources);
 	        this.allocated = this.convertValues(source["allocated"], ContainerResources);
+	        this.volumeMounts = this.convertValues(source["volumeMounts"], VolumeMountDetail);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5733,6 +5757,24 @@ export namespace kube {
 	        this.state = source["state"];
 	    }
 	}
+	export class VolumeDetail {
+	    name: string;
+	    kind: string;
+	    source: string;
+	    size: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new VolumeDetail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.kind = source["kind"];
+	        this.source = source["source"];
+	        this.size = source["size"];
+	    }
+	}
 	export class PodDetail {
 	    name: string;
 	    namespace: string;
@@ -5754,6 +5796,7 @@ export namespace kube {
 	    containers: ContainerDetail[];
 	    conditions: ConditionDetail[];
 	    resizeStatus: string;
+	    volumes: VolumeDetail[];
 	
 	    static createFrom(source: any = {}) {
 	        return new PodDetail(source);
@@ -5781,6 +5824,7 @@ export namespace kube {
 	        this.containers = this.convertValues(source["containers"], ContainerDetail);
 	        this.conditions = this.convertValues(source["conditions"], ConditionDetail);
 	        this.resizeStatus = source["resizeStatus"];
+	        this.volumes = this.convertValues(source["volumes"], VolumeDetail);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5898,6 +5942,10 @@ export namespace kube {
 	    memLimitB: number;
 	    hasPorts: boolean;
 	    containers: PodContainerBrief[];
+	    volumeCount: number;
+	    pvcRequestB: number;
+	    volumeRequestB: number;
+	    volumeLimitB: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new PodInfo(source);
@@ -5919,6 +5967,10 @@ export namespace kube {
 	        this.memLimitB = source["memLimitB"];
 	        this.hasPorts = source["hasPorts"];
 	        this.containers = this.convertValues(source["containers"], PodContainerBrief);
+	        this.volumeCount = source["volumeCount"];
+	        this.pvcRequestB = source["pvcRequestB"];
+	        this.volumeRequestB = source["volumeRequestB"];
+	        this.volumeLimitB = source["volumeLimitB"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -5958,6 +6010,10 @@ export namespace kube {
 	    name: string;
 	    cpuMC: number;
 	    memB: number;
+	    resourceMetricsAvailable: boolean;
+	    volumeUsageB: number;
+	    volumeLimitB: number;
+	    volumeStatsAvailable: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new PodMetrics(source);
@@ -5969,6 +6025,10 @@ export namespace kube {
 	        this.name = source["name"];
 	        this.cpuMC = source["cpuMC"];
 	        this.memB = source["memB"];
+	        this.resourceMetricsAvailable = source["resourceMetricsAvailable"];
+	        this.volumeUsageB = source["volumeUsageB"];
+	        this.volumeLimitB = source["volumeLimitB"];
+	        this.volumeStatsAvailable = source["volumeStatsAvailable"];
 	    }
 	}
 	
@@ -7441,6 +7501,8 @@ export namespace kube {
 	        this.createdAt = source["createdAt"];
 	    }
 	}
+	
+	
 	export class WebhookSummary {
 	    name: string;
 	    clientCfg: string;

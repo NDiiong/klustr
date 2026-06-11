@@ -16,6 +16,10 @@ const sample: PodMetrics = {
   name: 'demo',
   cpuMC: 12,
   memB: 4096,
+  resourceMetricsAvailable: true,
+  volumeUsageB: 0,
+  volumeLimitB: 0,
+  volumeStatsAvailable: false,
 }
 
 describe('useMetrics', () => {

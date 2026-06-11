@@ -7,10 +7,11 @@ import { ResourceTable } from '@/features/_shared/ResourceTable'
 import { COL_MD, COL_SM, COL_XS } from '@/features/_shared/columnSizes'
 import { useResources } from '@/store/resources'
 import { useActiveContexts, useUIStore } from '@/store/ui'
-import { selectMetricsAvailable, selectPodMetric, useMetrics } from '@/store/metrics'
+import { selectPodMetric, useMetrics } from '@/store/metrics'
 import { usePodMetricsPoll } from './usePodMetricsPoll'
 import { PodResourceBars } from './PodResourceBars'
 import { PodContainerSquares } from './PodContainerSquares'
+
 
 const columnHelper = createColumnHelper<PodInfo & { __klustrCtx?: string }>()
 
@@ -46,6 +47,10 @@ function PodUsageCell({ pod, ctx }: { pod: PodInfo; ctx: string }) {
       memUsageB={m?.memB ?? 0}
       memRequestB={pod.memRequestB}
       memLimitB={pod.memLimitB}
+      volUsageB={m?.volumeUsageB ?? 0}
+      volRequestB={pod.volumeRequestB || pod.pvcRequestB || 0}
+      volLimitB={m?.volumeLimitB || pod.volumeLimitB || 0}
+      volStatsAvailable={m?.volumeStatsAvailable ?? false}
     />
   )
 }
@@ -76,26 +81,21 @@ export function PodsView() {
   const setSelectedResource = useUIStore((s) => s.setSelectedResource)
   const activeContexts = useActiveContexts()
   const selectedNamespaces = useUIStore((s) => s.selectedNamespaces)
-  const metricsAvailable = useMetrics(selectMetricsAvailable(activeContexts))
   usePodMetricsPoll(activeContexts, namespaceQuery(selectedNamespaces).apiNamespace)
 
   const columns = useMemo(
     () => [
       columnHelper.accessor('namespace', { header: 'Namespace', size: COL_MD }),
       columnHelper.accessor('name', { header: 'Name' }),
-      ...(metricsAvailable
-        ? [
-            columnHelper.display({
-              id: 'usage',
-              header: 'CPU / Mem',
-              cell: (info) => {
-                const row = info.row.original
-                const ctx = row.__klustrCtx ?? ''
-                return <PodUsageCell pod={row} ctx={ctx} />
-              },
-            }),
-          ]
-        : []),
+      columnHelper.display({
+        id: 'usage',
+        header: 'CPU / MEM / VOL',
+        cell: (info) => {
+          const row = info.row.original
+          const ctx = row.__klustrCtx ?? ''
+          return <PodUsageCell pod={row} ctx={ctx} />
+        },
+      }),
       columnHelper.accessor('ready', {
         header: 'Ready',
         size: COL_SM,
@@ -130,7 +130,7 @@ export function PodsView() {
         sortingFn: 'datetime',
       }),
     ],
-    [metricsAvailable],
+    [],
   )
 
   return (

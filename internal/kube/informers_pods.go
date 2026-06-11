@@ -6,25 +6,46 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// VolumeDetail describes a volume defined in the pod spec.
+type VolumeDetail struct {
+	Name   string `json:"name"`
+	Kind   string `json:"kind"`
+	Source string `json:"source"`
+	Size   string `json:"size"`
+}
+
+// VolumeMountDetail describes a volume mount within a container.
+type VolumeMountDetail struct {
+	Name      string `json:"name"`
+	MountPath string `json:"mountPath"`
+	ReadOnly  bool   `json:"readOnly"`
+	SubPath   string `json:"subPath"`
+}
+
 type PodInfo struct {
-	Name         string              `json:"name"`
-	Namespace    string              `json:"namespace"`
-	Status       string              `json:"status"`
-	Ready        string              `json:"ready"`
-	Restarts     int32               `json:"restarts"`
-	Node         string              `json:"node"`
-	PodIP        string              `json:"podIP"`
-	CreatedAt    string              `json:"createdAt"`
-	CPURequestMC int64               `json:"cpuRequestMC"`
-	CPULimitMC   int64               `json:"cpuLimitMC"`
-	MemRequestB  int64               `json:"memRequestB"`
-	MemLimitB    int64               `json:"memLimitB"`
-	HasPorts     bool                `json:"hasPorts"`
-	Containers   []PodContainerBrief `json:"containers"`
+	Name           string              `json:"name"`
+	Namespace      string              `json:"namespace"`
+	Status         string              `json:"status"`
+	Ready          string              `json:"ready"`
+	Restarts       int32               `json:"restarts"`
+	Node           string              `json:"node"`
+	PodIP          string              `json:"podIP"`
+	CreatedAt      string              `json:"createdAt"`
+	CPURequestMC   int64               `json:"cpuRequestMC"`
+	CPULimitMC     int64               `json:"cpuLimitMC"`
+	MemRequestB    int64               `json:"memRequestB"`
+	MemLimitB      int64               `json:"memLimitB"`
+	HasPorts       bool                `json:"hasPorts"`
+	Containers     []PodContainerBrief `json:"containers"`
+	VolumeCount    int32               `json:"volumeCount"`
+	PVCRequestB    int64               `json:"pvcRequestB"`
+	VolumeRequestB int64               `json:"volumeRequestB"`
+	VolumeLimitB   int64               `json:"volumeLimitB"`
 }
 
 // PodContainerBrief is the per-container summary the Pods list renders as a row
@@ -44,29 +65,29 @@ type PodLogTarget struct {
 }
 
 type ContainerDetail struct {
-	Name         string             `json:"name"`
-	Image        string             `json:"image"`
-	State        string             `json:"state"`
-	StateReason  string             `json:"stateReason"`
-	Ready        bool               `json:"ready"`
-	RestartCount int32              `json:"restartCount"`
-	StartedAt    string             `json:"startedAt"`
-	LastState    string             `json:"lastState"`
-	Ports        []ContainerPort    `json:"ports"`
-	Env          []ContainerEnvVar  `json:"env"`
-	EnvFrom      []ContainerEnvFrom `json:"envFrom"`
-	// Resources is what the spec asks for; Allocated is what the kubelet has
-	// actually granted (status.containerStatuses[].resources). They diverge
-	// while an in-place resize is still being applied or was Deferred.
-	Resources ContainerResources `json:"resources"`
-	Allocated ContainerResources `json:"allocated"`
+	Name         string              `json:"name"`
+	Image        string              `json:"image"`
+	State        string              `json:"state"`
+	StateReason  string              `json:"stateReason"`
+	Ready        bool                `json:"ready"`
+	RestartCount int32               `json:"restartCount"`
+	StartedAt    string              `json:"startedAt"`
+	LastState    string              `json:"lastState"`
+	Ports        []ContainerPort     `json:"ports"`
+	Env          []ContainerEnvVar   `json:"env"`
+	EnvFrom      []ContainerEnvFrom  `json:"envFrom"`
+	Resources    ContainerResources  `json:"resources"`
+	Allocated    ContainerResources  `json:"allocated"`
+	VolumeMounts []VolumeMountDetail `json:"volumeMounts"`
 }
 
 type ContainerResources struct {
-	CPURequest string `json:"cpuRequest"`
-	CPULimit   string `json:"cpuLimit"`
-	MemRequest string `json:"memRequest"`
-	MemLimit   string `json:"memLimit"`
+	CPURequest              string `json:"cpuRequest"`
+	CPULimit                string `json:"cpuLimit"`
+	MemRequest              string `json:"memRequest"`
+	MemLimit                string `json:"memLimit"`
+	EphemeralStorageRequest string `json:"ephemeralStorageRequest"`
+	EphemeralStorageLimit   string `json:"ephemeralStorageLimit"`
 }
 
 func containerResources(rr corev1.ResourceRequirements) ContainerResources {
@@ -81,10 +102,12 @@ func resourcesFrom(requests, limits corev1.ResourceList) ContainerResources {
 		return ""
 	}
 	return ContainerResources{
-		CPURequest: q(requests, corev1.ResourceCPU),
-		CPULimit:   q(limits, corev1.ResourceCPU),
-		MemRequest: q(requests, corev1.ResourceMemory),
-		MemLimit:   q(limits, corev1.ResourceMemory),
+		CPURequest:              q(requests, corev1.ResourceCPU),
+		CPULimit:                q(limits, corev1.ResourceCPU),
+		MemRequest:              q(requests, corev1.ResourceMemory),
+		MemLimit:                q(limits, corev1.ResourceMemory),
+		EphemeralStorageRequest: q(requests, corev1.ResourceEphemeralStorage),
+		EphemeralStorageLimit:   q(limits, corev1.ResourceEphemeralStorage),
 	}
 }
 
@@ -133,11 +156,8 @@ type PodDetail struct {
 	InitContainers    []ContainerDetail `json:"initContainers"`
 	Containers        []ContainerDetail `json:"containers"`
 	Conditions        []ConditionDetail `json:"conditions"`
-	// ResizeStatus reflects an in-flight in-place resize: "Proposed",
-	// "InProgress", "Deferred" or "Infeasible" (empty when none is pending).
-	// Read from .status.resize on older clusters and from the
-	// PodResizePending / PodResizeInProgress conditions on 1.33+.
-	ResizeStatus string `json:"resizeStatus"`
+	ResizeStatus      string            `json:"resizeStatus"`
+	Volumes           []VolumeDetail    `json:"volumes"`
 }
 
 func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
@@ -179,6 +199,7 @@ func (w *contextWatcher) Pod(namespace, name string) (*PodDetail, error) {
 		Containers:        w.containerDetails(p, p.Spec.Containers, p.Status.ContainerStatuses),
 		Conditions:        podConditions(p.Status.Conditions),
 		ResizeStatus:      podResizeStatus(p),
+		Volumes:           w.volumeDetails(p.Namespace, p.Spec.Volumes),
 	}, nil
 }
 
@@ -242,13 +263,23 @@ func (w *contextWatcher) containerDetails(pod *corev1.Pod, specs []corev1.Contai
 				Protocol:      proto,
 			})
 		}
+		mounts := make([]VolumeMountDetail, 0, len(c.VolumeMounts))
+		for _, m := range c.VolumeMounts {
+			mounts = append(mounts, VolumeMountDetail{
+				Name:      m.Name,
+				MountPath: m.MountPath,
+				ReadOnly:  m.ReadOnly,
+				SubPath:   m.SubPath,
+			})
+		}
 		d := ContainerDetail{
-			Name:      c.Name,
-			Image:     c.Image,
-			Ports:     ports,
-			Env:       w.envVarsFrom(pod, c, c.Env),
-			EnvFrom:   envFromSources(c.EnvFrom),
-			Resources: containerResources(c.Resources),
+			Name:         c.Name,
+			Image:        c.Image,
+			Ports:        ports,
+			Env:          w.envVarsFrom(pod, c, c.Env),
+			EnvFrom:      envFromSources(c.EnvFrom),
+			Resources:    containerResources(c.Resources),
+			VolumeMounts: mounts,
 		}
 		if s, ok := byName[c.Name]; ok {
 			d.Ready = s.Ready
@@ -284,6 +315,143 @@ func (w *contextWatcher) containerDetails(pod *corev1.Pod, specs []corev1.Contai
 		out = append(out, d)
 	}
 	return out
+}
+
+// volumeDetails builds a list of VolumeDetail from the pod's volume specs.
+// For PVC volumes it best-effort reads the claim's storage request from the
+// informer cache; when the PVC is not cacheable it records the claim name and
+// leaves the size empty.
+func (w *contextWatcher) volumeDetails(namespace string, volumes []corev1.Volume) []VolumeDetail {
+	out := make([]VolumeDetail, 0, len(volumes))
+	for _, v := range volumes {
+		d := VolumeDetail{Name: v.Name}
+		switch {
+		case v.PersistentVolumeClaim != nil:
+			d.Kind = "PersistentVolumeClaim"
+			d.Source = v.PersistentVolumeClaim.ClaimName
+			if sz := w.pvcStorageRequest(namespace, v.PersistentVolumeClaim.ClaimName); sz != "" {
+				d.Size = sz
+			}
+		case v.ConfigMap != nil:
+			d.Kind = "ConfigMap"
+			d.Source = v.ConfigMap.Name
+		case v.Secret != nil:
+			d.Kind = "Secret"
+			d.Source = v.Secret.SecretName
+		case v.EmptyDir != nil:
+			d.Kind = "EmptyDir"
+			if v.EmptyDir.SizeLimit != nil {
+				d.Size = v.EmptyDir.SizeLimit.String()
+			}
+		case v.HostPath != nil:
+			d.Kind = "HostPath"
+			d.Source = v.HostPath.Path
+		case v.DownwardAPI != nil:
+			d.Kind = "DownwardAPI"
+		case v.CSI != nil:
+			d.Kind = "CSI"
+			d.Source = v.CSI.Driver
+		case v.Projected != nil:
+			d.Kind = "Projected"
+		case v.GCEPersistentDisk != nil:
+			d.Kind = "GCEPersistentDisk"
+			d.Source = v.GCEPersistentDisk.PDName
+		case v.AWSElasticBlockStore != nil:
+			d.Kind = "AWSElasticBlockStore"
+			d.Source = v.AWSElasticBlockStore.VolumeID
+		case v.AzureDisk != nil:
+			d.Kind = "AzureDisk"
+			d.Source = v.AzureDisk.DiskName
+		case v.AzureFile != nil:
+			d.Kind = "AzureFile"
+			d.Source = v.AzureFile.ShareName
+		case v.NFS != nil:
+			d.Kind = "NFS"
+			d.Source = v.NFS.Server + ":" + v.NFS.Path
+		case v.Glusterfs != nil:
+			d.Kind = "Glusterfs"
+			d.Source = v.Glusterfs.EndpointsName + "/" + v.Glusterfs.Path
+		case v.CephFS != nil:
+			d.Kind = "CephFS"
+			d.Source = v.CephFS.Monitors[0]
+		case v.ISCSI != nil:
+			d.Kind = "ISCSI"
+			d.Source = v.ISCSI.TargetPortal + ":" + v.ISCSI.IQN
+		case v.FC != nil:
+			d.Kind = "FC"
+		case v.FlexVolume != nil:
+			d.Kind = "FlexVolume"
+			d.Source = v.FlexVolume.Driver
+		case v.VsphereVolume != nil:
+			d.Kind = "VsphereVolume"
+			d.Source = v.VsphereVolume.VolumePath
+		case v.Quobyte != nil:
+			d.Kind = "Quobyte"
+			d.Source = v.Quobyte.Tenant + "/" + v.Quobyte.Volume
+		case v.PortworxVolume != nil:
+			d.Kind = "PortworxVolume"
+			d.Source = v.PortworxVolume.VolumeID
+		case v.ScaleIO != nil:
+			d.Kind = "ScaleIO"
+			d.Source = v.ScaleIO.VolumeName
+		case v.StorageOS != nil:
+			d.Kind = "StorageOS"
+			d.Source = v.StorageOS.VolumeName
+		case v.Ephemeral != nil:
+			d.Kind = "Ephemeral"
+			if v.Ephemeral.VolumeClaimTemplate != nil {
+				d.Source = v.Ephemeral.VolumeClaimTemplate.Name
+				if sz, ok := v.Ephemeral.VolumeClaimTemplate.Spec.Resources.Requests[corev1.ResourceStorage]; ok {
+					d.Size = sz.String()
+				}
+			}
+		case v.Cinder != nil:
+			d.Kind = "Cinder"
+			d.Source = v.Cinder.VolumeID
+		case v.GitRepo != nil:
+			d.Kind = "GitRepo"
+			d.Source = v.GitRepo.Repository
+		case v.RBD != nil:
+			d.Kind = "RBD"
+			d.Source = v.RBD.RBDImage
+		case v.Flocker != nil:
+			d.Kind = "Flocker"
+			d.Source = v.Flocker.DatasetName
+		case v.PhotonPersistentDisk != nil:
+			d.Kind = "PhotonPersistentDisk"
+			d.Source = v.PhotonPersistentDisk.PdID
+		default:
+			d.Kind = "Unknown"
+		}
+		out = append(out, d)
+	}
+	return out
+}
+
+// pvcStorageRequest best-effort reads the PVC's requested storage from the
+// informer cache. Returns empty when the PVC is not in cache or not accessible.
+func (w *contextWatcher) pvcStorageRequest(namespace, name string) string {
+	q, ok := w.pvcStorageRequestQuantity(namespace, name)
+	if !ok {
+		return ""
+	}
+	return q.String()
+}
+
+func (w *contextWatcher) pvcStorageRequestQuantity(namespace, name string) (*resource.Quantity, bool) {
+	f := w.factoryFor("PersistentVolumeClaim")
+	if f == nil {
+		return nil, false
+	}
+	pvc, err := f.Core().V1().PersistentVolumeClaims().Lister().PersistentVolumeClaims(namespace).Get(name)
+	if err != nil {
+		return nil, false
+	}
+	q, ok := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+	if !ok {
+		return nil, false
+	}
+	return &q, true
 }
 
 func (w *contextWatcher) envVarsFrom(pod *corev1.Pod, container *corev1.Container, env []corev1.EnvVar) []ContainerEnvVar {
@@ -528,7 +696,7 @@ func (w *contextWatcher) Pods(namespace string) []PodInfo {
 	if err != nil {
 		return []PodInfo{}
 	}
-	return podInfosFrom(pods)
+	return w.podInfosFrom(pods)
 }
 
 // PodsOnNode returns pods scheduled on the given node, across all namespaces.
@@ -550,7 +718,7 @@ func (w *contextWatcher) PodsOnNode(nodeName string) []PodInfo {
 			matched = append(matched, p)
 		}
 	}
-	return podInfosFrom(matched)
+	return w.podInfosFrom(matched)
 }
 
 // PodsForOwner dispatches by kind: for Node it returns pods scheduled on
@@ -633,13 +801,13 @@ func (w *contextWatcher) PodsForSelector(namespace string, sel *metav1.LabelSele
 	if listErr != nil {
 		return []PodInfo{}
 	}
-	return podInfosFrom(pods)
+	return w.podInfosFrom(pods)
 }
 
-func podInfosFrom(pods []*corev1.Pod) []PodInfo {
+func (w *contextWatcher) podInfosFrom(pods []*corev1.Pod) []PodInfo {
 	out := make([]PodInfo, 0, len(pods))
 	for _, p := range pods {
-		out = append(out, podInfoFrom(p))
+		out = append(out, w.podInfoFrom(p))
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Namespace != out[j].Namespace {
@@ -650,7 +818,7 @@ func podInfosFrom(pods []*corev1.Pod) []PodInfo {
 	return out
 }
 
-func podInfoFrom(p *corev1.Pod) PodInfo {
+func (w *contextWatcher) podInfoFrom(p *corev1.Pod) PodInfo {
 	ready, total := 0, len(p.Spec.Containers)
 	var restarts int32
 	for _, cs := range p.Status.ContainerStatuses {
@@ -660,6 +828,10 @@ func podInfoFrom(p *corev1.Pod) PodInfo {
 		restarts += cs.RestartCount
 	}
 	cpuReq, cpuLim, memReq, memLim := podResourceTotals(p)
+	ephemeralReq, ephemeralLim := podEphemeralStorageTotals(p)
+	volumeReq, volumeLim := w.podVolumeTotals(p)
+	volumeReq += ephemeralReq
+	volumeLim += ephemeralLim
 	hasPorts := false
 	for _, c := range p.Spec.Containers {
 		if len(c.Ports) > 0 {
@@ -667,22 +839,48 @@ func podInfoFrom(p *corev1.Pod) PodInfo {
 			break
 		}
 	}
-	return PodInfo{
-		Name:         p.Name,
-		Namespace:    p.Namespace,
-		Status:       derivePodStatus(p),
-		Ready:        fmt.Sprintf("%d/%d", ready, total),
-		Restarts:     restarts,
-		Node:         p.Spec.NodeName,
-		PodIP:        p.Status.PodIP,
-		CreatedAt:    p.CreationTimestamp.UTC().Format(time.RFC3339),
-		CPURequestMC: cpuReq,
-		CPULimitMC:   cpuLim,
-		MemRequestB:  memReq,
-		MemLimitB:    memLim,
-		HasPorts:     hasPorts,
-		Containers:   podContainerBriefs(p),
+	var volumeCount int32
+	for range p.Spec.Volumes {
+		volumeCount++
 	}
+	return PodInfo{
+		Name:           p.Name,
+		Namespace:      p.Namespace,
+		Status:         derivePodStatus(p),
+		Ready:          fmt.Sprintf("%d/%d", ready, total),
+		Restarts:       restarts,
+		Node:           p.Spec.NodeName,
+		PodIP:          p.Status.PodIP,
+		CreatedAt:      p.CreationTimestamp.UTC().Format(time.RFC3339),
+		CPURequestMC:   cpuReq,
+		CPULimitMC:     cpuLim,
+		MemRequestB:    memReq,
+		MemLimitB:      memLim,
+		HasPorts:       hasPorts,
+		Containers:     podContainerBriefs(p),
+		VolumeCount:    volumeCount,
+		PVCRequestB:    volumeReq,
+		VolumeRequestB: volumeReq,
+		VolumeLimitB:   volumeLim,
+	}
+}
+
+func (w *contextWatcher) podVolumeTotals(p *corev1.Pod) (requestB, limitB int64) {
+	for _, v := range p.Spec.Volumes {
+		switch {
+		case v.PersistentVolumeClaim != nil:
+			if q, ok := w.pvcStorageRequestQuantity(p.Namespace, v.PersistentVolumeClaim.ClaimName); ok {
+				requestB += q.Value()
+			}
+		case v.EmptyDir != nil && v.EmptyDir.SizeLimit != nil:
+			limitB += v.EmptyDir.SizeLimit.Value()
+		case v.Ephemeral != nil && v.Ephemeral.VolumeClaimTemplate != nil:
+			if q, ok := v.Ephemeral.VolumeClaimTemplate.Spec.Resources.Requests[corev1.ResourceStorage]; ok {
+				requestB += q.Value()
+			}
+		}
+	}
+	return
 }
 
 // podContainerBriefs summarizes every container's status for the Pods list,
@@ -762,7 +960,7 @@ func isFailureReason(reason string) bool {
 	return false
 }
 
-// podResourceTotals sums cpu/mem requests and limits across init+regular
+// podResourceTotals sums cpu/mem requests and limits across regular
 // containers, returning millicores and bytes. A zero result means unset
 // for that dimension.
 func podResourceTotals(p *corev1.Pod) (cpuReq, cpuLim, memReq, memLim int64) {
@@ -783,6 +981,18 @@ func podResourceTotals(p *corev1.Pod) (cpuReq, cpuLim, memReq, memLim int64) {
 		}
 	}
 	add(p.Spec.Containers)
+	return
+}
+
+func podEphemeralStorageTotals(p *corev1.Pod) (requestB, limitB int64) {
+	for _, c := range p.Spec.Containers {
+		if q, ok := c.Resources.Requests[corev1.ResourceEphemeralStorage]; ok {
+			requestB += q.Value()
+		}
+		if q, ok := c.Resources.Limits[corev1.ResourceEphemeralStorage]; ok {
+			limitB += q.Value()
+		}
+	}
 	return
 }
 

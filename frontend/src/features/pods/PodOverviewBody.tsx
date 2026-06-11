@@ -64,6 +64,8 @@ export function PodOverviewBody({
       {detail.initContainers.length > 0 && <PodContainersTable title="Init Containers" containers={detail.initContainers} />}
       <PodContainersTable title="Containers" containers={detail.containers} />
 
+      {detail.volumes && detail.volumes.length > 0 && <PodVolumesSection volumes={detail.volumes} />}
+
       <ContainerEnvSection
         title="Environment"
         contextName={contextName}
@@ -420,6 +422,36 @@ function ResizeStatusBanner({ status }: { status: string }) {
   )
 }
 
+function PodVolumesSection({ volumes }: { volumes: PodDetail['volumes'] }) {
+  if (!volumes || volumes.length === 0) return null
+  return (
+    <Section title="Volumes">
+      <div className="overflow-hidden rounded border border-border">
+        <table className="w-full text-xs">
+          <thead className="bg-muted/40 text-muted-foreground">
+            <tr>
+              <Th>Name</Th>
+              <Th>Kind</Th>
+              <Th>Source</Th>
+              <Th>Size</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {volumes.map((v, i) => (
+              <tr key={i} className="border-t border-border">
+                <Td className="font-mono">{v.name}</Td>
+                <Td>{v.kind}</Td>
+                <Td className="font-mono text-muted-foreground">{v.source || '—'}</Td>
+                <Td className="font-mono text-muted-foreground">{v.size || '—'}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+  )
+}
+
 function resourceCell(req: string, lim: string) {
   if (!req && !lim) return <span className="text-muted-foreground">—</span>
   return (
@@ -453,6 +485,8 @@ function PodContainersTable({
               <Th>Restarts</Th>
               <Th>CPU req/lim</Th>
               <Th>Mem req/lim</Th>
+              <Th>Ephemeral</Th>
+              <Th>Mounts</Th>
             </tr>
           </thead>
           <tbody>
@@ -468,6 +502,16 @@ function PodContainersTable({
                 <Td>{c.restartCount}</Td>
                 <Td>{resourceCell(c.resources?.cpuRequest ?? '', c.resources?.cpuLimit ?? '')}</Td>
                 <Td>{resourceCell(c.resources?.memRequest ?? '', c.resources?.memLimit ?? '')}</Td>
+                <Td>{resourceCell(c.resources?.ephemeralStorageRequest ?? '', c.resources?.ephemeralStorageLimit ?? '')}</Td>
+                <Td>
+                  {c.volumeMounts && c.volumeMounts.length > 0 ? (
+                    <span className="text-muted-foreground" title={c.volumeMounts.map((m) => `${m.name}:${m.mountPath}`).join('\n')}>
+                      {c.volumeMounts.length}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </Td>
               </tr>
             ))}
           </tbody>
